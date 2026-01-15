@@ -200,8 +200,8 @@ class TransactionController extends Controller
     {
         $budget = Budget::where('user_id', auth()->id())
             ->where('category_id', $transaction->category_id)
-            ->whereYear('month', $transaction->transaction_date->year)
-            ->whereMonth('month', $transaction->transaction_date->month)
+            ->where('period_year', $transaction->transaction_date->year)
+            ->where('period_month', $transaction->transaction_date->month)
             ->first();
 
         if (!$budget) return;
@@ -215,9 +215,10 @@ class TransactionController extends Controller
 
         $percentage = ($spent / $budget->amount) * 100;
 
-        // Notify at 80%, 100%, and 120%
-        if (in_array((int)$percentage, [80, 100, 120])) {
-            auth()->user()->notify(new BudgetExceededNotification($budget, $spent / 100, $percentage));
+        // Notify when crossing thresholds
+        if ($percentage >= 80) {
+            $budget->load('category');
+            auth()->user()->notify(new BudgetExceededNotification($budget, $spent, $percentage));
         }
     }
 }

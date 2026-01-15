@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { LayoutGrid, Wallet, ArrowUpDown, PieChart, Target, Folder, Settings, CreditCard, TrendingUp, BarChart3, Bell } from 'lucide-react';
 
 import { NavFooter } from '@/components/nav-footer';
@@ -20,61 +20,64 @@ import { type NavItem } from '@/types';
 
 import AppLogo from './app-logo';
 
-const overviewItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Accounts',
-        href: '/accounts',
-        icon: Wallet,
-    },
-    {
-        title: 'Transactions',
-        href: '/transactions',
-        icon: ArrowUpDown,
-    },
-    {
-        title: 'Reports',
-        href: '/reports',
-        icon: BarChart3,
-    },
-    {
-        title: 'Notifications',
-        href: '/notifications',
-        icon: Bell,
-    },
-];
-
-const planningItems: NavItem[] = [
-    {
-        title: 'Budgets',
-        href: '/budgets',
-        icon: PieChart,
-    },
-    {
-        title: 'Goals',
-        href: '/goals',
-        icon: Target,
-    },
-    {
-        title: 'Categories',
-        href: '/categories',
-        icon: Folder,
-    },
-];
-
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Settings',
-        href: '/user/profile',
-        icon: Settings,
-    },
-];
-
 export function AppSidebar() {
+    const { unreadNotifications } = usePage().props as any;
+
+    const overviewItems: NavItem[] = [
+        {
+            title: 'Dashboard',
+            href: dashboard(),
+            icon: LayoutGrid,
+        },
+        {
+            title: 'Accounts',
+            href: '/accounts',
+            icon: Wallet,
+        },
+        {
+            title: 'Transactions',
+            href: '/transactions',
+            icon: ArrowUpDown,
+        },
+        {
+            title: 'Reports',
+            href: '/reports',
+            icon: BarChart3,
+        },
+        {
+            title: 'Notifications',
+            href: '/notifications',
+            icon: Bell,
+            badge: unreadNotifications > 0 ? unreadNotifications : undefined,
+        },
+    ];
+
+    const planningItems: NavItem[] = [
+        {
+            title: 'Budgets',
+            href: '/budgets',
+            icon: PieChart,
+        },
+        {
+            title: 'Goals',
+            href: '/goals',
+            icon: Target,
+        },
+        {
+            title: 'Categories',
+            href: '/categories',
+            icon: Folder,
+        },
+    ];
+
+    const footerNavItems: NavItem[] = [
+        {
+            title: 'Settings',
+            href: '/user/profile',
+            icon: Settings,
+        },
+    ];
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>

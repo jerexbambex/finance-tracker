@@ -75,6 +75,8 @@ class BudgetController extends Controller
             'period_month' => 'required_if:period_type,monthly|nullable|integer|min:1|max:12'
         ]);
 
+        $validated['amount'] = $validated['amount'] * 100;
+
         auth()->user()->budgets()->create($validated);
 
         return redirect()->route('budgets.index');
@@ -105,6 +107,8 @@ class BudgetController extends Controller
             'period_year' => 'required|integer|min:2020',
             'period_month' => 'required_if:period_type,monthly|nullable|integer|min:1|max:12'
         ]);
+
+        $validated['amount'] = $validated['amount'] * 100;
 
         $budget->update($validated);
 

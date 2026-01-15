@@ -1,8 +1,7 @@
 import { Head, Link, router } from "@inertiajs/react";
 import AppLayout from "@/layouts/app-layout";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Bell, CheckCheck, AlertTriangle, Target, TrendingUp } from "lucide-react";
+import { Bell, CheckCheck, AlertTriangle, Target, TrendingUp, Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface Notification {
@@ -39,26 +38,17 @@ export default function Index({ notifications, unreadCount }: Props) {
     router.post("/notifications/mark-all-read");
   };
 
-  const getNotificationIcon = (type: string, percentage?: number) => {
+  const getNotificationBadge = (type: string, percentage?: number) => {
     if (type.includes("Budget")) {
       if (percentage && percentage >= 100) {
-        return <AlertTriangle className="h-5 w-5 text-destructive" />;
+        return <Badge variant="destructive" className="text-xs">Over Budget</Badge>;
       }
-      return <TrendingUp className="h-5 w-5 text-orange-500" />;
+      return <Badge variant="outline" className="text-xs border-orange-500 text-orange-600">Warning</Badge>;
     }
     if (type.includes("Goal")) {
-      return <Target className="h-5 w-5 text-green-500" />;
+      return <Badge variant="outline" className="text-xs border-green-500 text-green-600">Achieved</Badge>;
     }
-    return <Bell className="h-5 w-5 text-muted-foreground" />;
-  };
-
-  const getNotificationColor = (type: string, percentage?: number) => {
-    if (type.includes("Budget")) {
-      if (percentage && percentage >= 100) return "border-l-4 border-l-destructive";
-      return "border-l-4 border-l-orange-500";
-    }
-    if (type.includes("Goal")) return "border-l-4 border-l-green-500";
-    return "";
+    return null;
   };
 
   const formatTime = (date: string) => {
@@ -80,96 +70,93 @@ export default function Index({ notifications, unreadCount }: Props) {
     <AppLayout>
       <Head title="Notifications" />
 
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Notifications</h1>
-            <p className="text-muted-foreground mt-1">
-              Stay updated on your budget and goals
-            </p>
+      <div className="py-12">
+        <div className="max-w-5xl mx-auto sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h1 className="text-3xl font-bold">Notifications</h1>
+              <p className="text-muted-foreground text-sm mt-1">
+                {unreadCount > 0 
+                  ? `${unreadCount} unread`
+                  : 'All caught up!'}
+              </p>
+            </div>
+            {unreadCount > 0 && (
+              <Button onClick={markAllAsRead} variant="outline" size="sm">
+                <CheckCheck className="mr-2 h-4 w-4" />
+                Mark All Read
+              </Button>
+            )}
           </div>
-          {unreadCount > 0 && (
-            <Button onClick={markAllAsRead} variant="outline" size="sm">
-              <CheckCheck className="mr-2 h-4 w-4" />
-              Mark All Read
-            </Button>
-          )}
-        </div>
 
-        {unreadCount > 0 && (
-          <div className="flex items-center gap-2 text-sm">
-            <Badge variant="default">{unreadCount}</Badge>
-            <span className="text-muted-foreground">unread notification{unreadCount > 1 ? "s" : ""}</span>
-          </div>
-        )}
-
-        <div className="space-y-2">
           {notifications.data.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-16">
-                <div className="rounded-full bg-muted p-4 mb-4">
-                  <Bell className="h-8 w-8 text-muted-foreground" />
-                </div>
-                <h3 className="font-semibold text-lg mb-1">No notifications yet</h3>
-                <p className="text-muted-foreground text-sm">
-                  We'll notify you about budget alerts and goal achievements
-                </p>
-              </CardContent>
-            </Card>
+            <div className="flex flex-col items-center justify-center py-16 text-center border rounded-lg bg-card">
+              <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                <Bell className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <h3 className="font-semibold text-lg mb-2">No notifications yet</h3>
+              <p className="text-muted-foreground text-sm max-w-sm">
+                We'll notify you about budget alerts and goal achievements
+              </p>
+            </div>
           ) : (
-            notifications.data.map((notification) => (
-              <Card
-                key={notification.id}
-                className={`transition-all hover:shadow-md ${
-                  !notification.read_at ? "bg-accent/50" : ""
-                } ${getNotificationColor(notification.type, notification.data.percentage)}`}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-4">
-                    <div className="mt-0.5">
-                      {getNotificationIcon(notification.type, notification.data.percentage)}
-                    </div>
-                    <div className="flex-1 min-w-0">
+            <div className="space-y-1">
+              {notifications.data.map((notification) => (
+                <div
+                  key={notification.id}
+                  className={`group flex items-start gap-3 p-4 rounded-lg border transition-colors hover:bg-accent/50 ${
+                    !notification.read_at ? "bg-accent/30 border-primary/20" : "bg-card"
+                  }`}
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-3 mb-1">
                       <p className={`text-sm ${!notification.read_at ? "font-medium" : ""}`}>
                         {notification.data.message}
                       </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {formatTime(notification.created_at)}
-                      </p>
+                      {getNotificationBadge(notification.type, notification.data.percentage)}
                     </div>
-                    {!notification.read_at && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => markAsRead(notification.id)}
-                        className="shrink-0"
-                      >
-                        <CheckCheck className="h-4 w-4" />
-                      </Button>
-                    )}
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span>{formatTime(notification.created_at)}</span>
+                      {notification.data.category && (
+                        <>
+                          <span>•</span>
+                          <span>{notification.data.category}</span>
+                        </>
+                      )}
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))
+                  {!notification.read_at && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => markAsRead(notification.id)}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                    >
+                      <Check className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {notifications.last_page > 1 && (
+            <div className="flex justify-center gap-1 mt-6">
+              {notifications.links.map((link, index) => (
+                <Link
+                  key={index}
+                  href={link.url || "#"}
+                  className={`px-3 py-2 text-sm rounded-md transition-colors ${
+                    link.active
+                      ? "bg-primary text-primary-foreground"
+                      : "hover:bg-accent"
+                  }`}
+                  dangerouslySetInnerHTML={{ __html: link.label }}
+                />
+              ))}
+            </div>
           )}
         </div>
-
-        {notifications.last_page > 1 && (
-          <div className="flex justify-center gap-1">
-            {notifications.links.map((link, index) => (
-              <Link
-                key={index}
-                href={link.url || "#"}
-                className={`px-3 py-2 text-sm rounded-md transition-colors ${
-                  link.active
-                    ? "bg-primary text-primary-foreground"
-                    : "hover:bg-accent"
-                }`}
-                dangerouslySetInnerHTML={{ __html: link.label }}
-              />
-            ))}
-          </div>
-        )}
       </div>
     </AppLayout>
   );

@@ -26,7 +26,7 @@ class BudgetExceededNotification extends Notification
             'budget_id' => $this->budget->id,
             'category' => $this->budget->category->name,
             'amount' => $this->budget->amount / 100,
-            'spent' => $this->spent,
+            'spent' => $this->spent / 100,
             'percentage' => round($this->percentage, 1),
             'message' => "You've spent " . round($this->percentage, 1) . "% of your {$this->budget->category->name} budget",
         ];
