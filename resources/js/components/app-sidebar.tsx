@@ -1,0 +1,104 @@
+import { Link } from '@inertiajs/react';
+import { LayoutGrid, Wallet, ArrowUpDown, PieChart, Target, Folder, Settings, CreditCard, TrendingUp, BarChart3 } from 'lucide-react';
+
+import { NavFooter } from '@/components/nav-footer';
+import { NavMain } from '@/components/nav-main';
+import { NavUser } from '@/components/nav-user';
+import {
+    Sidebar,
+    SidebarContent,
+    SidebarFooter,
+    SidebarHeader,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+    SidebarGroup,
+    SidebarGroupLabel,
+} from '@/components/ui/sidebar';
+import { dashboard } from '@/routes';
+import { type NavItem } from '@/types';
+
+import AppLogo from './app-logo';
+
+const overviewItems: NavItem[] = [
+    {
+        title: 'Dashboard',
+        href: dashboard(),
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Accounts',
+        href: '/accounts',
+        icon: Wallet,
+    },
+    {
+        title: 'Transactions',
+        href: '/transactions',
+        icon: ArrowUpDown,
+    },
+    {
+        title: 'Reports',
+        href: '/reports',
+        icon: BarChart3,
+    },
+];
+
+const planningItems: NavItem[] = [
+    {
+        title: 'Budgets',
+        href: '/budgets',
+        icon: PieChart,
+    },
+    {
+        title: 'Goals',
+        href: '/goals',
+        icon: Target,
+    },
+    {
+        title: 'Categories',
+        href: '/categories',
+        icon: Folder,
+    },
+];
+
+const footerNavItems: NavItem[] = [
+    {
+        title: 'Settings',
+        href: '/user/profile',
+        icon: Settings,
+    },
+];
+
+export function AppSidebar() {
+    return (
+        <Sidebar collapsible="icon" variant="inset">
+            <SidebarHeader>
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton size="lg" asChild>
+                            <Link href={dashboard()} prefetch>
+                                <AppLogo />
+                            </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarHeader>
+
+            <SidebarContent>
+                <SidebarGroup>
+                    <SidebarGroupLabel>Overview</SidebarGroupLabel>
+                    <NavMain items={overviewItems} />
+                </SidebarGroup>
+                <SidebarGroup>
+                    <SidebarGroupLabel>Planning</SidebarGroupLabel>
+                    <NavMain items={planningItems} />
+                </SidebarGroup>
+            </SidebarContent>
+
+            <SidebarFooter>
+                <NavFooter items={footerNavItems} className="mt-auto" />
+                <NavUser />
+            </SidebarFooter>
+        </Sidebar>
+    );
+}
