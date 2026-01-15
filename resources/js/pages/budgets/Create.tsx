@@ -1,0 +1,157 @@
+import { Head, useForm } from '@inertiajs/react';
+import AppLayout from '@/layouts/app-layout';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+interface Category {
+  id: string;
+  name: string;
+}
+
+interface Props {
+  categories: Category[];
+}
+
+export default function Create({ categories }: Props) {
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth() + 1;
+
+  const { data, setData, post, processing, errors } = useForm({
+    category_id: '',
+    amount: '',
+    period_type: 'monthly',
+    period_year: currentYear.toString(),
+    period_month: currentMonth.toString(),
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    post('/budgets');
+  };
+
+  const months = [
+    { value: '1', label: 'January' },
+    { value: '2', label: 'February' },
+    { value: '3', label: 'March' },
+    { value: '4', label: 'April' },
+    { value: '5', label: 'May' },
+    { value: '6', label: 'June' },
+    { value: '7', label: 'July' },
+    { value: '8', label: 'August' },
+    { value: '9', label: 'September' },
+    { value: '10', label: 'October' },
+    { value: '11', label: 'November' },
+    { value: '12', label: 'December' },
+  ];
+
+  const years = Array.from({ length: 5 }, (_, i) => currentYear + i);
+
+  return (
+    <AppLayout>
+      <Head title="Create Budget" />
+      
+      <div className="py-12">
+        <div className="max-w-2xl mx-auto sm:px-6 lg:px-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Create New Budget</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div>
+                  <Label htmlFor="category_id">Category</Label>
+                  <Select value={data.category_id} onValueChange={(value) => setData('category_id', value)}>
+                    <SelectTrigger className={errors.category_id ? 'border-red-500' : ''}>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.category_id && <p className="text-red-500 text-sm mt-1">{errors.category_id}</p>}
+                </div>
+
+                <div>
+                  <Label htmlFor="amount">Budget Amount</Label>
+                  <Input
+                    id="amount"
+                    type="number"
+                    step="0.01"
+                    value={data.amount}
+                    onChange={(e) => setData('amount', e.target.value)}
+                    placeholder="0.00"
+                    className={errors.amount ? 'border-red-500' : ''}
+                  />
+                  {errors.amount && <p className="text-red-500 text-sm mt-1">{errors.amount}</p>}
+                </div>
+
+                <div>
+                  <Label htmlFor="period_type">Period Type</Label>
+                  <Select value={data.period_type} onValueChange={(value) => setData('period_type', value)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                      <SelectItem value="yearly">Yearly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="period_year">Year</Label>
+                  <Select value={data.period_year} onValueChange={(value) => setData('period_year', value)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {years.map((year) => (
+                        <SelectItem key={year} value={year.toString()}>
+                          {year}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {data.period_type === 'monthly' && (
+                  <div>
+                    <Label htmlFor="period_month">Month</Label>
+                    <Select value={data.period_month} onValueChange={(value) => setData('period_month', value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {months.map((month) => (
+                          <SelectItem key={month.value} value={month.value}>
+                            {month.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                <div className="flex gap-4">
+                  <Button type="submit" disabled={processing}>
+                    {processing ? 'Creating...' : 'Create Budget'}
+                  </Button>
+                  <Button type="button" variant="outline" onClick={() => window.history.back()}>
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </AppLayout>
+  );
+}
