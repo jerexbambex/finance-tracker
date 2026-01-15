@@ -70,11 +70,11 @@ export default function Index({ notifications, unreadCount }: Props) {
     <AppLayout>
       <Head title="Notifications" />
 
-      <div className="py-12">
-        <div className="max-w-5xl mx-auto sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center mb-6">
+      <div className="py-6 sm:py-12">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
             <div>
-              <h1 className="text-3xl font-bold">Notifications</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold">Notifications</h1>
               <p className="text-muted-foreground text-sm mt-1">
                 {unreadCount > 0 
                   ? `${unreadCount} unread`

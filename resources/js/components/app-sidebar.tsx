@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutGrid, Wallet, ArrowUpDown, PieChart, Target, Folder, Settings, CreditCard, TrendingUp, BarChart3, Bell } from 'lucide-react';
+import { LayoutGrid, Wallet, ArrowUpDown, PieChart, Target, Folder, Settings, CreditCard, TrendingUp, BarChart3, Bell, Repeat } from 'lucide-react';
 
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -62,6 +62,11 @@ export function AppSidebar() {
             title: 'Goals',
             href: '/goals',
             icon: Target,
+        },
+        {
+            title: 'Recurring',
+            href: '/recurring-transactions',
+            icon: Repeat,
         },
         {
             title: 'Categories',

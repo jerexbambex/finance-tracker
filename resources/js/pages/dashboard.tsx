@@ -2,6 +2,8 @@ import { Head } from '@inertiajs/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowUpRight, ArrowDownRight, TrendingUp, Wallet, Clock } from 'lucide-react';
+import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
@@ -40,17 +42,31 @@ interface Goal {
     percentage: number;
 }
 
+interface CategorySpending {
+    name: string;
+    amount: number;
+    color: string;
+}
+
+interface MonthlyTrend {
+    month: string;
+    income: number;
+    expense: number;
+}
+
 interface Props {
     accounts: Account[];
     totalBalance: number;
     recentTransactions: Transaction[];
     monthlyIncome: number;
     monthlyExpenses: number;
+    categorySpending: CategorySpending[];
+    monthlyTrend: MonthlyTrend[];
     budgets: Budget[];
     goals: Goal[];
 }
 
-export default function Dashboard({ accounts, totalBalance, recentTransactions, monthlyIncome, monthlyExpenses, budgets, goals }: Props) {
+export default function Dashboard({ accounts, totalBalance, recentTransactions, monthlyIncome, monthlyExpenses, categorySpending, monthlyTrend, budgets, goals }: Props) {
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
@@ -209,6 +225,65 @@ export default function Dashboard({ accounts, totalBalance, recentTransactions, 
                                                 </div>
                                             ))}
                                         </div>
+                                    </CardContent>
+                                </Card>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Charts Section */}
+                    {(categorySpending.length > 0 || monthlyTrend.length > 0) && (
+                        <div className="grid gap-6 md:grid-cols-2">
+                            {/* Spending by Category */}
+                            {categorySpending.length > 0 && (
+                                <Card className="border-border/40">
+                                    <CardHeader>
+                                        <CardTitle>Top Spending Categories</CardTitle>
+                                        <p className="text-xs text-muted-foreground">This month</p>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="space-y-3">
+                                            {categorySpending.map((category, index) => (
+                                                <div key={index} className="flex items-center gap-3">
+                                                    <div 
+                                                        className="w-3 h-3 rounded-full flex-shrink-0"
+                                                        style={{ backgroundColor: category.color }}
+                                                    />
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm font-medium truncate">{category.name}</p>
+                                                    </div>
+                                                    <p className="text-sm font-semibold">{formatCurrency(category.amount)}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            )}
+
+                            {/* Monthly Trend */}
+                            {monthlyTrend.length > 0 && (
+                                <Card className="border-border/40">
+                                    <CardHeader>
+                                        <CardTitle>6-Month Trend</CardTitle>
+                                        <p className="text-xs text-muted-foreground">Income vs Expenses</p>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <ChartContainer
+                                            config={{
+                                                income: { label: 'Income', color: '#10b981' },
+                                                expense: { label: 'Expense', color: '#ef4444' },
+                                            }}
+                                            className="h-[200px]"
+                                        >
+                                            <BarChart data={monthlyTrend}>
+                                                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                                                <XAxis dataKey="month" className="text-xs" />
+                                                <YAxis className="text-xs" />
+                                                <ChartTooltip content={<ChartTooltipContent />} />
+                                                <Bar dataKey="income" fill="#10b981" radius={[4, 4, 0, 0]} />
+                                                <Bar dataKey="expense" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                                            </BarChart>
+                                        </ChartContainer>
                                     </CardContent>
                                 </Card>
                             )}

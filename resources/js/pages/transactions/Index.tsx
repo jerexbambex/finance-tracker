@@ -196,16 +196,22 @@ export default function Index({ transactions, accounts, categories, chartData }:
     <AppLayout>
       <Head title="Transactions" />
       
-      <div className="py-12">
-        <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold">Transactions</h1>
+      <div className="py-6 sm:py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+            <h1 className="text-2xl sm:text-3xl font-bold">Transactions</h1>
             <div className="flex gap-2">
               <Link href="/import/transactions">
-                <Button variant="outline">Import CSV</Button>
+                <Button variant="outline" size="sm" className="sm:size-default">
+                  <span className="hidden sm:inline">Import CSV</span>
+                  <span className="sm:hidden">Import</span>
+                </Button>
               </Link>
               <Link href="/transactions/create">
-                <Button>New Transaction</Button>
+                <Button size="sm" className="sm:size-default">
+                  <span className="hidden sm:inline">New Transaction</span>
+                  <span className="sm:hidden">New</span>
+                </Button>
               </Link>
             </div>
           </div>
@@ -318,36 +324,36 @@ export default function Index({ transactions, accounts, categories, chartData }:
             <Card>
               <CardHeader>
                 <div className="flex flex-col gap-4">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <CardTitle>Recent Transactions</CardTitle>
-                    <Link href="/transactions/create">
+                    <Link href="/transactions/create" className="hidden sm:block">
                       <Button>Add Transaction</Button>
                     </Link>
                   </div>
                   
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2">
                     <Input
-                      placeholder="Search transactions..."
+                      placeholder="Search..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="max-w-xs"
+                      className="w-full sm:max-w-xs"
                     />
                     <Input
                       type="date"
-                      placeholder="From date"
+                      placeholder="From"
                       value={dateFrom}
                       onChange={(e) => setDateFrom(e.target.value)}
-                      className="w-40"
+                      className="w-full sm:w-40"
                     />
                     <Input
                       type="date"
-                      placeholder="To date"
+                      placeholder="To"
                       value={dateTo}
                       onChange={(e) => setDateTo(e.target.value)}
-                      className="w-40"
+                      className="w-full sm:w-40"
                     />
                     <Select value={filterType} onValueChange={(value: any) => setFilterType(value)}>
-                      <SelectTrigger className="w-32">
+                      <SelectTrigger className="w-full sm:w-32">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -357,7 +363,7 @@ export default function Index({ transactions, accounts, categories, chartData }:
                       </SelectContent>
                     </Select>
                     <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
-                      <SelectTrigger className="w-32">
+                      <SelectTrigger className="w-full sm:w-32">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -368,40 +374,47 @@ export default function Index({ transactions, accounts, categories, chartData }:
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Account</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead className="text-right">Amount</TableHead>
-                      <TableHead className="text-right"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {paginatedTransactions.map((transaction) => (
-                      <TableRow key={transaction.id}>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <div
-                              className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-semibold flex-shrink-0"
-                              style={{
-                                backgroundColor: transaction.category?.color || '#6b7280',
-                              }}
-                            >
-                              {transaction.type === 'income' ? '↑' : '↓'}
+              <CardContent className="p-0 sm:p-6">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Description</TableHead>
+                        <TableHead className="hidden md:table-cell">Category</TableHead>
+                        <TableHead className="hidden lg:table-cell">Account</TableHead>
+                        <TableHead className="hidden sm:table-cell">Date</TableHead>
+                        <TableHead className="text-right">Amount</TableHead>
+                        <TableHead className="text-right w-20"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {paginatedTransactions.map((transaction) => (
+                        <TableRow key={transaction.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <div
+                                className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center text-white font-semibold flex-shrink-0"
+                                style={{
+                                  backgroundColor: transaction.category?.color || '#6b7280',
+                                }}
+                              >
+                                {transaction.type === 'income' ? '↑' : '↓'}
                             </div>
-                            <span className="font-medium">{transaction.description}</span>
+                            <div className="min-w-0">
+                              <p className="font-medium truncate">{transaction.description}</p>
+                              <p className="text-xs text-muted-foreground md:hidden">
+                                {transaction.category?.name || 'Uncategorized'}
+                                <span className="sm:hidden"> • {formatDate(transaction.transaction_date)}</span>
+                              </p>
+                            </div>
                           </div>
                         </TableCell>
-                        <TableCell>{transaction.category?.name || '—'}</TableCell>
-                        <TableCell>{transaction.account.name}</TableCell>
-                        <TableCell>{formatDate(transaction.transaction_date)}</TableCell>
+                        <TableCell className="hidden md:table-cell">{transaction.category?.name || '—'}</TableCell>
+                        <TableCell className="hidden lg:table-cell">{transaction.account.name}</TableCell>
+                        <TableCell className="hidden sm:table-cell">{formatDate(transaction.transaction_date)}</TableCell>
                         <TableCell className="text-right">
                           <span
-                            className={`font-semibold ${
+                            className={`font-semibold text-sm sm:text-base ${
                               transaction.type === 'income'
                                 ? 'text-green-600'
                                 : 'text-red-600'
@@ -414,14 +427,14 @@ export default function Index({ transactions, accounts, categories, chartData }:
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
                             <Link href={`/transactions/${transaction.id}/edit`}>
-                              <Button variant="ghost" size="icon">
-                                <Pencil className="h-4 w-4" />
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <Pencil className="h-3.5 w-3.5" />
                               </Button>
                             </Link>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <Trash2 className="h-3.5 w-3.5 text-destructive" />
                                 </Button>
                               </AlertDialogTrigger>
                               <AlertDialogContent>
@@ -448,11 +461,12 @@ export default function Index({ transactions, accounts, categories, chartData }:
                     ))}
                   </TableBody>
                 </Table>
+                </div>
                 
                 {totalPages > 1 && (
-                  <div className="flex items-center justify-between mt-4">
-                    <div className="text-sm text-muted-foreground">
-                      Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, sortedTransactions.length)} of {sortedTransactions.length} transactions
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 px-4 sm:px-0">
+                    <div className="text-xs sm:text-sm text-muted-foreground">
+                      Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, sortedTransactions.length)} of {sortedTransactions.length}
                     </div>
                     <div className="flex items-center gap-2">
                       <Button
@@ -463,7 +477,7 @@ export default function Index({ transactions, accounts, categories, chartData }:
                       >
                         Previous
                       </Button>
-                      <div className="text-sm">
+                      <div className="text-xs sm:text-sm">
                         Page {currentPage} of {totalPages}
                       </div>
                       <Button

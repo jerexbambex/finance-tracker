@@ -9,6 +9,7 @@ use App\Http\Controllers\ExportController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ImportController;
+use App\Http\Controllers\RecurringTransactionController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -34,17 +35,59 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->take(10)
             ->get();
         
-        // Calculate monthly income and expenses
+        // Calculate monthly income and expenses (use raw query to avoid accessor)
         $startOfMonth = now()->startOfMonth();
         $monthlyIncome = $user->transactions()
             ->where('type', 'income')
             ->where('transaction_date', '>=', $startOfMonth)
-            ->sum('amount') / 100;
+            ->sum(\DB::raw('amount')) / 100;
             
         $monthlyExpenses = $user->transactions()
             ->where('type', 'expense')
             ->where('transaction_date', '>=', $startOfMonth)
-            ->sum('amount') / 100;
+            ->sum(\DB::raw('amount')) / 100;
+        
+        // Spending by category (current month) - use raw sum
+        $categorySpending = $user->transactions()
+            ->selectRaw('category_id, SUM(amount) as total')
+            ->with('category')
+            ->where('type', 'expense')
+            ->where('transaction_date', '>=', $startOfMonth)
+            ->groupBy('category_id')
+            ->orderByDesc('total')
+            ->take(5)
+            ->get()
+            ->map(function($transaction) {
+                return [
+                    'name' => $transaction->category ? $transaction->category->name : 'Uncategorized',
+                    'amount' => $transaction->total / 100,
+                    'color' => $transaction->category ? $transaction->category->color : '#6b7280',
+                ];
+            });
+        
+        // Last 6 months trend - use raw sum
+        $monthlyTrend = collect();
+        for ($i = 5; $i >= 0; $i--) {
+            $date = now()->subMonths($i);
+            
+            $income = $user->transactions()
+                ->where('type', 'income')
+                ->whereYear('transaction_date', $date->year)
+                ->whereMonth('transaction_date', $date->month)
+                ->sum(\DB::raw('amount')) / 100;
+                
+            $expense = $user->transactions()
+                ->where('type', 'expense')
+                ->whereYear('transaction_date', $date->year)
+                ->whereMonth('transaction_date', $date->month)
+                ->sum(\DB::raw('amount')) / 100;
+            
+            $monthlyTrend->push([
+                'month' => $date->format('M'),
+                'income' => $income,
+                'expense' => $expense,
+            ]);
+        }
         
         // Budget progress
         $currentMonth = now()->month;
@@ -85,6 +128,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'recentTransactions' => $recentTransactions,
             'monthlyIncome' => $monthlyIncome,
             'monthlyExpenses' => $monthlyExpenses,
+            'categorySpending' => $categorySpending,
+            'monthlyTrend' => $monthlyTrend,
             'budgets' => $budgets,
             'goals' => $goals,
         ]);
@@ -95,6 +140,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('budgets', BudgetController::class);
     Route::resource('goals', GoalController::class);
     Route::resource('categories', CategoryController::class);
+    Route::resource('recurring-transactions', RecurringTransactionController::class);
     Route::resource('reports', ReportsController::class)->only(['index']);
     
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
