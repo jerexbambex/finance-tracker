@@ -189,9 +189,14 @@ export default function Index({ transactions, accounts, categories, chartData }:
         <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold">Transactions</h1>
-            <Link href="/transactions/create">
-              <Button>New Transaction</Button>
-            </Link>
+            <div className="flex gap-2">
+              <Link href="/import/transactions">
+                <Button variant="outline">Import CSV</Button>
+              </Link>
+              <Link href="/transactions/create">
+                <Button>New Transaction</Button>
+              </Link>
+            </div>
           </div>
 
           {transactions.data.length > 0 && (

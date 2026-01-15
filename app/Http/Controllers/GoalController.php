@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Goal;
+use App\Notifications\GoalAchievedNotification;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Inertia\Inertia;
@@ -77,10 +78,12 @@ class GoalController extends Controller
             'category' => 'nullable|string|max:100',
         ]);
 
+        $wasCompleted = $goal->is_completed;
         $goal->update($validated);
 
-        if ($goal->current_amount >= $goal->target_amount) {
+        if (!$wasCompleted && $goal->current_amount >= $goal->target_amount) {
             $goal->update(['is_completed' => true]);
+            auth()->user()->notify(new GoalAchievedNotification($goal));
         }
 
         return redirect()->route('goals.index');

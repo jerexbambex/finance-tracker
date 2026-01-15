@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Transaction;
 use App\Models\Account;
 use App\Models\Category;
+use App\Models\Budget;
+use App\Notifications\BudgetExceededNotification;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -129,7 +131,12 @@ class TransactionController extends Controller
             ->where('user_id', auth()->id())
             ->firstOrFail();
 
-        auth()->user()->transactions()->create($validated);
+        $transaction = auth()->user()->transactions()->create($validated);
+
+        // Check budget alerts for expenses
+        if ($transaction->type === 'expense' && $transaction->category_id) {
+            $this->checkBudgetAlert($transaction);
+        }
 
         return redirect()->route('transactions.index');
     }
@@ -187,5 +194,30 @@ class TransactionController extends Controller
         $transaction->delete();
 
         return redirect()->route('transactions.index');
+    }
+
+    private function checkBudgetAlert(Transaction $transaction): void
+    {
+        $budget = Budget::where('user_id', auth()->id())
+            ->where('category_id', $transaction->category_id)
+            ->whereYear('month', $transaction->transaction_date->year)
+            ->whereMonth('month', $transaction->transaction_date->month)
+            ->first();
+
+        if (!$budget) return;
+
+        $spent = auth()->user()->transactions()
+            ->where('type', 'expense')
+            ->where('category_id', $transaction->category_id)
+            ->whereYear('transaction_date', $transaction->transaction_date->year)
+            ->whereMonth('transaction_date', $transaction->transaction_date->month)
+            ->sum('amount');
+
+        $percentage = ($spent / $budget->amount) * 100;
+
+        // Notify at 80%, 100%, and 120%
+        if (in_array((int)$percentage, [80, 100, 120])) {
+            auth()->user()->notify(new BudgetExceededNotification($budget, $spent / 100, $percentage));
+        }
     }
 }

@@ -7,6 +7,8 @@ use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\ReportsController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ImportController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -94,6 +96,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('goals', GoalController::class);
     Route::resource('categories', CategoryController::class);
     Route::resource('reports', ReportsController::class)->only(['index']);
+    
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
+    
+    Route::get('/import/transactions', [ImportController::class, 'index'])->name('import.index');
+    Route::post('/import/transactions', [ImportController::class, 'import'])->name('import.transactions');
     
     Route::get('/export/transactions', [ExportController::class, 'exportTransactions'])->name('export.transactions');
     Route::get('/export/all', [ExportController::class, 'exportAll'])->name('export.all');

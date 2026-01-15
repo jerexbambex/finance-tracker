@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { LayoutGrid, Wallet, ArrowUpDown, PieChart, Target, Folder, Settings, CreditCard, TrendingUp, BarChart3 } from 'lucide-react';
+import { LayoutGrid, Wallet, ArrowUpDown, PieChart, Target, Folder, Settings, CreditCard, TrendingUp, BarChart3, Bell } from 'lucide-react';
 
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -40,6 +40,11 @@ const overviewItems: NavItem[] = [
         title: 'Reports',
         href: '/reports',
         icon: BarChart3,
+    },
+    {
+        title: 'Notifications',
+        href: '/notifications',
+        icon: Bell,
     },
 ];
 
