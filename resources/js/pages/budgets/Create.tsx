@@ -24,30 +24,22 @@ export default function Create({ categories }: Props) {
     category_id: '',
     amount: '',
     period_type: 'monthly',
-    period_year: currentYear,
-    period_month: currentMonth,
+    year: currentYear,
+    month: currentMonth,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    console.log('Data object:', data);
-    console.log('period_year:', data.period_year, typeof data.period_year);
-    console.log('period_month:', data.period_month, typeof data.period_month);
-    
-    // Transform and send explicitly
+    // Map to correct field names for backend
     post('/budgets', {
-      transform: (data) => {
-        const transformed = {
-          category_id: data.category_id,
-          amount: data.amount,
-          period_type: data.period_type,
-          period_year: data.period_year,
-          period_month: data.period_month,
-        };
-        console.log('Transformed data:', transformed);
-        return transformed;
-      },
+      transform: (data) => ({
+        category_id: data.category_id,
+        amount: data.amount,
+        period_type: data.period_type,
+        period_year: data.year,
+        period_month: data.month,
+      }),
     });
   };
 
@@ -147,8 +139,8 @@ export default function Create({ categories }: Props) {
                 <div>
                   <Label htmlFor="period_year">Year</Label>
                   <Select 
-                    value={String(data.period_year)} 
-                    onValueChange={(value) => setData('period_year', parseInt(value))}
+                    value={String(data.year)} 
+                    onValueChange={(value) => setData('year', parseInt(value))}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -167,8 +159,8 @@ export default function Create({ categories }: Props) {
                   <div>
                     <Label htmlFor="period_month">Month</Label>
                     <Select 
-                      value={String(data.period_month)} 
-                      onValueChange={(value) => setData('period_month', parseInt(value))}
+                      value={String(data.month)} 
+                      onValueChange={(value) => setData('month', parseInt(value))}
                     >
                       <SelectTrigger>
                         <SelectValue />

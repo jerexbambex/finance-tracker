@@ -60,7 +60,7 @@ class BudgetController extends Controller
             $q->whereNull('user_id')->orWhere('user_id', auth()->id());
         })->where('type', 'expense')->where('is_active', true)->get();
 
-        return Inertia::render('budgets/Create', [
+        return Inertia::render('budgets/CreateSimple', [
             'categories' => $categories
         ]);
     }
