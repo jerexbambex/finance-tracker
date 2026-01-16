@@ -35,11 +35,27 @@ export default function Create({ accounts, categories }: Props) {
     notes: '',
     receipt: null as File | null,
     tags: '',
+    is_split: false,
+    splits: [] as Array<{ category_id: string; amount: string; description: string }>,
   });
 
   const filteredCategories = categories.filter(
     (cat) => cat.type === data.type
   );
+
+  const addSplit = () => {
+    setData('splits', [...data.splits, { category_id: '', amount: '', description: '' }]);
+  };
+
+  const removeSplit = (index: number) => {
+    setData('splits', data.splits.filter((_, i) => i !== index));
+  };
+
+  const updateSplit = (index: number, field: string, value: string) => {
+    const newSplits = [...data.splits];
+    newSplits[index] = { ...newSplits[index], [field]: value };
+    setData('splits', newSplits);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,20 +124,86 @@ export default function Create({ accounts, categories }: Props) {
                   {errors.account_id && <p className="text-red-500 text-sm mt-1">{errors.account_id}</p>}
                 </div>
 
+                {!data.is_split && (
+                  <div>
+                    <Label htmlFor="category_id">Category</Label>
+                    <Select value={data.category_id} onValueChange={(value) => setData('category_id', value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {filteredCategories.map((category) => (
+                          <SelectItem key={category.id} value={category.id}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
                 <div>
-                  <Label htmlFor="category_id">Category</Label>
-                  <Select value={data.category_id} onValueChange={(value) => setData('category_id', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {filteredCategories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
-                        </SelectItem>
+                  <div className="flex items-center justify-between mb-2">
+                    <Label>Split Transaction</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setData('is_split', !data.is_split);
+                        if (!data.is_split && data.splits.length === 0) {
+                          addSplit();
+                        }
+                      }}
+                    >
+                      {data.is_split ? 'Remove Split' : 'Split Across Categories'}
+                    </Button>
+                  </div>
+
+                  {data.is_split && (
+                    <div className="space-y-3 border rounded-lg p-4">
+                      {data.splits.map((split, index) => (
+                        <div key={index} className="flex gap-2 items-start">
+                          <div className="flex-1">
+                            <Select
+                              value={split.category_id}
+                              onValueChange={(value) => updateSplit(index, 'category_id', value)}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Category" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {filteredCategories.map((category) => (
+                                  <SelectItem key={category.id} value={category.id}>
+                                    {category.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            placeholder="Amount"
+                            value={split.amount}
+                            onChange={(e) => updateSplit(index, 'amount', e.target.value)}
+                            className="w-32"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeSplit(index)}
+                          >
+                            ×
+                          </Button>
+                        </div>
                       ))}
-                    </SelectContent>
-                  </Select>
+                      <Button type="button" variant="outline" size="sm" onClick={addSplit}>
+                        + Add Split
+                      </Button>
+                    </div>
+                  )}
                 </div>
 
                 <div>

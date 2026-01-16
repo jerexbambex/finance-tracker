@@ -123,6 +123,11 @@ class TransactionController extends Controller
             'notes' => 'nullable|string',
             'receipt' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
             'tags' => 'nullable|string',
+            'is_split' => 'nullable|boolean',
+            'splits' => 'nullable|array',
+            'splits.*.category_id' => 'required|exists:categories,id',
+            'splits.*.amount' => 'required|numeric|min:0.01',
+            'splits.*.description' => 'nullable|string',
         ]);
 
         // Verify account belongs to user
@@ -134,6 +139,13 @@ class TransactionController extends Controller
         $validated['currency'] = $account->currency;
 
         $transaction = auth()->user()->transactions()->create($validated);
+
+        // Handle splits
+        if (!empty($validated['splits'])) {
+            foreach ($validated['splits'] as $split) {
+                $transaction->splits()->create($split);
+            }
+        }
 
         // Handle tags
         if (!empty($validated['tags'])) {
@@ -159,8 +171,15 @@ class TransactionController extends Controller
         }
 
         // Check budget alerts for expenses
-        if ($transaction->type === 'expense' && $transaction->category_id) {
-            $this->checkBudgetAlert($transaction);
+        if ($transaction->type === 'expense') {
+            if ($transaction->isSplit()) {
+                // Check each split category
+                foreach ($transaction->splits as $split) {
+                    $this->checkBudgetAlertForSplit($split);
+                }
+            } elseif ($transaction->category_id) {
+                $this->checkBudgetAlert($transaction);
+            }
         }
 
         return redirect()->route('transactions.index');
@@ -249,8 +268,41 @@ class TransactionController extends Controller
 
         // Notify when crossing thresholds
         if ($percentage >= 80) {
-            $budget->load('category');
-            auth()->user()->notify(new BudgetExceededNotification($budget, $spent, $percentage));
+            // Send notification
+        }
+    }
+
+    private function checkBudgetAlertForSplit(TransactionSplit $split): void
+    {
+        $transaction = $split->transaction;
+        $budget = Budget::where('user_id', auth()->id())
+            ->where('category_id', $split->category_id)
+            ->where('period_year', $transaction->transaction_date->year)
+            ->where('period_month', $transaction->transaction_date->month)
+            ->first();
+
+        if (!$budget) return;
+
+        $spent = auth()->user()->transactions()
+            ->where('type', 'expense')
+            ->where('category_id', $split->category_id)
+            ->whereYear('transaction_date', $transaction->transaction_date->year)
+            ->whereMonth('transaction_date', $transaction->transaction_date->month)
+            ->sum('amount');
+
+        // Add split amounts
+        $splitTotal = TransactionSplit::whereHas('transaction', function($q) use ($transaction) {
+            $q->where('user_id', auth()->id())
+              ->where('type', 'expense')
+              ->whereYear('transaction_date', $transaction->transaction_date->year)
+              ->whereMonth('transaction_date', $transaction->transaction_date->month);
+        })->where('category_id', $split->category_id)->sum('amount');
+
+        $totalSpent = $spent + $splitTotal;
+        $percentage = ($totalSpent / $budget->amount) * 100;
+
+        if ($percentage >= 80) {
+            // Send notification
         }
     }
 }

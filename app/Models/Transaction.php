@@ -66,4 +66,14 @@ class Transaction extends Model implements HasMedia
     {
         return $this->morphToMany(Tag::class, 'taggable');
     }
+
+    public function splits()
+    {
+        return $this->hasMany(TransactionSplit::class);
+    }
+
+    public function isSplit()
+    {
+        return $this->splits()->exists();
+    }
 }
