@@ -61,4 +61,9 @@ class Transaction extends Model implements HasMedia
     {
         return $this->belongsTo(Category::class);
     }
+
+    public function tags()
+    {
+        return $this->morphToMany(Tag::class, 'taggable');
+    }
 }

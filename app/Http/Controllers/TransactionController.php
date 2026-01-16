@@ -121,7 +121,8 @@ class TransactionController extends Controller
             'description' => 'required|string|max:255',
             'transaction_date' => 'required|date',
             'notes' => 'nullable|string',
-            'receipt' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120'
+            'receipt' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+            'tags' => 'nullable|string',
         ]);
 
         // Verify account belongs to user
@@ -133,6 +134,24 @@ class TransactionController extends Controller
         $validated['currency'] = $account->currency;
 
         $transaction = auth()->user()->transactions()->create($validated);
+
+        // Handle tags
+        if (!empty($validated['tags'])) {
+            $tagNames = array_map('trim', explode(',', $validated['tags']));
+            $tagIds = [];
+            
+            foreach ($tagNames as $tagName) {
+                if (!empty($tagName)) {
+                    $tag = \App\Models\Tag::firstOrCreate(
+                        ['user_id' => auth()->id(), 'name' => $tagName],
+                        ['color' => '#6b7280']
+                    );
+                    $tagIds[] = $tag->id;
+                }
+            }
+            
+            $transaction->tags()->attach($tagIds);
+        }
 
         // Handle file upload
         if ($request->hasFile('receipt')) {

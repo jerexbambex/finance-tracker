@@ -34,6 +34,7 @@ export default function Create({ accounts, categories }: Props) {
     transaction_date: new Date().toISOString().split('T')[0],
     notes: '',
     receipt: null as File | null,
+    tags: '',
   });
 
   const filteredCategories = categories.filter(
@@ -170,6 +171,19 @@ export default function Create({ accounts, categories }: Props) {
                     placeholder="Additional notes"
                     rows={3}
                   />
+                </div>
+
+                <div>
+                  <Label htmlFor="tags">Tags (Optional)</Label>
+                  <Input
+                    id="tags"
+                    value={data.tags}
+                    onChange={(e) => setData('tags', e.target.value)}
+                    placeholder="e.g., business, tax-deductible, urgent (comma-separated)"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Separate multiple tags with commas
+                  </p>
                 </div>
 
                 <div>
