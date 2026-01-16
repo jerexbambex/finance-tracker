@@ -93,7 +93,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ]);
         }
         
-        // Budget progress
+        // Budget progress with alerts
         $currentMonth = now()->month;
         $currentYear = now()->year;
         $budgets = $user->budgets()
@@ -108,11 +108,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
             })
             ->get()
             ->map(function($budget) {
+                $percentage = $budget->getPercentageUsed();
                 return [
+                    'id' => $budget->id,
                     'category' => $budget->category->name,
-                    'percentage' => $budget->getPercentageUsed(),
+                    'percentage' => $percentage,
+                    'amount' => $budget->amount,
+                    'spent' => $budget->getSpentAmount(),
+                    'status' => $percentage >= 100 ? 'exceeded' : ($percentage >= 80 ? 'warning' : 'ok'),
                 ];
             });
+        
+        $budgetAlerts = $budgets->filter(fn($b) => $b['status'] !== 'ok');
         
         // Active goals
         $goals = $user->goals()
@@ -144,6 +151,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'categorySpending' => $categorySpending,
             'monthlyTrend' => $monthlyTrend,
             'budgets' => $budgets,
+            'budgetAlerts' => $budgetAlerts,
             'goals' => $goals,
             'upcomingReminders' => $upcomingReminders,
             'categories' => \App\Models\Category::where(function($q) use ($user) {

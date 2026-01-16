@@ -34,8 +34,12 @@ interface Transaction {
 }
 
 interface Budget {
+    id: string;
     category: string;
     percentage: number;
+    amount: number;
+    spent: number;
+    status: 'ok' | 'warning' | 'exceeded';
 }
 
 interface Goal {
@@ -72,12 +76,13 @@ interface Props {
     categorySpending: CategorySpending[];
     monthlyTrend: MonthlyTrend[];
     budgets: Budget[];
+    budgetAlerts: Budget[];
     goals: Goal[];
     categories: Category[];
     upcomingReminders: Reminder[];
 }
 
-export default function Dashboard({ accounts, totalBalance, recentTransactions, monthlyIncome, monthlyExpenses, categorySpending, monthlyTrend, budgets, goals, categories, upcomingReminders }: Props) {
+export default function Dashboard({ accounts, totalBalance, recentTransactions, monthlyIncome, monthlyExpenses, categorySpending, monthlyTrend, budgets, budgetAlerts, goals, categories, upcomingReminders }: Props) {
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
@@ -380,6 +385,39 @@ export default function Dashboard({ accounts, totalBalance, recentTransactions, 
                             )}
                         </CardContent>
                     </Card>
+
+                    {budgetAlerts.length > 0 && (
+                        <Card className="border-border/40">
+                            <CardHeader>
+                                <div className="flex items-center justify-between">
+                                    <CardTitle className="text-base font-semibold">Budget Alerts</CardTitle>
+                                    <Badge variant="destructive" className="text-xs">{budgetAlerts.length}</Badge>
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-3">
+                                    {budgetAlerts.map((budget) => (
+                                        <div key={budget.id} className="flex items-center gap-3 rounded-lg border border-border/40 p-3">
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2">
+                                                    <p className="text-sm font-medium truncate">{budget.category}</p>
+                                                    <Badge 
+                                                        variant={budget.status === 'exceeded' ? 'destructive' : 'default'}
+                                                        className={budget.status === 'warning' ? 'bg-orange-500/10 text-orange-600 border-orange-500/20' : ''}
+                                                    >
+                                                        {budget.percentage.toFixed(0)}%
+                                                    </Badge>
+                                                </div>
+                                                <p className="text-xs text-muted-foreground mt-0.5">
+                                                    {formatCurrency(budget.spent)} of {formatCurrency(budget.amount)}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
 
                     {upcomingReminders.length > 0 && (
                         <Card className="border-border/40">
