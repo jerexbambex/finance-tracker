@@ -17,7 +17,7 @@ class TransactionController extends Controller
     public function index(Request $request)
     {
         $query = auth()->user()->transactions()
-            ->with(['account', 'category'])
+            ->with(['account', 'category', 'splits.category'])
             ->latest('transaction_date');
 
         // Apply filters using when() for cleaner code
@@ -206,7 +206,7 @@ class TransactionController extends Controller
         })->where('is_active', true)->get();
 
         return Inertia::render('transactions/Edit', [
-            'transaction' => $transaction->load('media'),
+            'transaction' => $transaction->load(['media', 'splits.category']),
             'accounts' => $accounts,
             'categories' => $categories
         ]);

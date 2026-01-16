@@ -42,6 +42,7 @@ interface Transaction {
   transaction_date: string;
   account: { id: string; name: string };
   category?: { id: string; name: string; color?: string };
+  splits?: Array<{ id: string; category: { name: string }; amount: number }>;
 }
 
 interface Account {
@@ -481,13 +482,19 @@ export default function Index({ transactions, accounts, categories, chartData }:
                             <div className="min-w-0">
                               <p className="font-medium truncate">{transaction.description}</p>
                               <p className="text-xs text-muted-foreground md:hidden">
-                                {transaction.category?.name || 'Uncategorized'}
+                                {transaction.splits && transaction.splits.length > 0 
+                                  ? `Split: ${transaction.splits.map(s => s.category.name).join(', ')}`
+                                  : transaction.category?.name || 'Uncategorized'}
                                 <span className="sm:hidden"> • {formatDate(transaction.transaction_date)}</span>
                               </p>
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell className="hidden md:table-cell">{transaction.category?.name || '—'}</TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          {transaction.splits && transaction.splits.length > 0 
+                            ? <span className="text-xs">Split: {transaction.splits.map(s => s.category.name).join(', ')}</span>
+                            : transaction.category?.name || '—'}
+                        </TableCell>
                         <TableCell className="hidden lg:table-cell">{transaction.account.name}</TableCell>
                         <TableCell className="hidden sm:table-cell">{formatDate(transaction.transaction_date)}</TableCell>
                         <TableCell className="text-right">
