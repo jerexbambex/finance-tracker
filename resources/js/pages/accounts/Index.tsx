@@ -1,4 +1,4 @@
-import { Head, useForm, Link } from '@inertiajs/react';
+import { Head, useForm, Link, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,8 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Wallet, CreditCard, TrendingUp } from 'lucide-react';
-import { useState } from 'react';
+import { Wallet, CreditCard, TrendingUp, CheckCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 interface Account {
   id: string;
@@ -26,8 +26,17 @@ interface Props {
 }
 
 export default function Index({ accounts }: Props) {
+  const { flash } = usePage().props as any;
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  useEffect(() => {
+    if (flash?.success) {
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    }
+  }, [flash]);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
 
   const createForm = useForm({
@@ -113,6 +122,13 @@ export default function Index({ accounts }: Props) {
       
       <div className="py-12">
         <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+          {showSuccess && (
+            <div className="mb-4 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              <p className="text-green-800">{flash.success}</p>
+            </div>
+          )}
+          
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold">Accounts</h1>
             <div className="flex gap-2">

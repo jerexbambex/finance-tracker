@@ -28,7 +28,11 @@ export default function Create({ accounts }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    post('/transfers');
+    post('/transfers', {
+      onSuccess: () => {
+        // Redirect happens automatically via Inertia
+      },
+    });
   };
 
   const formatCurrency = (amount: number) => {
