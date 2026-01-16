@@ -71,14 +71,25 @@ export default function Index({ incomeCategories, expenseCategories }: Props) {
                       </div>
                     </div>
                     {category.user_id && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(category.id)}
-                        className="h-8 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        Delete
-                      </Button>
+                      <div className="flex gap-2">
+                        <Link href={`/categories/${category.id}/edit`}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 text-xs"
+                          >
+                            Edit
+                          </Button>
+                        </Link>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(category.id)}
+                          className="h-8 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          Delete
+                        </Button>
+                      </div>
                     )}
                   </div>
                 ))}
@@ -115,14 +126,25 @@ export default function Index({ incomeCategories, expenseCategories }: Props) {
                       </div>
                     </div>
                     {category.user_id && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(category.id)}
-                        className="h-8 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        Delete
-                      </Button>
+                      <div className="flex gap-2">
+                        <Link href={`/categories/${category.id}/edit`}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 text-xs"
+                          >
+                            Edit
+                          </Button>
+                        </Link>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(category.id)}
+                          className="h-8 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          Delete
+                        </Button>
+                      </div>
                     )}
                   </div>
                 ))}

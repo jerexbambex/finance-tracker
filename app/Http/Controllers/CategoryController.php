@@ -41,6 +41,34 @@ class CategoryController extends Controller
         return redirect()->route('categories.index');
     }
 
+    public function edit(Category $category)
+    {
+        if ($category->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        return Inertia::render('categories/Edit', [
+            'category' => $category,
+        ]);
+    }
+
+    public function update(Request $request, Category $category)
+    {
+        if ($category->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'type' => 'required|string|in:income,expense',
+            'color' => 'nullable|string|max:7',
+        ]);
+
+        $category->update($validated);
+
+        return redirect()->route('categories.index');
+    }
+
     public function destroy(Category $category)
     {
         if ($category->user_id !== auth()->id()) {
