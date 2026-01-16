@@ -216,6 +216,78 @@ export default function Index({ transactions, accounts, categories, chartData }:
             </div>
           </div>
 
+          {/* Filters */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="text-lg">Filters</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Search</label>
+                  <Input
+                    placeholder="Search description..."
+                    defaultValue={new URLSearchParams(window.location.search).get('search') || ''}
+                    onChange={(e) => {
+                      const params = new URLSearchParams(window.location.search);
+                      if (e.target.value) {
+                        params.set('search', e.target.value);
+                      } else {
+                        params.delete('search');
+                      }
+                      router.get(`/transactions?${params.toString()}`, {}, { preserveState: true });
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">From Date</label>
+                  <Input
+                    type="date"
+                    defaultValue={new URLSearchParams(window.location.search).get('date_from') || ''}
+                    onChange={(e) => {
+                      const params = new URLSearchParams(window.location.search);
+                      if (e.target.value) {
+                        params.set('date_from', e.target.value);
+                      } else {
+                        params.delete('date_from');
+                      }
+                      router.get(`/transactions?${params.toString()}`, {}, { preserveState: true });
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">To Date</label>
+                  <Input
+                    type="date"
+                    defaultValue={new URLSearchParams(window.location.search).get('date_to') || ''}
+                    onChange={(e) => {
+                      const params = new URLSearchParams(window.location.search);
+                      if (e.target.value) {
+                        params.set('date_to', e.target.value);
+                      } else {
+                        params.delete('date_to');
+                      }
+                      router.get(`/transactions?${params.toString()}`, {}, { preserveState: true });
+                    }}
+                  />
+                </div>
+
+                <div className="flex items-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => router.get('/transactions')}
+                  >
+                    Clear Filters
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+
           {transactions.data.length > 0 && (
             <>
               <div className="grid gap-4 md:grid-cols-3 mb-6">

@@ -20,20 +20,17 @@ class TransactionController extends Controller
             ->with(['account', 'category'])
             ->latest('transaction_date');
 
-        // Apply filters
-        if ($request->account_id) {
-            $query->where('account_id', $request->account_id);
-        }
-        
-        if ($request->category_id) {
-            $query->where('category_id', $request->category_id);
-        }
-        
-        if ($request->type) {
-            $query->where('type', $request->type);
-        }
+        // Apply filters using when() for cleaner code
+        $query->when($request->account_id, fn($q) => $q->where('account_id', $request->account_id))
+              ->when($request->category_id, fn($q) => $q->where('category_id', $request->category_id))
+              ->when($request->type, fn($q) => $q->where('type', $request->type))
+              ->when($request->date_from, fn($q) => $q->whereDate('transaction_date', '>=', $request->date_from))
+              ->when($request->date_to, fn($q) => $q->whereDate('transaction_date', '<=', $request->date_to))
+              ->when($request->search, fn($q) => $q->where('description', 'like', '%' . $request->search . '%'))
+              ->when($request->amount_min, fn($q) => $q->whereRaw('amount >= ?', [$request->amount_min * 100]))
+              ->when($request->amount_max, fn($q) => $q->whereRaw('amount <= ?', [$request->amount_max * 100]));
 
-        $transactions = $query->paginate(20);
+        $transactions = $query->paginate(20)->withQueryString();
         
         $accounts = auth()->user()->accounts()->where('is_active', true)->get();
         $categories = Category::where(function($q) {
