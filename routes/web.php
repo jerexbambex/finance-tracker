@@ -20,6 +20,10 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
+Route::get('/test-export', function() {
+    return 'Export route works!';
+});
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
         $user = auth()->user();

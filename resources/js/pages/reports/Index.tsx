@@ -97,7 +97,7 @@ export default function Index({ categorySpending, monthlyTrends, totalIncome, to
                   Export Excel
                 </Button>
               </a>
-              <a href="/export/all">
+              <a href="/export/all-data">
                 <Button variant="outline">
                   <Download className="h-4 w-4 mr-2" />
                   Backup Data

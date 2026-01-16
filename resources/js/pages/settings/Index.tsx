@@ -35,7 +35,7 @@ export default function Index() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <a href="/export/all-data">
+                <a href="/export/all-data" download>
                   <Button>
                     <Download className="h-4 w-4 mr-2" />
                     Export All Data
