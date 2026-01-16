@@ -5,9 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Goal;
 use App\Models\GoalContribution;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class GoalContributionController extends Controller
 {
+    use AuthorizesRequests;
+
     public function store(Request $request, Goal $goal)
     {
         $this->authorize('update', $goal);
