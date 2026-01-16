@@ -129,6 +129,9 @@ class TransactionController extends Controller
             ->where('user_id', auth()->id())
             ->firstOrFail();
 
+        // Inherit currency from account
+        $validated['currency'] = $account->currency;
+
         $transaction = auth()->user()->transactions()->create($validated);
 
         // Handle file upload

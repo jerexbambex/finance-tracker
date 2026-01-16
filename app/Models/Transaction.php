@@ -17,6 +17,7 @@ class Transaction extends Model implements HasMedia
         'category_id',
         'type',
         'amount',
+        'currency',
         'description',
         'transaction_date',
         'notes',
