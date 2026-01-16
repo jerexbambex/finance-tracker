@@ -133,7 +133,7 @@ export default function Index({ incomeCategories, expenseCategories }: Props) {
             </CardContent>
           </Card>
         </div>
-      </div>
+        </div>
       </div>
     </AppLayout>
   );

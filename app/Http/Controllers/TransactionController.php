@@ -123,7 +123,8 @@ class TransactionController extends Controller
             'amount' => 'required|numeric|min:0.01',
             'description' => 'required|string|max:255',
             'transaction_date' => 'required|date',
-            'notes' => 'nullable|string'
+            'notes' => 'nullable|string',
+            'receipt' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120'
         ]);
 
         // Verify account belongs to user
@@ -132,6 +133,11 @@ class TransactionController extends Controller
             ->firstOrFail();
 
         $transaction = auth()->user()->transactions()->create($validated);
+
+        // Handle file upload
+        if ($request->hasFile('receipt')) {
+            $transaction->addMediaFromRequest('receipt')->toMediaCollection('receipts');
+        }
 
         // Check budget alerts for expenses
         if ($transaction->type === 'expense' && $transaction->category_id) {
@@ -162,7 +168,7 @@ class TransactionController extends Controller
         })->where('is_active', true)->get();
 
         return Inertia::render('transactions/Edit', [
-            'transaction' => $transaction,
+            'transaction' => $transaction->load('media'),
             'accounts' => $accounts,
             'categories' => $categories
         ]);
@@ -179,10 +185,17 @@ class TransactionController extends Controller
             'amount' => 'required|numeric|min:0.01',
             'description' => 'required|string|max:255',
             'transaction_date' => 'required|date',
-            'notes' => 'nullable|string'
+            'notes' => 'nullable|string',
+            'receipt' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120'
         ]);
 
         $transaction->update($validated);
+
+        // Handle file upload
+        if ($request->hasFile('receipt')) {
+            $transaction->clearMediaCollection('receipts');
+            $transaction->addMediaFromRequest('receipt')->toMediaCollection('receipts');
+        }
 
         return redirect()->route('transactions.index');
     }

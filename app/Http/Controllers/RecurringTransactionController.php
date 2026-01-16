@@ -51,8 +51,7 @@ class RecurringTransactionController extends Controller
             'next_due_date' => 'required|date',
         ]);
 
-        $validated['amount'] = $validated['amount'] * 100;
-
+        // Mutator handles conversion
         auth()->user()->recurringTransactions()->create($validated);
 
         return redirect()->route('recurring-transactions.index');
@@ -89,8 +88,7 @@ class RecurringTransactionController extends Controller
             'is_active' => 'boolean',
         ]);
 
-        $validated['amount'] = $validated['amount'] * 100;
-
+        // Mutator handles conversion
         $recurringTransaction->update($validated);
 
         return redirect()->route('recurring-transactions.index');

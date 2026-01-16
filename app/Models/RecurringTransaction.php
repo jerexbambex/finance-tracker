@@ -28,6 +28,16 @@ class RecurringTransaction extends Model
         'is_active' => 'boolean',
     ];
 
+    public function getAmountAttribute($value)
+    {
+        return $value / 100;
+    }
+
+    public function setAmountAttribute($value)
+    {
+        $this->attributes['amount'] = $value * 100;
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

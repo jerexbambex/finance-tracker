@@ -74,7 +74,7 @@ class ImportController extends Controller
                 'account_id' => $account->id,
                 'category_id' => $category?->id,
                 'type' => $data['type'],
-                'amount' => abs($data['amount']) * 100,
+                'amount' => abs($data['amount']),
                 'description' => $data['description'],
                 'transaction_date' => $data['date'],
             ]);

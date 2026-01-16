@@ -1,10 +1,11 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 
 interface Category {
   id: string;
@@ -23,13 +24,31 @@ export default function Create({ categories }: Props) {
     category_id: '',
     amount: '',
     period_type: 'monthly',
-    period_year: currentYear.toString(),
-    period_month: currentMonth.toString(),
+    period_year: currentYear,
+    period_month: currentMonth,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    post('/budgets');
+    
+    console.log('Data object:', data);
+    console.log('period_year:', data.period_year, typeof data.period_year);
+    console.log('period_month:', data.period_month, typeof data.period_month);
+    
+    // Transform and send explicitly
+    post('/budgets', {
+      transform: (data) => {
+        const transformed = {
+          category_id: data.category_id,
+          amount: data.amount,
+          period_type: data.period_type,
+          period_year: data.period_year,
+          period_month: data.period_month,
+        };
+        console.log('Transformed data:', transformed);
+        return transformed;
+      },
+    });
   };
 
   const months = [
@@ -55,6 +74,26 @@ export default function Create({ categories }: Props) {
       
       <div className="py-12">
         <div className="max-w-2xl mx-auto sm:px-6 lg:px-8">
+          <Breadcrumb className="mb-4">
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link href="/dashboard">Home</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link href="/budgets">Budgets</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>Create Budget</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+          
           <Card>
             <CardHeader>
               <CardTitle>Create New Budget</CardTitle>
@@ -107,13 +146,16 @@ export default function Create({ categories }: Props) {
 
                 <div>
                   <Label htmlFor="period_year">Year</Label>
-                  <Select value={data.period_year} onValueChange={(value) => setData('period_year', value)}>
+                  <Select 
+                    value={String(data.period_year)} 
+                    onValueChange={(value) => setData('period_year', parseInt(value))}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       {years.map((year) => (
-                        <SelectItem key={year} value={year.toString()}>
+                        <SelectItem key={year} value={String(year)}>
                           {year}
                         </SelectItem>
                       ))}
@@ -124,7 +166,10 @@ export default function Create({ categories }: Props) {
                 {data.period_type === 'monthly' && (
                   <div>
                     <Label htmlFor="period_month">Month</Label>
-                    <Select value={data.period_month} onValueChange={(value) => setData('period_month', value)}>
+                    <Select 
+                      value={String(data.period_month)} 
+                      onValueChange={(value) => setData('period_month', parseInt(value))}
+                    >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>

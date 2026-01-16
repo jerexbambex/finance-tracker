@@ -33,7 +33,7 @@ class BudgetController extends Controller
                 return [
                     'id' => $budget->id,
                     'category' => $budget->category,
-                    'amount' => $budget->amount,
+                    'amount' => $budget->amount, // Accessor divides by 100
                     'period_type' => $budget->period_type,
                     'spent' => $budget->getSpentAmount(),
                     'percentage' => $budget->getPercentageUsed(),
@@ -67,6 +67,8 @@ class BudgetController extends Controller
 
     public function store(Request $request)
     {
+        \Log::info('Budget store - Raw request:', $request->all());
+        
         $validated = $request->validate([
             'category_id' => 'required|exists:categories,id',
             'amount' => 'required|numeric|min:0.01',
@@ -75,7 +77,21 @@ class BudgetController extends Controller
             'period_month' => 'required_if:period_type,monthly|nullable|integer|min:1|max:12'
         ]);
 
-        $validated['amount'] = $validated['amount'] * 100;
+        \Log::info('Budget store - Validated:', $validated);
+
+        // Check if budget already exists for this category and period
+        $exists = auth()->user()->budgets()
+            ->where('category_id', $validated['category_id'])
+            ->where('period_type', $validated['period_type'])
+            ->where('period_year', $validated['period_year'])
+            ->where('period_month', $validated['period_month'] ?? null)
+            ->exists();
+
+        if ($exists) {
+            return back()->withErrors([
+                'category_id' => 'A budget already exists for this category and period.'
+            ]);
+        }
 
         auth()->user()->budgets()->create($validated);
 
@@ -108,8 +124,7 @@ class BudgetController extends Controller
             'period_month' => 'required_if:period_type,monthly|nullable|integer|min:1|max:12'
         ]);
 
-        $validated['amount'] = $validated['amount'] * 100;
-
+        // Don't multiply here - the mutator handles it
         $budget->update($validated);
 
         return redirect()->route('budgets.index');

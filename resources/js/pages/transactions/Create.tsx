@@ -1,4 +1,4 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 
 interface Account {
   id: string;
@@ -32,6 +33,7 @@ export default function Create({ accounts, categories }: Props) {
     description: '',
     transaction_date: new Date().toISOString().split('T')[0],
     notes: '',
+    receipt: null as File | null,
   });
 
   const filteredCategories = categories.filter(
@@ -49,6 +51,26 @@ export default function Create({ accounts, categories }: Props) {
       
       <div className="py-12">
         <div className="max-w-2xl mx-auto sm:px-6 lg:px-8">
+          <Breadcrumb className="mb-4">
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link href="/dashboard">Home</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link href="/transactions">Transactions</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>Add Transaction</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+          
           <Card>
             <CardHeader>
               <CardTitle>Add New Transaction</CardTitle>
@@ -148,6 +170,21 @@ export default function Create({ accounts, categories }: Props) {
                     placeholder="Additional notes"
                     rows={3}
                   />
+                </div>
+
+                <div>
+                  <Label htmlFor="receipt">Receipt/Invoice (Optional)</Label>
+                  <Input
+                    id="receipt"
+                    type="file"
+                    accept="image/*,.pdf"
+                    onChange={(e) => setData('receipt', e.target.files?.[0] || null)}
+                    className="cursor-pointer"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    JPG, PNG or PDF (max 5MB)
+                  </p>
+                  {errors.receipt && <p className="text-red-500 text-sm mt-1">{errors.receipt}</p>}
                 </div>
 
                 <div className="flex gap-4">

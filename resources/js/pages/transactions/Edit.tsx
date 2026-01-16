@@ -1,4 +1,4 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 
 interface Account {
   id: string;
@@ -27,6 +28,7 @@ interface Transaction {
   description: string;
   transaction_date: string;
   notes: string;
+  media?: Array<{ id: number; file_name: string; original_url: string }>;
 }
 
 interface Props {
@@ -44,6 +46,7 @@ export default function Edit({ transaction, accounts, categories }: Props) {
     description: transaction.description,
     transaction_date: transaction.transaction_date,
     notes: transaction.notes || '',
+    receipt: null as File | null,
   });
 
   const filteredCategories = categories.filter(
@@ -61,6 +64,26 @@ export default function Edit({ transaction, accounts, categories }: Props) {
       
       <div className="py-12">
         <div className="max-w-2xl mx-auto sm:px-6 lg:px-8">
+          <Breadcrumb className="mb-4">
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link href="/dashboard">Home</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link href="/transactions">Transactions</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>Edit Transaction</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+          
           <Card>
             <CardHeader>
               <CardTitle>Edit Transaction</CardTitle>
@@ -160,6 +183,23 @@ export default function Edit({ transaction, accounts, categories }: Props) {
                     placeholder="Additional notes"
                     rows={3}
                   />
+                </div>
+
+                <div>
+                  <Label htmlFor="receipt">Receipt/Invoice (Optional)</Label>
+                  {transaction.media && transaction.media.length > 0 && (
+                    <div className="mb-2 text-sm text-gray-600">
+                      Current: <a href={transaction.media[0].original_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{transaction.media[0].file_name}</a>
+                    </div>
+                  )}
+                  <Input
+                    id="receipt"
+                    type="file"
+                    accept=".jpg,.jpeg,.png,.pdf"
+                    onChange={(e) => setData('receipt', e.target.files?.[0] || null)}
+                  />
+                  <p className="text-sm text-gray-500 mt-1">JPG, PNG, or PDF (max 5MB)</p>
+                  {errors.receipt && <p className="text-red-500 text-sm mt-1">{errors.receipt}</p>}
                 </div>
 
                 <div className="flex gap-4">
