@@ -15,6 +15,12 @@ interface CategorySpending {
   category: string;
   amount: number;
   percentage: number;
+  count: number;
+}
+
+interface AccountSpending {
+  account: string;
+  amount: number;
 }
 
 interface MonthlyTrend {
@@ -30,6 +36,10 @@ interface Props {
   totalIncome: number;
   totalExpense: number;
   topCategories: CategorySpending[];
+  avgDailySpending: number;
+  accountSpending: AccountSpending[];
+  startDate: string;
+  endDate: string;
 }
 
 const COLORS = [
@@ -41,8 +51,9 @@ const COLORS = [
   'hsl(173, 58%, 39%)',
 ];
 
-export default function Index({ categorySpending, monthlyTrends, totalIncome, totalExpense, topCategories }: Props) {
+export default function Index({ categorySpending, monthlyTrends, totalIncome, totalExpense, topCategories, avgDailySpending, accountSpending, startDate, endDate }: Props) {
   const [activeCategory, setActiveCategory] = useState('');
+  const [dateRange, setDateRange] = useState({ start: startDate, end: endDate });
 
   React.useEffect(() => {
     if (categorySpending.length > 0 && !activeCategory) {
@@ -106,7 +117,7 @@ export default function Index({ categorySpending, monthlyTrends, totalIncome, to
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3 mb-6">
+          <div className="grid gap-4 md:grid-cols-4 mb-6">
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
@@ -144,6 +155,19 @@ export default function Index({ categorySpending, monthlyTrends, totalIncome, to
                   </div>
                   <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
                     <PieChartIcon className="h-6 w-6 text-blue-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-sm font-medium text-muted-foreground">Avg Daily Spending</div>
+                    <div className="text-2xl font-bold mt-2">{formatCurrency(avgDailySpending)}</div>
+                  </div>
+                  <div className="h-12 w-12 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
+                    <TrendingDown className="h-6 w-6 text-purple-600" />
                   </div>
                 </div>
               </CardContent>
