@@ -52,7 +52,9 @@ export default function Index({ goals }: Props) {
   });
 
   const contributeForm = useForm({
-    current_amount: '',
+    amount: '',
+    note: '',
+    contribution_date: new Date().toISOString().split('T')[0],
   });
 
   const handleCreate = (e: React.FormEvent) => {
@@ -81,7 +83,7 @@ export default function Index({ goals }: Props) {
   const handleContribute = (e: React.FormEvent) => {
     e.preventDefault();
     if (contributingGoal) {
-      contributeForm.put(`/goals/${contributingGoal.id}`, {
+      contributeForm.post(`/goals/${contributingGoal.id}/contribute`, {
         onSuccess: () => {
           setContributeOpen(false);
           setContributingGoal(null);
@@ -106,7 +108,11 @@ export default function Index({ goals }: Props) {
 
   const openContributeModal = (goal: Goal) => {
     setContributingGoal(goal);
-    contributeForm.setData('current_amount', goal.current_amount.toString());
+    contributeForm.setData({
+      amount: '',
+      note: '',
+      contribution_date: new Date().toISOString().split('T')[0],
+    });
     setContributeOpen(true);
   };
 
@@ -450,17 +456,40 @@ export default function Index({ goals }: Props) {
       <Dialog open={contributeOpen} onOpenChange={setContributeOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Update Goal Progress</DialogTitle>
+            <DialogTitle>Add Contribution</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleContribute} className="space-y-4">
             <div>
-              <Label htmlFor="contribute-amount">Current Amount</Label>
+              <Label htmlFor="contribute-amount">Amount</Label>
               <Input
                 id="contribute-amount"
                 type="number"
                 step="0.01"
-                value={contributeForm.data.current_amount}
-                onChange={(e) => contributeForm.setData('current_amount', e.target.value)}
+                value={contributeForm.data.amount}
+                onChange={(e) => contributeForm.setData('amount', e.target.value)}
+                placeholder="0.00"
+              />
+              {contributeForm.errors.amount && (
+                <p className="text-red-500 text-sm mt-1">{contributeForm.errors.amount}</p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="contribute-date">Date</Label>
+              <Input
+                id="contribute-date"
+                type="date"
+                value={contributeForm.data.contribution_date}
+                onChange={(e) => contributeForm.setData('contribution_date', e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="contribute-note">Note (Optional)</Label>
+              <Textarea
+                id="contribute-note"
+                value={contributeForm.data.note}
+                onChange={(e) => contributeForm.setData('note', e.target.value)}
+                placeholder="Add a note about this contribution"
+                rows={2}
               />
             </div>
             <div className="flex gap-2 justify-end">
@@ -468,7 +497,7 @@ export default function Index({ goals }: Props) {
                 Cancel
               </Button>
               <Button type="submit" disabled={contributeForm.processing}>
-                {contributeForm.processing ? 'Updating...' : 'Update'}
+                {contributeForm.processing ? 'Adding...' : 'Add Contribution'}
               </Button>
             </div>
           </form>

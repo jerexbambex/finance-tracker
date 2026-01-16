@@ -52,6 +52,11 @@ class Goal extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function contributions()
+    {
+        return $this->hasMany(GoalContribution::class);
+    }
+
     public function getPercentageComplete()
     {
         return $this->target_amount > 0 ? ($this->current_amount / $this->target_amount) * 100 : 0;

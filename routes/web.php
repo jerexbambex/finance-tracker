@@ -164,6 +164,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('transactions', TransactionController::class);
     Route::resource('budgets', BudgetController::class);
     Route::resource('goals', GoalController::class);
+    Route::post('goals/{goal}/contribute', [App\Http\Controllers\GoalContributionController::class, 'store'])->name('goals.contribute');
     Route::resource('categories', CategoryController::class);
     Route::resource('recurring-transactions', RecurringTransactionController::class);
     Route::resource('reports', ReportsController::class)->only(['index']);
