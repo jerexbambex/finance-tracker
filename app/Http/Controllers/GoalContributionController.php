@@ -29,11 +29,11 @@ class GoalContributionController extends Controller
             'contribution_date' => $validated['contribution_date'],
         ]);
 
-        // Update goal current amount
-        $goal->increment('current_amount', $validated['amount']);
+        // Update goal current amount (convert to cents for raw increment)
+        $goal->increment('current_amount', $validated['amount'] * 100);
 
         // Check if goal is completed
-        if ($goal->current_amount >= $goal->target_amount) {
+        if ($goal->fresh()->current_amount >= $goal->target_amount) {
             $goal->update(['is_completed' => true]);
         }
 
