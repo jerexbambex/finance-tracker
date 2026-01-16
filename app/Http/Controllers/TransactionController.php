@@ -272,7 +272,7 @@ class TransactionController extends Controller
         }
     }
 
-    private function checkBudgetAlertForSplit(TransactionSplit $split): void
+    private function checkBudgetAlertForSplit(\App\Models\TransactionSplit $split): void
     {
         $transaction = $split->transaction;
         $budget = Budget::where('user_id', auth()->id())
