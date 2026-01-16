@@ -55,6 +55,14 @@ interface MonthlyTrend {
     expense: number;
 }
 
+interface Reminder {
+    id: string;
+    title: string;
+    amount?: number;
+    due_date: string;
+    category?: { name: string; color?: string };
+}
+
 interface Props {
     accounts: Account[];
     totalBalance: number;
@@ -66,9 +74,10 @@ interface Props {
     budgets: Budget[];
     goals: Goal[];
     categories: Category[];
+    upcomingReminders: Reminder[];
 }
 
-export default function Dashboard({ accounts, totalBalance, recentTransactions, monthlyIncome, monthlyExpenses, categorySpending, monthlyTrend, budgets, goals, categories }: Props) {
+export default function Dashboard({ accounts, totalBalance, recentTransactions, monthlyIncome, monthlyExpenses, categorySpending, monthlyTrend, budgets, goals, categories, upcomingReminders }: Props) {
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
@@ -371,6 +380,62 @@ export default function Dashboard({ accounts, totalBalance, recentTransactions, 
                             )}
                         </CardContent>
                     </Card>
+
+                    {upcomingReminders.length > 0 && (
+                        <Card className="border-border/40">
+                            <CardHeader>
+                                <div className="flex items-center justify-between">
+                                    <CardTitle className="text-base font-semibold">Upcoming Bills</CardTitle>
+                                    <Badge variant="secondary" className="text-xs">{upcomingReminders.length}</Badge>
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-3">
+                                    {upcomingReminders.map((reminder) => {
+                                        const dueDate = new Date(reminder.due_date);
+                                        const isOverdue = dueDate < new Date();
+                                        const isDueToday = dueDate.toDateString() === new Date().toDateString();
+                                        
+                                        return (
+                                            <div key={reminder.id} className="flex items-center gap-3 rounded-lg border border-border/40 p-3 hover:bg-accent transition-colors">
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="text-sm font-medium truncate">{reminder.title}</p>
+                                                        {isOverdue && (
+                                                            <Badge variant="destructive" className="text-[10px] px-1.5 py-0">
+                                                                Overdue
+                                                            </Badge>
+                                                        )}
+                                                        {isDueToday && !isOverdue && (
+                                                            <Badge className="text-[10px] px-1.5 py-0 bg-orange-500/10 text-orange-600 border-orange-500/20">
+                                                                Today
+                                                            </Badge>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5 mt-0.5">
+                                                        {reminder.category && (
+                                                            <>
+                                                                <p className="text-xs text-muted-foreground">{reminder.category.name}</p>
+                                                                <span className="text-xs text-muted-foreground">•</span>
+                                                            </>
+                                                        )}
+                                                        <p className="text-xs text-muted-foreground">
+                                                            {dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                {reminder.amount && (
+                                                    <div className="text-sm font-semibold">
+                                                        {formatCurrency(reminder.amount)}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
                 </div>
             </div>
             </div>

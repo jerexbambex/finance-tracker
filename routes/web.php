@@ -121,6 +121,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
                     'percentage' => $goal->getPercentageComplete(),
                 ];
             });
+
+        // Upcoming reminders (next 7 days)
+        $upcomingReminders = $user->reminders()
+            ->with('category')
+            ->where('is_completed', false)
+            ->where('due_date', '<=', now()->addDays(7))
+            ->orderBy('due_date')
+            ->take(5)
+            ->get();
         
         return Inertia::render('dashboard', [
             'accounts' => $accounts,
@@ -132,6 +141,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'monthlyTrend' => $monthlyTrend,
             'budgets' => $budgets,
             'goals' => $goals,
+            'upcomingReminders' => $upcomingReminders,
             'categories' => \App\Models\Category::where(function($q) use ($user) {
                 $q->whereNull('user_id')->orWhere('user_id', $user->id);
             })->where('is_active', true)->get(),
