@@ -201,6 +201,12 @@ export default function Index({ transactions, accounts, categories, chartData }:
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
             <h1 className="text-2xl sm:text-3xl font-bold">Transactions</h1>
             <div className="flex gap-2">
+              <a href={`/export/transactions?${new URLSearchParams(window.location.search).toString()}`}>
+                <Button variant="outline" size="sm" className="sm:size-default">
+                  <span className="hidden sm:inline">Export CSV</span>
+                  <span className="sm:hidden">Export</span>
+                </Button>
+              </a>
               <Link href="/import/transactions">
                 <Button variant="outline" size="sm" className="sm:size-default">
                   <span className="hidden sm:inline">Import CSV</span>

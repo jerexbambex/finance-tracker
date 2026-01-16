@@ -153,6 +153,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/import/transactions', [ImportController::class, 'index'])->name('import.index');
     Route::post('/import/transactions', [ImportController::class, 'import'])->name('import.transactions');
     
+    Route::get('/export/transactions', [App\Http\Controllers\ExportController::class, 'transactions'])->name('export.transactions');
+    
     Route::get('/export/transactions', [ExportController::class, 'exportTransactions'])->name('export.transactions');
     Route::get('/export/all', [ExportController::class, 'exportAll'])->name('export.all');
 });
