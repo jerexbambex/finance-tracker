@@ -73,11 +73,20 @@ class BudgetController extends Controller
             'category_id' => 'required|exists:categories,id',
             'amount' => 'required|numeric|min:0.01',
             'period_type' => 'required|string|in:monthly,yearly',
-            'period_year' => 'required|integer|min:2020',
-            'period_month' => 'required_if:period_type,monthly|nullable|integer|min:1|max:12'
+            'period_year' => 'nullable|integer|min:2020',
+            'period_month' => 'nullable|integer|min:1|max:12'
         ]);
 
-        \Log::info('Budget store - Validated:', $validated);
+        // Default to current year/month if not provided
+        if (!isset($validated['period_year'])) {
+            $validated['period_year'] = now()->year;
+        }
+        
+        if ($validated['period_type'] === 'monthly' && !isset($validated['period_month'])) {
+            $validated['period_month'] = now()->month;
+        }
+
+        \Log::info('Budget store - After defaults:', $validated);
 
         // Check if budget already exists for this category and period
         $exists = auth()->user()->budgets()

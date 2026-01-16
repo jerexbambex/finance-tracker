@@ -34,8 +34,13 @@ export default function CreateSimple({ categories }: Props) {
     e.preventDefault();
     setProcessing(true);
 
+    console.log('Submitting form data:', formData);
+    console.log('period_year type:', typeof formData.period_year, formData.period_year);
+    console.log('period_month type:', typeof formData.period_month, formData.period_month);
+
     router.post('/budgets', formData, {
       onError: (err) => {
+        console.log('Errors:', err);
         setErrors(err);
         setProcessing(false);
       },
