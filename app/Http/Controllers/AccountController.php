@@ -31,7 +31,7 @@ class AccountController extends Controller
             'name' => 'required|string|max:255',
             'type' => 'required|string|in:checking,savings,credit_card,investment,cash',
             'balance' => 'required|numeric|min:0',
-            'currency' => 'string|size:3',
+            'currency' => 'required|string|size:3',
             'description' => 'nullable|string'
         ]);
 
