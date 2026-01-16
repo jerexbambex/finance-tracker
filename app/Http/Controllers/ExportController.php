@@ -54,4 +54,32 @@ class ExportController extends Controller
 
         return Response::stream($callback, 200, $headers);
     }
+
+    public function allData()
+    {
+        $user = auth()->user();
+        
+        // Gather all user data
+        $data = [
+            'exported_at' => now()->toIso8601String(),
+            'user' => [
+                'name' => $user->name,
+                'email' => $user->email,
+            ],
+            'accounts' => $user->accounts()->get()->toArray(),
+            'categories' => $user->categories()->get()->toArray(),
+            'transactions' => $user->transactions()->with(['account', 'category'])->get()->toArray(),
+            'budgets' => $user->budgets()->with('category')->get()->toArray(),
+            'goals' => $user->goals()->get()->toArray(),
+            'recurring_transactions' => $user->recurringTransactions()->with(['account', 'category'])->get()->toArray(),
+            'reminders' => $user->reminders()->with('category')->get()->toArray(),
+        ];
+
+        $filename = 'budget_app_backup_' . now()->format('Y-m-d_His') . '.json';
+        
+        return response()->json($data, 200, [
+            'Content-Type' => 'application/json',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ], JSON_PRETTY_PRINT);
+    }
 }

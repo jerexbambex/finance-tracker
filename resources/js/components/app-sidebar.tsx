@@ -84,7 +84,7 @@ export function AppSidebar() {
     const footerNavItems: NavItem[] = [
         {
             title: 'Settings',
-            href: '/user/profile',
+            href: '/settings',
             icon: Settings,
         },
     ];

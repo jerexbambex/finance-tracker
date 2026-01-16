@@ -166,6 +166,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/import/transactions', [ImportController::class, 'import'])->name('import.transactions');
     
     Route::get('/export/transactions', [App\Http\Controllers\ExportController::class, 'transactions'])->name('export.transactions');
+    Route::get('/export/all-data', [App\Http\Controllers\ExportController::class, 'allData'])->name('export.all-data');
+    
+    Route::get('/settings', [App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
+    Route::post('/settings/import', [App\Http\Controllers\SettingsController::class, 'importData'])->name('settings.import');
     
     Route::get('/transfers/create', [App\Http\Controllers\TransferController::class, 'create'])->name('transfers.create');
     Route::post('/transfers', [App\Http\Controllers\TransferController::class, 'store'])->name('transfers.store');
