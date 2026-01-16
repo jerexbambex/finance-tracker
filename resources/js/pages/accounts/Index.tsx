@@ -1,4 +1,4 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -115,14 +115,18 @@ export default function Index({ accounts }: Props) {
         <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold">Accounts</h1>
-            <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-              <DialogTrigger asChild>
-                <Button>Add Account</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Create New Account</DialogTitle>
-                </DialogHeader>
+            <div className="flex gap-2">
+              <Link href="/transfers/create">
+                <Button variant="outline">Transfer</Button>
+              </Link>
+              <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+                <DialogTrigger asChild>
+                  <Button>Add Account</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Create New Account</DialogTitle>
+                  </DialogHeader>
                 <form onSubmit={handleCreate} className="space-y-4">
                   <div>
                     <Label htmlFor="create-name">Account Name</Label>
@@ -196,7 +200,8 @@ export default function Index({ accounts }: Props) {
                   </div>
                 </form>
               </DialogContent>
-            </Dialog>
+              </Dialog>
+            </div>
           </div>
 
           {accounts.length > 0 && (

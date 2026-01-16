@@ -157,6 +157,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
     Route::get('/export/transactions', [App\Http\Controllers\ExportController::class, 'transactions'])->name('export.transactions');
     
+    Route::get('/transfers/create', [App\Http\Controllers\TransferController::class, 'create'])->name('transfers.create');
+    Route::post('/transfers', [App\Http\Controllers\TransferController::class, 'store'])->name('transfers.store');
+    
     Route::get('/export/transactions', [ExportController::class, 'exportTransactions'])->name('export.transactions');
     Route::get('/export/all', [ExportController::class, 'exportAll'])->name('export.all');
 });
