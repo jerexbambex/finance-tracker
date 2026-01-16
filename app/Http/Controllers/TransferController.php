@@ -57,6 +57,10 @@ class TransferController extends Controller
                 'description' => $validated['description'] ?? "Transfer from {$fromAccount->name}",
                 'transaction_date' => $validated['transfer_date'],
             ]);
+
+            // Update account balances
+            $fromAccount->decrement('balance', $validated['amount']);
+            $toAccount->increment('balance', $validated['amount']);
         });
 
         return redirect()->route('accounts.index')->with('success', 'Transfer completed successfully');
