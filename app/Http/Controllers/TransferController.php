@@ -38,6 +38,8 @@ class TransferController extends Controller
         }
 
         DB::transaction(function () use ($validated, $fromAccount, $toAccount) {
+            $amountInCents = $validated['amount'] * 100;
+            
             // Create outgoing transaction
             Transaction::create([
                 'user_id' => auth()->id(),
@@ -58,9 +60,9 @@ class TransferController extends Controller
                 'transaction_date' => $validated['transfer_date'],
             ]);
 
-            // Update account balances
-            $fromAccount->decrement('balance', $validated['amount']);
-            $toAccount->increment('balance', $validated['amount']);
+            // Update account balances (in cents)
+            $fromAccount->decrement('balance', $amountInCents);
+            $toAccount->increment('balance', $amountInCents);
         });
 
         return redirect()->route('accounts.index')->with('success', 'Transfer completed successfully');
