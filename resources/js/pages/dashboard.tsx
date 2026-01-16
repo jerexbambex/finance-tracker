@@ -5,6 +5,7 @@ import { ArrowUpRight, ArrowDownRight, TrendingUp, Wallet, Clock } from 'lucide-
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import AppLayout from '@/layouts/app-layout';
+import QuickAddTransaction from '@/components/QuickAddTransaction';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 
@@ -64,9 +65,10 @@ interface Props {
     monthlyTrend: MonthlyTrend[];
     budgets: Budget[];
     goals: Goal[];
+    categories: Category[];
 }
 
-export default function Dashboard({ accounts, totalBalance, recentTransactions, monthlyIncome, monthlyExpenses, categorySpending, monthlyTrend, budgets, goals }: Props) {
+export default function Dashboard({ accounts, totalBalance, recentTransactions, monthlyIncome, monthlyExpenses, categorySpending, monthlyTrend, budgets, goals, categories }: Props) {
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
@@ -94,9 +96,12 @@ export default function Dashboard({ accounts, totalBalance, recentTransactions, 
             
             <div className="flex-1 space-y-6 p-6 md:p-8">
                 <div className="mx-auto max-w-7xl space-y-6">
-                    <div>
-                        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-                        <p className="text-muted-foreground">Welcome back! Here's your financial overview.</p>
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+                            <p className="text-muted-foreground">Welcome back! Here's your financial overview.</p>
+                        </div>
+                        <QuickAddTransaction accounts={accounts} categories={categories} />
                     </div>
 
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

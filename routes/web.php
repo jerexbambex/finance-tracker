@@ -132,6 +132,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'monthlyTrend' => $monthlyTrend,
             'budgets' => $budgets,
             'goals' => $goals,
+            'categories' => \App\Models\Category::where(function($q) use ($user) {
+                $q->whereNull('user_id')->orWhere('user_id', $user->id);
+            })->where('is_active', true)->get(),
         ]);
     })->name('dashboard');
     
