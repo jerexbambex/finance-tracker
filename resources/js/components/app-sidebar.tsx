@@ -4,6 +4,7 @@ import { LayoutGrid, Wallet, ArrowUpDown, PieChart, Target, Folder, Settings, Cr
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
+import AppearanceToggleDropdown from '@/components/appearance-dropdown';
 import {
     Sidebar,
     SidebarContent,
@@ -109,6 +110,9 @@ export function AppSidebar() {
             </SidebarContent>
 
             <SidebarFooter>
+                <div className="flex items-center justify-between px-2 py-2">
+                    <AppearanceToggleDropdown />
+                </div>
                 <NavFooter items={footerNavItems} className="mt-auto" />
                 <NavUser />
             </SidebarFooter>
