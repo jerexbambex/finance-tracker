@@ -55,6 +55,13 @@ export default function Index({ categorySpending, monthlyTrends, totalIncome, to
   const [activeCategory, setActiveCategory] = useState('');
   const [dateRange, setDateRange] = useState({ start: startDate, end: endDate });
 
+  console.log('Reports data:', { 
+    categorySpending: categorySpending?.length, 
+    monthlyTrends: monthlyTrends?.length,
+    totalIncome,
+    totalExpense 
+  });
+
   React.useEffect(() => {
     if (categorySpending.length > 0 && !activeCategory) {
       setActiveCategory(categorySpending[0].category);
@@ -186,7 +193,7 @@ export default function Index({ categorySpending, monthlyTrends, totalIncome, to
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent align="end" className="rounded-xl">
-                      {categorySpending.map((item, index) => (
+                      {categorySpending.filter(item => item.category).map((item, index) => (
                         <SelectItem key={item.category} value={item.category} className="rounded-lg">
                           <div className="flex items-center gap-2 text-xs">
                             <span
