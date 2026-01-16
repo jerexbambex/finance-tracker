@@ -145,6 +145,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('categories', CategoryController::class);
     Route::resource('recurring-transactions', RecurringTransactionController::class);
     Route::resource('reports', ReportsController::class)->only(['index']);
+    Route::resource('reminders', App\Http\Controllers\ReminderController::class);
+    Route::post('/reminders/{reminder}/complete', [App\Http\Controllers\ReminderController::class, 'complete'])->name('reminders.complete');
     
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');

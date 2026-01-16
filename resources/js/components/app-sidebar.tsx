@@ -70,6 +70,11 @@ export function AppSidebar() {
             icon: Repeat,
         },
         {
+            title: 'Reminders',
+            href: '/reminders',
+            icon: Bell,
+        },
+        {
             title: 'Categories',
             href: '/categories',
             icon: Folder,
