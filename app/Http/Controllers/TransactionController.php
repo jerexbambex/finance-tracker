@@ -310,4 +310,33 @@ class TransactionController extends Controller
             // Send notification
         }
     }
+
+    public function bulkDelete(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'required|exists:transactions,id',
+        ]);
+
+        $deleted = auth()->user()->transactions()
+            ->whereIn('id', $validated['ids'])
+            ->delete();
+
+        return redirect()->back()->with('success', "Deleted {$deleted} transactions");
+    }
+
+    public function bulkCategorize(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'required|exists:transactions,id',
+            'category_id' => 'required|exists:categories,id',
+        ]);
+
+        $updated = auth()->user()->transactions()
+            ->whereIn('id', $validated['ids'])
+            ->update(['category_id' => $validated['category_id']]);
+
+        return redirect()->back()->with('success', "Updated {$updated} transactions");
+    }
 }

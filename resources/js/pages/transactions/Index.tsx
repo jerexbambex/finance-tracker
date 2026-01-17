@@ -74,7 +74,46 @@ export default function Index({ transactions, accounts, categories, chartData }:
   const [searchQuery, setSearchQuery] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkAction, setBulkAction] = useState<'delete' | 'categorize' | ''>('');
+  const [bulkCategoryId, setBulkCategoryId] = useState('');
   const itemsPerPage = 10;
+
+  const toggleSelection = (id: string) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const toggleAll = () => {
+    if (selectedIds.length === transactions.data.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(transactions.data.map(t => t.id));
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (!confirm(`Delete ${selectedIds.length} transactions?`)) return;
+    
+    router.post('/transactions/bulk-delete', { ids: selectedIds }, {
+      onSuccess: () => setSelectedIds([])
+    });
+  };
+
+  const handleBulkCategorize = () => {
+    if (!bulkCategoryId) return;
+    
+    router.post('/transactions/bulk-categorize', { 
+      ids: selectedIds, 
+      category_id: bulkCategoryId 
+    }, {
+      onSuccess: () => {
+        setSelectedIds([]);
+        setBulkCategoryId('');
+      }
+    });
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -454,10 +493,44 @@ export default function Index({ transactions, accounts, categories, chartData }:
                 </div>
               </CardHeader>
               <CardContent className="p-0 sm:p-6">
+                {selectedIds.length > 0 && (
+                  <div className="p-4 bg-muted border-b flex items-center gap-4">
+                    <span className="text-sm font-medium">{selectedIds.length} selected</span>
+                    <Button size="sm" variant="destructive" onClick={handleBulkDelete}>
+                      Delete
+                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Select value={bulkCategoryId} onValueChange={setBulkCategoryId}>
+                        <SelectTrigger className="w-[180px] h-8">
+                          <SelectValue placeholder="Change category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories.map((cat) => (
+                            <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button size="sm" onClick={handleBulkCategorize} disabled={!bulkCategoryId}>
+                        Apply
+                      </Button>
+                    </div>
+                    <Button size="sm" variant="ghost" onClick={() => setSelectedIds([])}>
+                      Clear
+                    </Button>
+                  </div>
+                )}
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead className="w-12">
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.length === transactions.data.length && transactions.data.length > 0}
+                            onChange={toggleAll}
+                            className="rounded"
+                          />
+                        </TableHead>
                         <TableHead>Description</TableHead>
                         <TableHead className="hidden md:table-cell">Category</TableHead>
                         <TableHead className="hidden lg:table-cell">Account</TableHead>
@@ -469,6 +542,14 @@ export default function Index({ transactions, accounts, categories, chartData }:
                     <TableBody>
                       {paginatedTransactions.map((transaction) => (
                         <TableRow key={transaction.id}>
+                          <TableCell>
+                            <input
+                              type="checkbox"
+                              checked={selectedIds.includes(transaction.id)}
+                              onChange={() => toggleSelection(transaction.id)}
+                              className="rounded"
+                            />
+                          </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-3">
                               <div

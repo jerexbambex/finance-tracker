@@ -162,6 +162,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::resource('accounts', AccountController::class);
     Route::resource('transactions', TransactionController::class);
+    Route::post('transactions/bulk-delete', [App\Http\Controllers\TransactionController::class, 'bulkDelete'])->name('transactions.bulk-delete');
+    Route::post('transactions/bulk-categorize', [App\Http\Controllers\TransactionController::class, 'bulkCategorize'])->name('transactions.bulk-categorize');
     Route::resource('budgets', BudgetController::class);
     Route::resource('goals', GoalController::class);
     Route::post('goals/{goal}/contribute', [App\Http\Controllers\GoalContributionController::class, 'store'])->name('goals.contribute');
