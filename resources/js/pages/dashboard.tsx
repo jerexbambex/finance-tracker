@@ -123,9 +123,9 @@ export default function Dashboard({ accounts, balancesByCurrency, recentTransact
             
             <div className="flex-1 space-y-6 p-6 md:p-8">
                 <div className="mx-auto max-w-7xl space-y-6">
-                    <div className="flex justify-between items-start">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div>
-                            <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+                            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard</h2>
                             <p className="text-muted-foreground">Welcome back! Here's your financial overview.</p>
                         </div>
                         <QuickAddTransaction accounts={accounts} categories={categories} />
