@@ -99,10 +99,7 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessPanel(Panel $panel): bool
     {
-        // Allow all users to access the admin panel in local environment
-        // In production, you can add additional checks like:
-        // return $this->hasRole('admin') || $this->hasRole('super_admin');
-        return true;
+        return $this->hasRole('admin') || $this->hasRole('super_admin');
     }
 
     public function getActivitylogOptions(): LogOptions
