@@ -9,6 +9,7 @@ use Illuminate\Console\Command;
 class SendBillReminders extends Command
 {
     protected $signature = 'reminders:send';
+
     protected $description = 'Send email notifications for upcoming bill reminders';
 
     public function handle()
@@ -27,7 +28,7 @@ class SendBillReminders extends Command
         }
 
         $this->info("Sent {$sent} bill reminder notifications.");
-        
+
         return Command::SUCCESS;
     }
 }

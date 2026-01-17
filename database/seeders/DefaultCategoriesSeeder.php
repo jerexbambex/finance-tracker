@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DefaultCategoriesSeeder extends Seeder
@@ -19,7 +18,7 @@ class DefaultCategoriesSeeder extends Seeder
             ['name' => 'Investment Returns', 'type' => 'income', 'color' => '#047857'],
             ['name' => 'Business Income', 'type' => 'income', 'color' => '#065f46'],
             ['name' => 'Other Income', 'type' => 'income', 'color' => '#064e3b'],
-            
+
             // Expense Categories
             ['name' => 'Housing', 'type' => 'expense', 'color' => '#ef4444'],
             ['name' => 'Transportation', 'type' => 'expense', 'color' => '#dc2626'],

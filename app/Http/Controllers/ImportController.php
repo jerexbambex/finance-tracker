@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Transaction;
 use App\Models\Account;
 use App\Models\Category;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
@@ -14,7 +14,7 @@ class ImportController extends Controller
     public function index()
     {
         $accounts = auth()->user()->accounts()->where('is_active', true)->get();
-        
+
         return Inertia::render('import/Index', [
             'accounts' => $accounts,
         ]);
@@ -33,13 +33,15 @@ class ImportController extends Controller
 
         $file = $request->file('file');
         $handle = fopen($file->getRealPath(), 'r');
-        
+
         $header = fgetcsv($handle);
         $imported = 0;
         $errors = [];
 
         while (($row = fgetcsv($handle)) !== false) {
-            if (count($row) < 4) continue;
+            if (count($row) < 4) {
+                continue;
+            }
 
             $data = [
                 'date' => $row[0] ?? null,
@@ -57,12 +59,13 @@ class ImportController extends Controller
             ]);
 
             if ($validator->fails()) {
-                $errors[] = "Row skipped: " . implode(', ', $validator->errors()->all());
+                $errors[] = 'Row skipped: '.implode(', ', $validator->errors()->all());
+
                 continue;
             }
 
             $category = null;
-            if (!empty($data['category'])) {
+            if (! empty($data['category'])) {
                 $category = Category::firstOrCreate(
                     ['name' => $data['category'], 'user_id' => auth()->id()],
                     ['type' => $data['type'], 'is_active' => true]
@@ -84,7 +87,7 @@ class ImportController extends Controller
 
         fclose($handle);
 
-        return back()->with('success', "Imported {$imported} transactions" . 
-            (count($errors) > 0 ? " with " . count($errors) . " errors" : ""));
+        return back()->with('success', "Imported {$imported} transactions".
+            (count($errors) > 0 ? ' with '.count($errors).' errors' : ''));
     }
 }

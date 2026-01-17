@@ -14,7 +14,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('color')->default('#6b7280');
             $table->timestamps();
-            
+
             $table->unique(['user_id', 'name']);
         });
 
@@ -22,7 +22,7 @@ return new class extends Migration
             $table->foreignUuid('tag_id')->constrained()->onDelete('cascade');
             $table->uuidMorphs('taggable');
             $table->timestamps();
-            
+
             $table->unique(['tag_id', 'taggable_id', 'taggable_type']);
         });
     }

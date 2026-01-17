@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\RecurringTransaction;
-use App\Models\Account;
 use App\Models\Category;
+use App\Models\RecurringTransaction;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -29,7 +28,7 @@ class RecurringTransactionController extends Controller
     public function create()
     {
         $accounts = auth()->user()->accounts()->where('is_active', true)->get();
-        $categories = Category::where(function($q) {
+        $categories = Category::where(function ($q) {
             $q->whereNull('user_id')->orWhere('user_id', auth()->id());
         })->where('is_active', true)->get();
 
@@ -62,7 +61,7 @@ class RecurringTransactionController extends Controller
         $this->authorize('update', $recurringTransaction);
 
         $accounts = auth()->user()->accounts()->where('is_active', true)->get();
-        $categories = Category::where(function($q) {
+        $categories = Category::where(function ($q) {
             $q->whereNull('user_id')->orWhere('user_id', auth()->id());
         })->where('is_active', true)->get();
 

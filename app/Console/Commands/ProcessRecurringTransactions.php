@@ -2,14 +2,15 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Models\RecurringTransaction;
 use App\Models\Transaction;
 use Carbon\Carbon;
+use Illuminate\Console\Command;
 
 class ProcessRecurringTransactions extends Command
 {
     protected $signature = 'transactions:process-recurring';
+
     protected $description = 'Process due recurring transactions and create actual transactions';
 
     public function handle()
@@ -27,7 +28,7 @@ class ProcessRecurringTransactions extends Command
                 'category_id' => $recurring->category_id,
                 'type' => $recurring->type,
                 'amount' => $recurring->amount,
-                'description' => $recurring->description . ' (Auto)',
+                'description' => $recurring->description.' (Auto)',
                 'transaction_date' => now(),
                 'is_recurring' => true,
             ]);
@@ -43,6 +44,7 @@ class ProcessRecurringTransactions extends Command
         }
 
         $this->info("Processed {$processed} recurring transactions.");
+
         return 0;
     }
 

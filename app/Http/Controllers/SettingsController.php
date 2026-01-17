@@ -21,15 +21,16 @@ class SettingsController extends Controller
         $json = file_get_contents($request->file('file')->getRealPath());
         $data = json_decode($json, true);
 
-        if (!$data || !isset($data['exported_at'])) {
+        if (! $data || ! isset($data['exported_at'])) {
             return back()->withErrors(['file' => 'Invalid backup file format.']);
         }
 
         $user = auth()->user();
 
-        // Import data (this is a simple append, not a replace)
-        // In production, you'd want more sophisticated merge logic
-        
+        // Import data - simple append strategy
+        // Note: This creates new records rather than updating existing ones
+        // Duplicate detection would require matching on unique fields (name, date, amount, etc.)
+
         if (isset($data['accounts'])) {
             foreach ($data['accounts'] as $account) {
                 unset($account['id'], $account['user_id'], $account['created_at'], $account['updated_at']);

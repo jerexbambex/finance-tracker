@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Reminder;
 use App\Models\Category;
+use App\Models\Reminder;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -15,11 +15,20 @@ class ReminderController extends Controller
             ->with('category')
             ->orderBy('due_date')
             ->get()
-            ->groupBy(function($reminder) {
-                if ($reminder->isOverdue()) return 'overdue';
-                if ($reminder->isDueToday()) return 'today';
-                if ($reminder->isDueSoon()) return 'soon';
-                if ($reminder->is_completed) return 'completed';
+            ->groupBy(function ($reminder) {
+                if ($reminder->isOverdue()) {
+                    return 'overdue';
+                }
+                if ($reminder->isDueToday()) {
+                    return 'today';
+                }
+                if ($reminder->isDueSoon()) {
+                    return 'soon';
+                }
+                if ($reminder->is_completed) {
+                    return 'completed';
+                }
+
                 return 'upcoming';
             });
 
@@ -30,7 +39,7 @@ class ReminderController extends Controller
 
     public function create()
     {
-        $categories = Category::where(function($q) {
+        $categories = Category::where(function ($q) {
             $q->whereNull('user_id')->orWhere('user_id', auth()->id());
         })->where('is_active', true)->get();
 
@@ -78,7 +87,7 @@ class ReminderController extends Controller
     public function destroy(Reminder $reminder)
     {
         $this->authorize('delete', $reminder);
-        
+
         $reminder->delete();
 
         return redirect()->route('reminders.index');
@@ -95,7 +104,7 @@ class ReminderController extends Controller
 
         // If recurring, create next reminder
         if ($reminder->is_recurring && $reminder->frequency) {
-            $nextDueDate = $reminder->frequency === 'monthly' 
+            $nextDueDate = $reminder->frequency === 'monthly'
                 ? $reminder->due_date->addMonth()
                 : $reminder->due_date->addYear();
 

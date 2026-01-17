@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
-use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class CategoryController extends Controller
@@ -13,7 +13,7 @@ class CategoryController extends Controller
 
     public function index()
     {
-        $categories = Category::where(function($q) {
+        $categories = Category::where(function ($q) {
             $q->whereNull('user_id')->orWhere('user_id', auth()->id());
         })->where('is_active', true)->get()->groupBy('type');
 
@@ -43,9 +43,7 @@ class CategoryController extends Controller
 
     public function edit(Category $category)
     {
-        if ($category->user_id !== auth()->id()) {
-            abort(403);
-        }
+        $this->authorize('update', $category);
 
         return Inertia::render('categories/Edit', [
             'category' => $category,
@@ -54,9 +52,7 @@ class CategoryController extends Controller
 
     public function update(Request $request, Category $category)
     {
-        if ($category->user_id !== auth()->id()) {
-            abort(403);
-        }
+        $this->authorize('update', $category);
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -71,9 +67,7 @@ class CategoryController extends Controller
 
     public function destroy(Category $category)
     {
-        if ($category->user_id !== auth()->id()) {
-            abort(403);
-        }
+        $this->authorize('delete', $category);
 
         $category->update(['is_active' => false]);
 

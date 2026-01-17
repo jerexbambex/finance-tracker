@@ -51,16 +51,16 @@ class Reminder extends Model
 
     public function isOverdue()
     {
-        return !$this->is_completed && $this->due_date->isPast();
+        return ! $this->is_completed && $this->due_date->isPast();
     }
 
     public function isDueToday()
     {
-        return !$this->is_completed && $this->due_date->isToday();
+        return ! $this->is_completed && $this->due_date->isToday();
     }
 
     public function isDueSoon()
     {
-        return !$this->is_completed && $this->due_date->isFuture() && $this->due_date->diffInDays() <= 7;
+        return ! $this->is_completed && $this->due_date->isFuture() && $this->due_date->diffInDays() <= 7;
     }
 }

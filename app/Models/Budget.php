@@ -62,6 +62,7 @@ class Budget extends Model
     public function getPercentageUsed()
     {
         $spent = $this->getSpentAmount();
+
         return $this->amount > 0 ? ($spent / $this->amount) * 100 : 0;
     }
 }

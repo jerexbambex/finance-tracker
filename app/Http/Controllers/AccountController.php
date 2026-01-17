@@ -14,9 +14,9 @@ class AccountController extends Controller
     public function index()
     {
         $accounts = auth()->user()->accounts()->with('transactions')->get();
-        
+
         return Inertia::render('accounts/Index', [
-            'accounts' => $accounts
+            'accounts' => $accounts,
         ]);
     }
 
@@ -32,7 +32,7 @@ class AccountController extends Controller
             'type' => 'required|string|in:checking,savings,credit_card,investment,cash',
             'balance' => 'required|numeric|min:0',
             'currency' => 'required|string|size:3',
-            'description' => 'nullable|string'
+            'description' => 'nullable|string',
         ]);
 
         auth()->user()->accounts()->create($validated);
@@ -43,36 +43,36 @@ class AccountController extends Controller
     public function show(Account $account)
     {
         $this->authorize('view', $account);
-        
-        $account->load(['transactions' => function($query) {
+
+        $account->load(['transactions' => function ($query) {
             $query->with('category')->latest('transaction_date');
         }]);
 
         return Inertia::render('accounts/Show', [
-            'account' => $account
+            'account' => $account,
         ]);
     }
 
     public function edit(Account $account)
     {
         $this->authorize('update', $account);
-        
+
         return Inertia::render('accounts/Edit', [
-            'account' => $account
+            'account' => $account,
         ]);
     }
 
     public function update(Request $request, Account $account)
     {
         $this->authorize('update', $account);
-        
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'type' => 'required|string|in:checking,savings,credit_card,investment,cash',
             'balance' => 'required|numeric|min:0',
             'currency' => 'string|size:3',
             'description' => 'nullable|string',
-            'is_active' => 'boolean'
+            'is_active' => 'boolean',
         ]);
 
         $account->update($validated);
@@ -83,7 +83,7 @@ class AccountController extends Controller
     public function destroy(Account $account)
     {
         $this->authorize('delete', $account);
-        
+
         $account->delete();
 
         return redirect()->route('accounts.index');

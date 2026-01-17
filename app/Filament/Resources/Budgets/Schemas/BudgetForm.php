@@ -2,10 +2,10 @@
 
 namespace App\Filament\Resources\Budgets\Schemas;
 
+use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Hidden;
 use Filament\Schemas\Schema;
 
 class BudgetForm
@@ -19,9 +19,8 @@ class BudgetForm
                 Select::make('category_id')
                     ->label('Category')
                     ->required()
-                    ->relationship('category', 'name', fn ($query) => 
-                        $query->where('type', 'expense')
-                              ->where('is_active', true)
+                    ->relationship('category', 'name', fn ($query) => $query->where('type', 'expense')
+                        ->where('is_active', true)
                     )
                     ->searchable()
                     ->preload(),

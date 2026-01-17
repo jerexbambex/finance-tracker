@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Transaction;
 use App\Models\Account;
-use App\Models\Category;
 use App\Models\Budget;
-use App\Notifications\BudgetExceededNotification;
+use App\Models\Category;
+use App\Models\Transaction;
+use App\Models\TransactionSplit;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -14,6 +14,7 @@ use Inertia\Inertia;
 class TransactionController extends Controller
 {
     use AuthorizesRequests;
+
     public function index(Request $request)
     {
         $query = auth()->user()->transactions()
@@ -21,19 +22,19 @@ class TransactionController extends Controller
             ->latest('transaction_date');
 
         // Apply filters using when() for cleaner code
-        $query->when($request->account_id, fn($q) => $q->where('account_id', $request->account_id))
-              ->when($request->category_id, fn($q) => $q->where('category_id', $request->category_id))
-              ->when($request->type, fn($q) => $q->where('type', $request->type))
-              ->when($request->date_from, fn($q) => $q->whereDate('transaction_date', '>=', $request->date_from))
-              ->when($request->date_to, fn($q) => $q->whereDate('transaction_date', '<=', $request->date_to))
-              ->when($request->search, fn($q) => $q->where('description', 'like', '%' . $request->search . '%'))
-              ->when($request->amount_min, fn($q) => $q->whereRaw('amount >= ?', [$request->amount_min * 100]))
-              ->when($request->amount_max, fn($q) => $q->whereRaw('amount <= ?', [$request->amount_max * 100]));
+        $query->when($request->account_id, fn ($q) => $q->where('account_id', $request->account_id))
+            ->when($request->category_id, fn ($q) => $q->where('category_id', $request->category_id))
+            ->when($request->type, fn ($q) => $q->where('type', $request->type))
+            ->when($request->date_from, fn ($q) => $q->whereDate('transaction_date', '>=', $request->date_from))
+            ->when($request->date_to, fn ($q) => $q->whereDate('transaction_date', '<=', $request->date_to))
+            ->when($request->search, fn ($q) => $q->where('description', 'like', '%'.$request->search.'%'))
+            ->when($request->amount_min, fn ($q) => $q->whereRaw('amount >= ?', [$request->amount_min * 100]))
+            ->when($request->amount_max, fn ($q) => $q->whereRaw('amount <= ?', [$request->amount_max * 100]));
 
         $transactions = $query->paginate(20)->withQueryString();
-        
+
         $accounts = auth()->user()->accounts()->where('is_active', true)->get();
-        $categories = Category::where(function($q) {
+        $categories = Category::where(function ($q) {
             $q->whereNull('user_id')->orWhere('user_id', auth()->id());
         })->where('is_active', true)->get();
 
@@ -41,10 +42,10 @@ class TransactionController extends Controller
         $dailyData = auth()->user()->transactions()
             ->where('transaction_date', '>=', now()->subDays(30))
             ->get()
-            ->groupBy(function($transaction) {
+            ->groupBy(function ($transaction) {
                 return $transaction->transaction_date->format('Y-m-d');
             })
-            ->map(function($dayTransactions, $date) {
+            ->map(function ($dayTransactions, $date) {
                 return [
                     'period' => date('M d', strtotime($date)),
                     'income' => $dayTransactions->where('type', 'income')->sum('amount'),
@@ -58,12 +59,12 @@ class TransactionController extends Controller
         for ($i = 5; $i >= 0; $i--) {
             $date = now()->subMonths($i);
             $monthKey = $date->format('Y-m');
-            
+
             $monthTransactions = auth()->user()->transactions()
                 ->whereYear('transaction_date', $date->year)
                 ->whereMonth('transaction_date', $date->month)
                 ->get();
-            
+
             $monthlyData->push([
                 'period' => $date->format('M'),
                 'income' => $monthTransactions->where('type', 'income')->sum('amount'),
@@ -77,7 +78,7 @@ class TransactionController extends Controller
                 ->whereYear('transaction_date', now()->year)
                 ->whereMonth('transaction_date', $month)
                 ->get();
-            
+
             $yearlyData->push([
                 'period' => date('M', mktime(0, 0, 0, $month, 1)),
                 'income' => $monthTransactions->where('type', 'income')->sum('amount'),
@@ -94,20 +95,20 @@ class TransactionController extends Controller
                 'monthly' => $monthlyData,
                 'yearly' => $yearlyData,
             ],
-            'filters' => $request->only(['account_id', 'category_id', 'type'])
+            'filters' => $request->only(['account_id', 'category_id', 'type']),
         ]);
     }
 
     public function create()
     {
         $accounts = auth()->user()->accounts()->where('is_active', true)->get();
-        $categories = Category::where(function($q) {
+        $categories = Category::where(function ($q) {
             $q->whereNull('user_id')->orWhere('user_id', auth()->id());
         })->where('is_active', true)->get();
 
         return Inertia::render('transactions/Create', [
             'accounts' => $accounts,
-            'categories' => $categories
+            'categories' => $categories,
         ]);
     }
 
@@ -141,19 +142,19 @@ class TransactionController extends Controller
         $transaction = auth()->user()->transactions()->create($validated);
 
         // Handle splits
-        if (!empty($validated['splits'])) {
+        if (! empty($validated['splits'])) {
             foreach ($validated['splits'] as $split) {
                 $transaction->splits()->create($split);
             }
         }
 
         // Handle tags
-        if (!empty($validated['tags'])) {
+        if (! empty($validated['tags'])) {
             $tagNames = array_map('trim', explode(',', $validated['tags']));
             $tagIds = [];
-            
+
             foreach ($tagNames as $tagName) {
-                if (!empty($tagName)) {
+                if (! empty($tagName)) {
                     $tag = \App\Models\Tag::firstOrCreate(
                         ['user_id' => auth()->id(), 'name' => $tagName],
                         ['color' => '#6b7280']
@@ -161,7 +162,7 @@ class TransactionController extends Controller
                     $tagIds[] = $tag->id;
                 }
             }
-            
+
             $transaction->tags()->attach($tagIds);
         }
 
@@ -188,34 +189,34 @@ class TransactionController extends Controller
     public function show(Transaction $transaction)
     {
         $this->authorize('view', $transaction);
-        
+
         $transaction->load(['account', 'category']);
 
         return Inertia::render('transactions/Show', [
-            'transaction' => $transaction
+            'transaction' => $transaction,
         ]);
     }
 
     public function edit(Transaction $transaction)
     {
         $this->authorize('update', $transaction);
-        
+
         $accounts = auth()->user()->accounts()->where('is_active', true)->get();
-        $categories = Category::where(function($q) {
+        $categories = Category::where(function ($q) {
             $q->whereNull('user_id')->orWhere('user_id', auth()->id());
         })->where('is_active', true)->get();
 
         return Inertia::render('transactions/Edit', [
             'transaction' => $transaction->load(['media', 'splits.category']),
             'accounts' => $accounts,
-            'categories' => $categories
+            'categories' => $categories,
         ]);
     }
 
     public function update(Request $request, Transaction $transaction)
     {
         $this->authorize('update', $transaction);
-        
+
         $validated = $request->validate([
             'account_id' => 'required|exists:accounts,id',
             'category_id' => 'nullable|exists:categories,id',
@@ -224,7 +225,7 @@ class TransactionController extends Controller
             'description' => 'required|string|max:255',
             'transaction_date' => 'required|date',
             'notes' => 'nullable|string',
-            'receipt' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120'
+            'receipt' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
         ]);
 
         $transaction->update($validated);
@@ -241,7 +242,7 @@ class TransactionController extends Controller
     public function destroy(Transaction $transaction)
     {
         $this->authorize('delete', $transaction);
-        
+
         $transaction->delete();
 
         return redirect()->route('transactions.index');
@@ -255,7 +256,9 @@ class TransactionController extends Controller
             ->where('period_month', $transaction->transaction_date->month)
             ->first();
 
-        if (!$budget) return;
+        if (! $budget) {
+            return;
+        }
 
         $spent = auth()->user()->transactions()
             ->where('type', 'expense')
@@ -272,7 +275,7 @@ class TransactionController extends Controller
         }
     }
 
-    private function checkBudgetAlertForSplit(\App\Models\TransactionSplit $split): void
+    private function checkBudgetAlertForSplit(TransactionSplit $split): void
     {
         $transaction = $split->transaction;
         $budget = Budget::where('user_id', auth()->id())
@@ -281,7 +284,9 @@ class TransactionController extends Controller
             ->where('period_month', $transaction->transaction_date->month)
             ->first();
 
-        if (!$budget) return;
+        if (! $budget) {
+            return;
+        }
 
         $spent = auth()->user()->transactions()
             ->where('type', 'expense')
@@ -291,11 +296,11 @@ class TransactionController extends Controller
             ->sum('amount');
 
         // Add split amounts
-        $splitTotal = TransactionSplit::whereHas('transaction', function($q) use ($transaction) {
+        $splitTotal = TransactionSplit::whereHas('transaction', function ($q) use ($transaction) {
             $q->where('user_id', auth()->id())
-              ->where('type', 'expense')
-              ->whereYear('transaction_date', $transaction->transaction_date->year)
-              ->whereMonth('transaction_date', $transaction->transaction_date->month);
+                ->where('type', 'expense')
+                ->whereYear('transaction_date', $transaction->transaction_date->year)
+                ->whereMonth('transaction_date', $transaction->transaction_date->month);
         })->where('category_id', $split->category_id)->sum('amount');
 
         $totalSpent = $spent + $splitTotal;

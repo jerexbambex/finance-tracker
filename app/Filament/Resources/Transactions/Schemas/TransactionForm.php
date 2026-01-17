@@ -3,14 +3,12 @@
 namespace App\Filament\Resources\Transactions\Schemas;
 
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\Toggle;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
-use App\Models\Account;
-use App\Models\Category;
 
 class TransactionForm
 {
@@ -36,9 +34,8 @@ class TransactionForm
                     ->reactive(),
                 Select::make('category_id')
                     ->label('Category')
-                    ->relationship('category', 'name', fn ($query, $get) => 
-                        $query->where('type', $get('type'))
-                              ->where('is_active', true)
+                    ->relationship('category', 'name', fn ($query, $get) => $query->where('type', $get('type'))
+                        ->where('is_active', true)
                     )
                     ->searchable()
                     ->preload(),

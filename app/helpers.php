@@ -1,6 +1,6 @@
 <?php
 
-if (!function_exists('format_currency')) {
+if (! function_exists('format_currency')) {
     function format_currency($amount, $currency = 'USD')
     {
         $symbols = [
@@ -16,13 +16,13 @@ if (!function_exists('format_currency')) {
             'NGN' => '₦',
         ];
 
-        $symbol = $symbols[$currency] ?? $currency . ' ';
-        
-        return $symbol . number_format($amount, 2);
+        $symbol = $symbols[$currency] ?? $currency.' ';
+
+        return $symbol.number_format($amount, 2);
     }
 }
 
-if (!function_exists('get_currencies')) {
+if (! function_exists('get_currencies')) {
     function get_currencies()
     {
         return [

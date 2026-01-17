@@ -39,7 +39,7 @@ class TransferController extends Controller
 
         DB::transaction(function () use ($validated, $fromAccount, $toAccount) {
             $amountInCents = $validated['amount'] * 100;
-            
+
             // Create outgoing transaction
             Transaction::create([
                 'user_id' => auth()->id(),

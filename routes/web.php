@@ -2,14 +2,13 @@
 
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\BudgetController;
-use App\Http\Controllers\GoalController;
-use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\ExportController;
-use App\Http\Controllers\ReportsController;
-use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\GoalController;
 use App\Http\Controllers\ImportController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\RecurringTransactionController;
+use App\Http\Controllers\ReportsController;
+use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -20,37 +19,37 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
-Route::get('/test-export', function() {
+Route::get('/test-export', function () {
     return 'Export route works!';
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
         $user = auth()->user();
-        
+
         // Get account summaries
         $accounts = $user->accounts()->where('is_active', true)->get();
         $totalBalance = $accounts->sum('balance');
-        
+
         // Get recent transactions
         $recentTransactions = $user->transactions()
             ->with(['account', 'category'])
             ->latest('transaction_date')
             ->take(10)
             ->get();
-        
+
         // Calculate monthly income and expenses (use raw query to avoid accessor)
         $startOfMonth = now()->startOfMonth();
         $monthlyIncome = $user->transactions()
             ->where('type', 'income')
             ->where('transaction_date', '>=', $startOfMonth)
             ->sum(\DB::raw('amount')) / 100;
-            
+
         $monthlyExpenses = $user->transactions()
             ->where('type', 'expense')
             ->where('transaction_date', '>=', $startOfMonth)
             ->sum(\DB::raw('amount')) / 100;
-        
+
         // Spending by category (current month) - use raw sum
         $categorySpending = $user->transactions()
             ->selectRaw('category_id, SUM(amount) as total')
@@ -61,54 +60,55 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->orderByDesc('total')
             ->take(5)
             ->get()
-            ->map(function($transaction) {
+            ->map(function ($transaction) {
                 return [
                     'name' => $transaction->category ? $transaction->category->name : 'Uncategorized',
                     'amount' => $transaction->total / 100,
                     'color' => $transaction->category ? $transaction->category->color : '#6b7280',
                 ];
             });
-        
+
         // Last 6 months trend - use raw sum
         $monthlyTrend = collect();
         for ($i = 5; $i >= 0; $i--) {
             $date = now()->subMonths($i);
-            
+
             $income = $user->transactions()
                 ->where('type', 'income')
                 ->whereYear('transaction_date', $date->year)
                 ->whereMonth('transaction_date', $date->month)
                 ->sum(\DB::raw('amount')) / 100;
-                
+
             $expense = $user->transactions()
                 ->where('type', 'expense')
                 ->whereYear('transaction_date', $date->year)
                 ->whereMonth('transaction_date', $date->month)
                 ->sum(\DB::raw('amount')) / 100;
-            
+
             $monthlyTrend->push([
                 'month' => $date->format('M'),
                 'income' => $income,
                 'expense' => $expense,
             ]);
         }
-        
+
         // Budget progress with alerts
         $currentMonth = now()->month;
         $currentYear = now()->year;
         $budgets = $user->budgets()
             ->with('category')
             ->where('period_year', $currentYear)
-            ->where(function($q) use ($currentMonth) {
+            ->where(function ($q) use ($currentMonth) {
                 $q->where('period_type', 'yearly')
-                  ->orWhere(function($q2) use ($currentMonth) {
-                      $q2->where('period_type', 'monthly')
-                         ->where('period_month', $currentMonth);
-                  });
+                    ->orWhere(function ($q2) use ($currentMonth) {
+                        $q2->where('period_type', 'monthly')
+                            ->where('period_month', $currentMonth);
+                    });
             })
             ->get()
-            ->map(function($budget) {
+            ->map(function ($budget) {
                 $percentage = $budget->getPercentageUsed();
+
                 return [
                     'id' => $budget->id,
                     'category' => $budget->category->name,
@@ -118,15 +118,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
                     'status' => $percentage >= 100 ? 'exceeded' : ($percentage >= 80 ? 'warning' : 'ok'),
                 ];
             });
-        
-        $budgetAlerts = $budgets->filter(fn($b) => $b['status'] !== 'ok');
-        
+
+        $budgetAlerts = $budgets->filter(fn ($b) => $b['status'] !== 'ok');
+
         // Active goals
         $goals = $user->goals()
             ->where('is_active', true)
             ->where('is_completed', false)
             ->get()
-            ->map(function($goal) {
+            ->map(function ($goal) {
                 return [
                     'name' => $goal->name,
                     'percentage' => $goal->getPercentageComplete(),
@@ -141,7 +141,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->orderBy('due_date')
             ->take(5)
             ->get();
-        
+
         return Inertia::render('dashboard', [
             'accounts' => $accounts,
             'totalBalance' => $totalBalance,
@@ -154,12 +154,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'budgetAlerts' => $budgetAlerts,
             'goals' => $goals,
             'upcomingReminders' => $upcomingReminders,
-            'categories' => \App\Models\Category::where(function($q) use ($user) {
+            'categories' => \App\Models\Category::where(function ($q) use ($user) {
                 $q->whereNull('user_id')->orWhere('user_id', $user->id);
             })->where('is_active', true)->get(),
         ]);
     })->name('dashboard');
-    
+
     Route::resource('accounts', AccountController::class);
     Route::resource('transactions', TransactionController::class);
     Route::resource('budgets', BudgetController::class);
@@ -170,20 +170,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('reports', ReportsController::class)->only(['index']);
     Route::resource('reminders', App\Http\Controllers\ReminderController::class);
     Route::post('/reminders/{reminder}/complete', [App\Http\Controllers\ReminderController::class, 'complete'])->name('reminders.complete');
-    
+
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
-    
+
     Route::get('/import/transactions', [ImportController::class, 'index'])->name('import.index');
     Route::post('/import/transactions', [ImportController::class, 'import'])->name('import.transactions');
-    
+
     Route::get('/export/transactions', [App\Http\Controllers\ExportController::class, 'transactions'])->name('export.transactions');
     Route::get('/export/all-data', [App\Http\Controllers\ExportController::class, 'allData'])->name('export.all-data');
-    
+
     Route::get('/settings', [App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
     Route::post('/settings/import', [App\Http\Controllers\SettingsController::class, 'importData'])->name('settings.import');
-    
+
     Route::get('/transfers/create', [App\Http\Controllers\TransferController::class, 'create'])->name('transfers.create');
     Route::post('/transfers', [App\Http\Controllers\TransferController::class, 'store'])->name('transfers.store');
 });

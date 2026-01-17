@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Budget;
 use App\Models\Category;
-use App\Models\Transaction;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -12,7 +11,7 @@ use Inertia\Inertia;
 class BudgetController extends Controller
 {
     use AuthorizesRequests;
-    
+
     public function index(Request $request)
     {
         $currentYear = $request->input('year', now()->year);
@@ -21,15 +20,15 @@ class BudgetController extends Controller
         $budgets = auth()->user()->budgets()
             ->with('category')
             ->where('period_year', $currentYear)
-            ->where(function($q) use ($currentMonth) {
+            ->where(function ($q) use ($currentMonth) {
                 $q->where('period_type', 'yearly')
-                  ->orWhere(function($q2) use ($currentMonth) {
-                      $q2->where('period_type', 'monthly')
-                         ->where('period_month', $currentMonth);
-                  });
+                    ->orWhere(function ($q2) use ($currentMonth) {
+                        $q2->where('period_type', 'monthly')
+                            ->where('period_month', $currentMonth);
+                    });
             })
             ->get()
-            ->map(function($budget) {
+            ->map(function ($budget) {
                 return [
                     'id' => $budget->id,
                     'category' => $budget->category,
@@ -40,7 +39,7 @@ class BudgetController extends Controller
                 ];
             });
 
-        $categories = Category::where(function($q) {
+        $categories = Category::where(function ($q) {
             $q->whereNull('user_id')->orWhere('user_id', auth()->id());
         })->where('type', 'expense')->where('is_active', true)->get();
 
@@ -50,43 +49,39 @@ class BudgetController extends Controller
             'currentPeriod' => [
                 'year' => $currentYear,
                 'month' => $currentMonth,
-            ]
+            ],
         ]);
     }
 
     public function create()
     {
-        $categories = Category::where(function($q) {
+        $categories = Category::where(function ($q) {
             $q->whereNull('user_id')->orWhere('user_id', auth()->id());
         })->where('type', 'expense')->where('is_active', true)->get();
 
         return Inertia::render('budgets/CreateSimple', [
-            'categories' => $categories
+            'categories' => $categories,
         ]);
     }
 
     public function store(Request $request)
     {
-        \Log::info('Budget store - Raw request:', $request->all());
-        
         $validated = $request->validate([
             'category_id' => 'required|exists:categories,id',
             'amount' => 'required|numeric|min:0.01',
             'period_type' => 'required|string|in:monthly,yearly',
             'period_year' => 'nullable|integer|min:2020',
-            'period_month' => 'nullable|integer|min:1|max:12'
+            'period_month' => 'nullable|integer|min:1|max:12',
         ]);
 
         // Default to current year/month if not provided
-        if (!isset($validated['period_year'])) {
+        if (! isset($validated['period_year'])) {
             $validated['period_year'] = now()->year;
         }
-        
-        if ($validated['period_type'] === 'monthly' && !isset($validated['period_month'])) {
+
+        if ($validated['period_type'] === 'monthly' && ! isset($validated['period_month'])) {
             $validated['period_month'] = now()->month;
         }
-
-        \Log::info('Budget store - After defaults:', $validated);
 
         // Check if budget already exists for this category and period
         $exists = auth()->user()->budgets()
@@ -98,7 +93,7 @@ class BudgetController extends Controller
 
         if ($exists) {
             return back()->withErrors([
-                'category_id' => 'A budget already exists for this category and period.'
+                'category_id' => 'A budget already exists for this category and period.',
             ]);
         }
 
@@ -111,13 +106,13 @@ class BudgetController extends Controller
     {
         $this->authorize('update', $budget);
 
-        $categories = Category::where(function($q) {
+        $categories = Category::where(function ($q) {
             $q->whereNull('user_id')->orWhere('user_id', auth()->id());
         })->where('type', 'expense')->where('is_active', true)->get();
 
         return Inertia::render('budgets/Edit', [
             'budget' => $budget,
-            'categories' => $categories
+            'categories' => $categories,
         ]);
     }
 
@@ -130,7 +125,7 @@ class BudgetController extends Controller
             'amount' => 'required|numeric|min:0.01',
             'period_type' => 'required|string|in:monthly,yearly',
             'period_year' => 'required|integer|min:2020',
-            'period_month' => 'required_if:period_type,monthly|nullable|integer|min:1|max:12'
+            'period_month' => 'required_if:period_type,monthly|nullable|integer|min:1|max:12',
         ]);
 
         // Don't multiply here - the mutator handles it
@@ -142,7 +137,7 @@ class BudgetController extends Controller
     public function destroy(Budget $budget)
     {
         $this->authorize('delete', $budget);
-        
+
         $budget->delete();
 
         return redirect()->route('budgets.index');

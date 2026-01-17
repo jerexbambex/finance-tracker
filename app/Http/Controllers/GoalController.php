@@ -4,19 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Models\Goal;
 use App\Notifications\GoalAchievedNotification;
-use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class GoalController extends Controller
 {
     use AuthorizesRequests;
+
     public function index()
     {
         $goals = auth()->user()->goals()
             ->where('is_active', true)
             ->get()
-            ->map(function($goal) {
+            ->map(function ($goal) {
                 return [
                     'id' => $goal->id,
                     'name' => $goal->name,
@@ -31,7 +32,7 @@ class GoalController extends Controller
             });
 
         return Inertia::render('goals/Index', [
-            'goals' => $goals
+            'goals' => $goals,
         ]);
     }
 
@@ -61,7 +62,7 @@ class GoalController extends Controller
         $this->authorize('update', $goal);
 
         return Inertia::render('goals/Edit', [
-            'goal' => $goal
+            'goal' => $goal,
         ]);
     }
 
@@ -81,7 +82,7 @@ class GoalController extends Controller
         $wasCompleted = $goal->is_completed;
         $goal->update($validated);
 
-        if (!$wasCompleted && $goal->current_amount >= $goal->target_amount) {
+        if (! $wasCompleted && $goal->current_amount >= $goal->target_amount) {
             $goal->update(['is_completed' => true]);
             auth()->user()->notify(new GoalAchievedNotification($goal));
         }
@@ -92,7 +93,7 @@ class GoalController extends Controller
     public function destroy(Goal $goal)
     {
         $this->authorize('delete', $goal);
-        
+
         $goal->delete();
 
         return redirect()->route('goals.index');

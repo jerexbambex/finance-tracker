@@ -3,17 +3,13 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class GoalAchievedNotification extends Notification
 {
     use Queueable;
 
-    public function __construct(public \App\Models\Goal $goal)
-    {
-    }
+    public function __construct(public \App\Models\Goal $goal) {}
 
     public function via(object $notifiable): array
     {
