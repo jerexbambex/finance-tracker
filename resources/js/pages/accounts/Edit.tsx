@@ -19,10 +19,10 @@ interface Account {
 
 interface Props {
   account: Account;
-  currencies: Array<{ value: string; label: string; symbol: string }>;
+  currencies?: Array<{ value: string; label: string; symbol: string }>;
 }
 
-export default function Edit({ account, currencies }: Props) {
+export default function Edit({ account, currencies = [] }: Props) {
   const { data, setData, put, processing, errors } = useForm({
     name: account.name,
     type: account.type,
@@ -30,6 +30,8 @@ export default function Edit({ account, currencies }: Props) {
     currency: account.currency,
     description: account.description || '',
   });
+
+  console.log('Currencies:', currencies);
 
   const accountTypes = [
     { value: 'checking', label: 'Checking Account' },

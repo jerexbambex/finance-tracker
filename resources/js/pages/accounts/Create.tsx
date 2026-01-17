@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 
-export default function Create({ currencies }: { currencies: Array<{ value: string; label: string; symbol: string }> }) {
+export default function Create({ currencies = [] }: { currencies?: Array<{ value: string; label: string; symbol: string }> }) {
   const { data, setData, post, processing, errors } = useForm({
     name: '',
     type: '',
@@ -16,6 +16,8 @@ export default function Create({ currencies }: { currencies: Array<{ value: stri
     currency: 'USD',
     description: '',
   });
+
+  console.log('Currencies:', currencies);
 
   const accountTypes = [
     { value: 'checking', label: 'Checking Account' },
