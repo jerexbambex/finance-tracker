@@ -162,66 +162,9 @@ export default function Index({ budgets, categories, currentPeriod }: Props) {
                   Get Recommendations
                 </Button>
               </Link>
-              <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-                <DialogTrigger asChild>
-                  <Button>Create Budget</Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                  <DialogTitle>Create New Budget</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleCreate} className="space-y-4">
-                  <div>
-                    <Label htmlFor="create-category">Category</Label>
-                    <Select value={createForm.data.category_id} onValueChange={(value) => createForm.setData('category_id', value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((category) => (
-                          <SelectItem key={category.id} value={category.id}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {createForm.errors.category_id && <p className="text-red-500 text-sm mt-1">{createForm.errors.category_id}</p>}
-                  </div>
-                  <div>
-                    <Label htmlFor="create-amount">Budget Amount</Label>
-                    <Input
-                      id="create-amount"
-                      type="number"
-                      step="0.01"
-                      value={createForm.data.amount}
-                      onChange={(e) => createForm.setData('amount', e.target.value)}
-                      placeholder="0.00"
-                    />
-                    {createForm.errors.amount && <p className="text-red-500 text-sm mt-1">{createForm.errors.amount}</p>}
-                  </div>
-                  <div>
-                    <Label htmlFor="create-period">Period Type</Label>
-                    <Select value={createForm.data.period_type} onValueChange={(value) => createForm.setData('period_type', value)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="monthly">Monthly</SelectItem>
-                        <SelectItem value="yearly">Yearly</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex gap-2 justify-end">
-                    <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button type="submit" disabled={createForm.processing}>
-                      {createForm.processing ? 'Creating...' : 'Create Budget'}
-                    </Button>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
+              <Button onClick={() => setCreateOpen(true)}>Create Budget</Button>
+            </div>
+          </div>
 
           {budgets.length > 0 && (
             <>
@@ -368,6 +311,64 @@ export default function Index({ budgets, categories, currentPeriod }: Props) {
         </div>
       </div>
 
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New Budget</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleCreate} className="space-y-4">
+            <div>
+              <Label htmlFor="create-category">Category</Label>
+              <Select value={createForm.data.category_id} onValueChange={(value) => createForm.setData('category_id', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {createForm.errors.category_id && <p className="text-red-500 text-sm mt-1">{createForm.errors.category_id}</p>}
+            </div>
+            <div>
+              <Label htmlFor="create-amount">Budget Amount</Label>
+              <Input
+                id="create-amount"
+                type="number"
+                step="0.01"
+                value={createForm.data.amount}
+                onChange={(e) => createForm.setData('amount', e.target.value)}
+                placeholder="0.00"
+              />
+              {createForm.errors.amount && <p className="text-red-500 text-sm mt-1">{createForm.errors.amount}</p>}
+            </div>
+            <div>
+              <Label htmlFor="create-period">Period Type</Label>
+              <Select value={createForm.data.period_type} onValueChange={(value) => createForm.setData('period_type', value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="monthly">Monthly</SelectItem>
+                  <SelectItem value="yearly">Yearly</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={createForm.processing}>
+                {createForm.processing ? 'Creating...' : 'Create Budget'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent>
           <DialogHeader>
@@ -424,8 +425,6 @@ export default function Index({ budgets, categories, currentPeriod }: Props) {
           </form>
         </DialogContent>
       </Dialog>
-        </div>
-      </div>
     </AppLayout>
   );
 }
