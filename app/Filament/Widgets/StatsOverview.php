@@ -13,30 +13,23 @@ class StatsOverview extends StatsOverviewWidget
 {
     protected function getStats(): array
     {
-        $user = auth()->user();
-
-        $totalBalance = Account::where('user_id', $user->id)
-            ->where('is_active', true)
+        $totalBalance = Account::where('is_active', true)
             ->sum('balance');
 
-        $thisMonthIncome = Transaction::where('user_id', $user->id)
-            ->where('type', 'income')
+        $thisMonthIncome = Transaction::where('type', 'income')
             ->whereYear('transaction_date', now()->year)
             ->whereMonth('transaction_date', now()->month)
             ->sum('amount');
 
-        $thisMonthExpenses = Transaction::where('user_id', $user->id)
-            ->where('type', 'expense')
+        $thisMonthExpenses = Transaction::where('type', 'expense')
             ->whereYear('transaction_date', now()->year)
             ->whereMonth('transaction_date', now()->month)
             ->sum('amount');
 
-        $activeBudgets = Budget::where('user_id', $user->id)
-            ->where('is_active', true)
+        $activeBudgets = Budget::where('is_active', true)
             ->count();
 
-        $activeGoals = Goal::where('user_id', $user->id)
-            ->where('is_active', true)
+        $activeGoals = Goal::where('is_active', true)
             ->where('is_completed', false)
             ->count();
 
