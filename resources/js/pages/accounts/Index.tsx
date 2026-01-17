@@ -23,9 +23,10 @@ interface Account {
 
 interface Props {
   accounts: Account[];
+  currencies?: Array<{ value: string; label: string; symbol: string }>;
 }
 
-export default function Index({ accounts }: Props) {
+export default function Index({ accounts, currencies = [] }: Props) {
   const { flash } = usePage().props as any;
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -189,10 +190,11 @@ export default function Index({ accounts }: Props) {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="USD">USD - US Dollar</SelectItem>
-                        <SelectItem value="CAD">CAD - Canadian Dollar</SelectItem>
-                        <SelectItem value="EUR">EUR - Euro</SelectItem>
-                        <SelectItem value="GBP">GBP - British Pound</SelectItem>
+                        {currencies.map((currency) => (
+                          <SelectItem key={currency.value} value={currency.value}>
+                            {currency.symbol} {currency.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -359,10 +361,11 @@ export default function Index({ accounts }: Props) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="USD">USD - US Dollar</SelectItem>
-                  <SelectItem value="CAD">CAD - Canadian Dollar</SelectItem>
-                  <SelectItem value="EUR">EUR - Euro</SelectItem>
-                  <SelectItem value="GBP">GBP - British Pound</SelectItem>
+                  {currencies.map((currency) => (
+                    <SelectItem key={currency.value} value={currency.value}>
+                      {currency.symbol} {currency.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

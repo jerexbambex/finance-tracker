@@ -17,6 +17,11 @@ class AccountController extends Controller
 
         return Inertia::render('accounts/Index', [
             'accounts' => $accounts,
+            'currencies' => collect(\App\Currency::cases())->map(fn($currency) => [
+                'value' => $currency->value,
+                'label' => $currency->label(),
+                'symbol' => $currency->symbol(),
+            ]),
         ]);
     }
 

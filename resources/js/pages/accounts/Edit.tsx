@@ -128,7 +128,7 @@ export default function Edit({ account, currencies = [] }: Props) {
                     <SelectContent>
                       {currencies.map((currency) => (
                         <SelectItem key={currency.value} value={currency.value}>
-                          {currency.symbol} {currency.value} - {currency.label.split(' (')[0]}
+                          {currency.symbol} {currency.label}
                         </SelectItem>
                       ))}
                     </SelectContent>

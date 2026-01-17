@@ -116,7 +116,7 @@ export default function Create({ currencies = [] }: { currencies?: Array<{ value
                     <SelectContent>
                       {currencies.map((currency) => (
                         <SelectItem key={currency.value} value={currency.value}>
-                          {currency.symbol} {currency.value} - {currency.label.split(' (')[0]}
+                          {currency.symbol} {currency.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
