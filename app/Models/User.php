@@ -100,6 +100,11 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessPanel(Panel $panel): bool
     {
+        // Allow if user has admin role OR if someone is impersonating (the impersonator has admin access)
+        if ($this->isImpersonated()) {
+            return true;
+        }
+        
         return $this->hasRole('admin') || $this->hasRole('super_admin');
     }
 
