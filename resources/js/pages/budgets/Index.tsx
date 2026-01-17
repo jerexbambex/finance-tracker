@@ -303,6 +303,7 @@ export default function Index({ budgets, categories, currentPeriod }: Props) {
           ) : (
             <Card>
               <CardContent className="text-center py-12">
+                <Wallet className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
                 <p className="text-gray-500 mb-4">No budgets set for this period</p>
                 <Button onClick={() => setCreateOpen(true)}>Create Your First Budget</Button>
               </CardContent>
