@@ -4,10 +4,10 @@ namespace App\Filament\Resources\Users\Pages;
 
 use App\Filament\Resources\Users\UserResource;
 use Filament\Actions\EditAction;
+use Filament\Infolists\Components\Section;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Pages\ViewRecord;
-use Filament\Schemas\Components\Section;
-use Filament\Schemas\Components\TextEntry;
-use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
 
 class ViewUser extends ViewRecord
@@ -21,10 +21,10 @@ class ViewUser extends ViewRecord
         ];
     }
 
-    public function infolist(Schema $schema): Schema
+    public function infolist(Infolist $infolist): Infolist
     {
-        return $schema
-            ->components([
+        return $infolist
+            ->schema([
                 Section::make('User Information')
                     ->columns(2)
                     ->schema([
