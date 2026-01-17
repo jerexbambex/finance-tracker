@@ -40,11 +40,11 @@ class BudgetsRelationManager extends RelationManager
                 TextColumn::make('category.name')
                     ->badge(),
                 TextColumn::make('amount')
-                    ->money(fn ($record) => $record->category->user->accounts()->first()?->currency ?? 'USD')
+                    ->money(fn ($record) => $record->user->accounts()->first()?->currency ?? 'USD')
                     ->sortable(),
                 TextColumn::make('period'),
                 TextColumn::make('spent')
-                    ->money(fn ($record) => $record->category->user->accounts()->first()?->currency ?? 'USD')
+                    ->money(fn ($record) => $record->user->accounts()->first()?->currency ?? 'USD')
                     ->sortable(),
             ])
             ->filters([
