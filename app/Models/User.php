@@ -3,6 +3,8 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -12,7 +14,7 @@ use Spatie\Permission\Traits\HasRoles;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, HasUuids, Notifiable, TwoFactorAuthenticatable, HasRoles, LogsActivity;
@@ -93,6 +95,14 @@ class User extends Authenticatable
     public function savedFilters()
     {
         return $this->hasMany(SavedFilter::class);
+    }
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        // Allow all users to access the admin panel in local environment
+        // In production, you can add additional checks like:
+        // return $this->hasRole('admin') || $this->hasRole('super_admin');
+        return true;
     }
 
     public function getActivitylogOptions(): LogOptions
