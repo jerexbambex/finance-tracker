@@ -1,11 +1,11 @@
-import { Head, useForm, router } from '@inertiajs/react';
+import { Head, useForm, router, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
-import { Wallet, TrendingDown, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Wallet, TrendingDown, AlertCircle, ChevronLeft, ChevronRight, Lightbulb } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -155,12 +155,19 @@ export default function Index({ budgets, categories, currentPeriod }: Props) {
                 </Button>
               </div>
             </div>
-            <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-              <DialogTrigger asChild>
-                <Button>Create Budget</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
+            <div className="flex gap-2">
+              <Link href="/budgets/recommendations">
+                <Button variant="outline">
+                  <Lightbulb className="h-4 w-4 mr-2" />
+                  Get Recommendations
+                </Button>
+              </Link>
+              <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+                <DialogTrigger asChild>
+                  <Button>Create Budget</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
                   <DialogTitle>Create New Budget</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleCreate} className="space-y-4">
@@ -215,7 +222,6 @@ export default function Index({ budgets, categories, currentPeriod }: Props) {
                 </form>
               </DialogContent>
             </Dialog>
-          </div>
 
           {budgets.length > 0 && (
             <>
@@ -355,11 +361,7 @@ export default function Index({ budgets, categories, currentPeriod }: Props) {
             <Card>
               <CardContent className="text-center py-12">
                 <p className="text-gray-500 mb-4">No budgets set for this period</p>
-                <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-                  <DialogTrigger asChild>
-                    <Button>Create Your First Budget</Button>
-                  </DialogTrigger>
-                </Dialog>
+                <Button onClick={() => setCreateOpen(true)}>Create Your First Budget</Button>
               </CardContent>
             </Card>
           )}
@@ -422,6 +424,8 @@ export default function Index({ budgets, categories, currentPeriod }: Props) {
           </form>
         </DialogContent>
       </Dialog>
+        </div>
+      </div>
     </AppLayout>
   );
 }

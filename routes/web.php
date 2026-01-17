@@ -167,6 +167,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('saved-filters', [App\Http\Controllers\TransactionController::class, 'saveFilter'])->name('filters.save');
     Route::delete('saved-filters/{filter}', [App\Http\Controllers\TransactionController::class, 'deleteFilter'])->name('filters.delete');
     Route::resource('budgets', BudgetController::class);
+    Route::get('budgets/recommendations', [App\Http\Controllers\BudgetRecommendationController::class, 'index'])->name('budgets.recommendations');
+    Route::post('budgets/recommendations/apply', [App\Http\Controllers\BudgetRecommendationController::class, 'apply'])->name('budgets.recommendations.apply');
     Route::resource('goals', GoalController::class);
     Route::post('goals/{goal}/contribute', [App\Http\Controllers\GoalContributionController::class, 'store'])->name('goals.contribute');
     Route::resource('categories', CategoryController::class);
