@@ -12,12 +12,12 @@ class AccountPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->hasRole('admin');
     }
 
     public function view(User $user, Account $account): bool
     {
-        return $user->id === $account->user_id;
+        return $user->hasRole('admin') || $user->id === $account->user_id;
     }
 
     public function create(User $user): bool
@@ -27,12 +27,12 @@ class AccountPolicy
 
     public function update(User $user, Account $account): bool
     {
-        return $user->id === $account->user_id;
+        return $user->hasRole('admin') || $user->id === $account->user_id;
     }
 
     public function delete(User $user, Account $account): bool
     {
-        return $user->id === $account->user_id;
+        return $user->hasRole('admin') || $user->id === $account->user_id;
     }
 
     /**

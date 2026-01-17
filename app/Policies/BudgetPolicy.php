@@ -12,7 +12,7 @@ class BudgetPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->hasRole('admin');
     }
 
     /**
@@ -20,7 +20,7 @@ class BudgetPolicy
      */
     public function view(User $user, Budget $budget): bool
     {
-        return false;
+        return $user->hasRole('admin') || $user->id === $budget->user_id;
     }
 
     /**
@@ -28,7 +28,7 @@ class BudgetPolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -36,12 +36,12 @@ class BudgetPolicy
      */
     public function update(User $user, Budget $budget): bool
     {
-        return $user->id === $budget->user_id;
+        return $user->hasRole('admin') || $user->id === $budget->user_id;
     }
 
     public function delete(User $user, Budget $budget): bool
     {
-        return $user->id === $budget->user_id;
+        return $user->hasRole('admin') || $user->id === $budget->user_id;
     }
 
     /**

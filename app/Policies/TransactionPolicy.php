@@ -12,12 +12,12 @@ class TransactionPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->hasRole('admin');
     }
 
     public function view(User $user, Transaction $transaction): bool
     {
-        return $user->id === $transaction->user_id;
+        return $user->hasRole('admin') || $user->id === $transaction->user_id;
     }
 
     public function create(User $user): bool
@@ -27,12 +27,12 @@ class TransactionPolicy
 
     public function update(User $user, Transaction $transaction): bool
     {
-        return $user->id === $transaction->user_id;
+        return $user->hasRole('admin') || $user->id === $transaction->user_id;
     }
 
     public function delete(User $user, Transaction $transaction): bool
     {
-        return $user->id === $transaction->user_id;
+        return $user->hasRole('admin') || $user->id === $transaction->user_id;
     }
 
     /**

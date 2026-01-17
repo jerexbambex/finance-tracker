@@ -12,7 +12,7 @@ class GoalPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->hasRole('admin');
     }
 
     /**
@@ -20,7 +20,7 @@ class GoalPolicy
      */
     public function view(User $user, Goal $goal): bool
     {
-        return false;
+        return $user->hasRole('admin') || $user->id === $goal->user_id;
     }
 
     /**
@@ -28,16 +28,18 @@ class GoalPolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return true;
     }
 
     public function update(User $user, Goal $goal): bool
     {
-        return $user->id === $goal->user_id;
+        return $user->hasRole('admin') || $user->id === $goal->user_id;
     }
 
     public function delete(User $user, Goal $goal): bool
     {
+        return $user->hasRole('admin') || $user->id === $goal->user_id;
+    }
         return $user->id === $goal->user_id;
     }
 
@@ -46,7 +48,7 @@ class GoalPolicy
      */
     public function restore(User $user, Goal $goal): bool
     {
-        return false;
+        return $user->hasRole('admin');
     }
 
     /**
@@ -54,6 +56,6 @@ class GoalPolicy
      */
     public function forceDelete(User $user, Goal $goal): bool
     {
-        return false;
+        return $user->hasRole('admin');
     }
 }
