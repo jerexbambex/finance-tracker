@@ -77,10 +77,10 @@ interface Reminder {
 
 interface Props {
     accounts: Account[];
-    totalBalance: number;
+    balancesByCurrency: Record<string, number>;
     recentTransactions: Transaction[];
-    monthlyIncome: number;
-    monthlyExpenses: number;
+    incomeByCurrency: Record<string, number>;
+    expensesByCurrency: Record<string, number>;
     categorySpending: CategorySpending[];
     monthlyTrend: MonthlyTrend[];
     budgets: Budget[];
@@ -88,15 +88,22 @@ interface Props {
     goals: Goal[];
     categories: Category[];
     upcomingReminders: Reminder[];
+    currencies: Record<string, { symbol: string; label: string }>;
 }
 
-export default function Dashboard({ accounts, totalBalance, recentTransactions, monthlyIncome, monthlyExpenses, categorySpending, monthlyTrend, budgets, budgetAlerts, goals, categories, upcomingReminders }: Props) {
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'USD',
-        }).format(amount);
+export default function Dashboard({ accounts, balancesByCurrency, recentTransactions, incomeByCurrency, expensesByCurrency, categorySpending, monthlyTrend, budgets, budgetAlerts, goals, categories, upcomingReminders, currencies }: Props) {
+    const formatCurrency = (amount: number, currency: string = 'USD') => {
+        const currencyInfo = currencies[currency];
+        return `${currencyInfo?.symbol || '$'}${amount.toFixed(2)}`;
     };
+
+    const formatCurrencyGroup = (amounts: Record<string, number>) => {
+        return Object.entries(amounts).map(([currency, amount]) => formatCurrency(amount, currency)).join(', ') || '$0.00';
+    };
+
+    const totalIncome = Object.values(incomeByCurrency).reduce((sum, val) => sum + val, 0);
+    const totalExpenses = Object.values(expensesByCurrency).reduce((sum, val) => sum + val, 0);
+    const netIncome = totalIncome - totalExpenses;
 
     const formatDate = (date: string) => {
         const d = new Date(date);
@@ -109,8 +116,6 @@ export default function Dashboard({ accounts, totalBalance, recentTransactions, 
         
         return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     };
-
-    const netIncome = monthlyIncome - monthlyExpenses;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -135,7 +140,7 @@ export default function Dashboard({ accounts, totalBalance, recentTransactions, 
                             </div>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{formatCurrency(totalBalance)}</div>
+                            <div className="text-2xl font-bold">{formatCurrencyGroup(balancesByCurrency)}</div>
                             <p className="text-xs text-muted-foreground mt-1">
                                 {accounts.length} account{accounts.length !== 1 ? 's' : ''}
                             </p>
@@ -150,7 +155,7 @@ export default function Dashboard({ accounts, totalBalance, recentTransactions, 
                             </div>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold text-green-600">{formatCurrency(monthlyIncome)}</div>
+                            <div className="text-2xl font-bold text-green-600">{formatCurrencyGroup(incomeByCurrency)}</div>
                             <p className="text-xs text-muted-foreground mt-1">This month</p>
                         </CardContent>
                     </Card>
@@ -163,7 +168,7 @@ export default function Dashboard({ accounts, totalBalance, recentTransactions, 
                             </div>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold text-red-600">{formatCurrency(monthlyExpenses)}</div>
+                            <div className="text-2xl font-bold text-red-600">{formatCurrencyGroup(expensesByCurrency)}</div>
                             <p className="text-xs text-muted-foreground mt-1">This month</p>
                         </CardContent>
                     </Card>

@@ -27,9 +27,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
         $user = auth()->user();
 
-        // Get account summaries
+        // Get account summaries grouped by currency
         $accounts = $user->accounts()->where('is_active', true)->get();
-        $totalBalance = $accounts->sum('balance');
+        $balancesByCurrency = $accounts->groupBy('currency')->map(fn($accts) => $accts->sum('balance'));
 
         // Get recent transactions
         $recentTransactions = $user->transactions()
@@ -38,17 +38,25 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->take(10)
             ->get();
 
-        // Calculate monthly income and expenses (use raw query to avoid accessor)
+        // Calculate monthly income and expenses by currency
         $startOfMonth = now()->startOfMonth();
-        $monthlyIncome = $user->transactions()
-            ->where('type', 'income')
+        $incomeByCurrency = $user->transactions()
+            ->where('transactions.type', 'income')
             ->where('transaction_date', '>=', $startOfMonth)
-            ->sum(\DB::raw('amount')) / 100;
+            ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
+            ->selectRaw('accounts.currency, SUM(transactions.amount) as total')
+            ->groupBy('accounts.currency')
+            ->get()
+            ->mapWithKeys(fn($item) => [$item->currency => $item->total / 100]);
 
-        $monthlyExpenses = $user->transactions()
-            ->where('type', 'expense')
+        $expensesByCurrency = $user->transactions()
+            ->where('transactions.type', 'expense')
             ->where('transaction_date', '>=', $startOfMonth)
-            ->sum(\DB::raw('amount')) / 100;
+            ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
+            ->selectRaw('accounts.currency, SUM(transactions.amount) as total')
+            ->groupBy('accounts.currency')
+            ->get()
+            ->mapWithKeys(fn($item) => [$item->currency => $item->total / 100]);
 
         // Spending by category (current month) - use raw sum
         $categorySpending = $user->transactions()
@@ -149,10 +157,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         return Inertia::render('dashboard', [
             'accounts' => $accounts,
-            'totalBalance' => $totalBalance,
+            'balancesByCurrency' => $balancesByCurrency,
             'recentTransactions' => $recentTransactions,
-            'monthlyIncome' => $monthlyIncome,
-            'monthlyExpenses' => $monthlyExpenses,
+            'incomeByCurrency' => $incomeByCurrency,
+            'expensesByCurrency' => $expensesByCurrency,
             'categorySpending' => $categorySpending,
             'monthlyTrend' => $monthlyTrend,
             'budgets' => $budgets,
@@ -162,6 +170,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'categories' => \App\Models\Category::where(function ($q) use ($user) {
                 $q->whereNull('user_id')->orWhere('user_id', $user->id);
             })->where('is_active', true)->get(),
+            'currencies' => collect(\App\Currency::cases())->mapWithKeys(fn($currency) => [
+                $currency->value => ['symbol' => $currency->symbol(), 'label' => $currency->label()]
+            ]),
         ]);
     })->name('dashboard');
 
