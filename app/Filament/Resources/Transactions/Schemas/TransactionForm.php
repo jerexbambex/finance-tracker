@@ -16,8 +16,11 @@ class TransactionForm
     {
         return $schema
             ->components([
-                Hidden::make('user_id')
-                    ->default(auth()->id()),
+                Select::make('user_id')
+                    ->relationship('user', 'name')
+                    ->required()
+                    ->searchable()
+                    ->preload(),
                 Select::make('account_id')
                     ->label('Account')
                     ->required()

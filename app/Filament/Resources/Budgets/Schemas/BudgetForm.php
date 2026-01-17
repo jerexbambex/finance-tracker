@@ -14,8 +14,11 @@ class BudgetForm
     {
         return $schema
             ->components([
-                Hidden::make('user_id')
-                    ->default(auth()->id()),
+                Select::make('user_id')
+                    ->relationship('user', 'name')
+                    ->required()
+                    ->searchable()
+                    ->preload(),
                 Select::make('category_id')
                     ->label('Category')
                     ->required()
