@@ -13,38 +13,61 @@ class StatsOverview extends StatsOverviewWidget
 {
     protected function getStats(): array
     {
-        $totalBalance = Account::where('is_active', true)
-            ->sum('balance') / 100;
+        // Get balances by currency
+        $balancesByCurrency = Account::where('is_active', true)
+            ->selectRaw('currency, SUM(balance) as total')
+            ->groupBy('currency')
+            ->get()
+            ->mapWithKeys(fn($item) => [$item->currency => $item->total / 100]);
 
-        $thisMonthIncome = Transaction::where('type', 'income')
+        // Get income by currency
+        $incomeByCurrency = Transaction::where('transactions.type', 'income')
             ->whereYear('transaction_date', now()->year)
             ->whereMonth('transaction_date', now()->month)
-            ->sum('amount') / 100;
+            ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
+            ->selectRaw('accounts.currency, SUM(transactions.amount) as total')
+            ->groupBy('accounts.currency')
+            ->get()
+            ->mapWithKeys(fn($item) => [$item->currency => $item->total / 100]);
 
-        $thisMonthExpenses = Transaction::where('type', 'expense')
+        // Get expenses by currency
+        $expensesByCurrency = Transaction::where('transactions.type', 'expense')
             ->whereYear('transaction_date', now()->year)
             ->whereMonth('transaction_date', now()->month)
-            ->sum('amount') / 100;
+            ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
+            ->selectRaw('accounts.currency, SUM(transactions.amount) as total')
+            ->groupBy('accounts.currency')
+            ->get()
+            ->mapWithKeys(fn($item) => [$item->currency => $item->total / 100]);
 
-        $activeBudgets = Budget::where('is_active', true)
-            ->count();
+        $activeBudgets = Budget::where('is_active', true)->count();
+        $activeGoals = Goal::where('is_active', true)->where('is_completed', false)->count();
+        $totalUsers = \App\Models\User::count();
 
-        $activeGoals = Goal::where('is_active', true)
-            ->where('is_completed', false)
-            ->count();
+        // Format currency amounts
+        $formatCurrencies = function($amounts) {
+            return $amounts->map(function($amount, $currency) {
+                $symbol = \App\Currency::tryFrom($currency)?->symbol() ?? $currency;
+                return $symbol . number_format($amount, 2);
+            })->join(', ');
+        };
 
         return [
-            Stat::make('Total Balance', '$'.number_format($totalBalance, 2))
-                ->description('Across all accounts')
+            Stat::make('Total Balance', $formatCurrencies($balancesByCurrency) ?: 'No accounts')
+                ->description('By currency')
                 ->color('success'),
 
-            Stat::make('This Month Income', '$'.number_format($thisMonthIncome, 2))
+            Stat::make('This Month Income', $formatCurrencies($incomeByCurrency) ?: 'No income')
                 ->description(now()->format('F Y'))
                 ->color('success'),
 
-            Stat::make('This Month Expenses', '$'.number_format($thisMonthExpenses, 2))
+            Stat::make('This Month Expenses', $formatCurrencies($expensesByCurrency) ?: 'No expenses')
                 ->description(now()->format('F Y'))
                 ->color('danger'),
+
+            Stat::make('Total Users', $totalUsers)
+                ->description('Registered users')
+                ->color('primary'),
 
             Stat::make('Active Budgets', $activeBudgets)
                 ->description('Currently tracking')
