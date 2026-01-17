@@ -43,6 +43,9 @@ class HandleInertiaRequests extends Middleware
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'unreadNotifications' => $request->user() ? $request->user()->unreadNotifications()->count() : 0,
+            'impersonating' => $request->user() && $request->user()->isImpersonated() 
+                ? ['name' => $request->user()->name, 'email' => $request->user()->email]
+                : null,
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
