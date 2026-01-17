@@ -20,9 +20,7 @@ class TransactionResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArrowsRightLeft;
     
-    protected static $navigationGroup = 'Financial';
     
-    protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {
