@@ -35,7 +35,8 @@ class TransactionsRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('description')
             ->columns([
-                TextColumn::make('date')
+                TextColumn::make('transaction_date')
+                    ->label('Date')
                     ->date()
                     ->sortable(),
                 TextColumn::make('description')
@@ -50,7 +51,7 @@ class TransactionsRelationManager extends RelationManager
                 TextColumn::make('type')
                     ->badge(),
             ])
-            ->defaultSort('date', 'desc')
+            ->defaultSort('transaction_date', 'desc')
             ->filters([
                 //
             ])
