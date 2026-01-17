@@ -20,6 +20,10 @@ class ActivityLogResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
     
+    protected static ?string $navigationGroup = 'Administration';
+    
+    protected static ?int $navigationSort = 4;
+    
     protected static ?string $navigationLabel = 'Activity Log';
     
     protected static ?string $modelLabel = 'Activity';

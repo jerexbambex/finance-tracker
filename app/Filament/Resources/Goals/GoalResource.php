@@ -19,6 +19,10 @@ class GoalResource extends Resource
     protected static ?string $model = Goal::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    
+    protected static ?string $navigationGroup = 'Planning';
+    
+    protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {
