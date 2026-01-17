@@ -300,14 +300,17 @@ export default function Index({ accounts, currencies = [] }: Props) {
           </div>
 
           {accounts.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-gray-500 mb-4">No accounts found</p>
-              <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-                <DialogTrigger asChild>
-                  <Button>Create Your First Account</Button>
-                </DialogTrigger>
-              </Dialog>
-            </div>
+            <Card>
+              <CardContent className="text-center py-12">
+                <Wallet className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                <p className="text-gray-500 mb-4">No accounts found</p>
+                <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+                  <DialogTrigger asChild>
+                    <Button>Create Your First Account</Button>
+                  </DialogTrigger>
+                </Dialog>
+              </CardContent>
+            </Card>
           )}
         </div>
       </div>
