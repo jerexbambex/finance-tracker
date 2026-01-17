@@ -47,6 +47,14 @@ interface Goal {
     percentage: number;
 }
 
+interface Category {
+    id: string;
+    name: string;
+    type: string;
+    color?: string;
+    is_active: boolean;
+}
+
 interface CategorySpending {
     name: string;
     amount: number;
