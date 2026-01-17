@@ -122,7 +122,7 @@ export default function Index({ accounts, currencies = [] }: Props) {
       <Head title="Accounts" />
       
       <div className="py-12">
-        <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {showSuccess && (
             <div className="mb-4 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-2">
               <CheckCircle className="h-5 w-5 text-green-600" />
@@ -130,8 +130,8 @@ export default function Index({ accounts, currencies = [] }: Props) {
             </div>
           )}
           
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold">Accounts</h1>
+          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
+            <h1 className="text-2xl sm:text-3xl font-bold">Accounts</h1>
             <div className="flex gap-2">
               <Link href="/transfers/create">
                 <Button variant="outline">Transfer</Button>
