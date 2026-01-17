@@ -38,11 +38,11 @@ class AccountForm
                     ->default(0)
                     ->prefix('$')
                     ->step(0.01),
-                TextInput::make('currency')
+                Select::make('currency')
                     ->required()
                     ->default('USD')
-                    ->maxLength(3)
-                    ->datalist(['USD', 'CAD', 'EUR', 'GBP']),
+                    ->options(collect(\App\Currency::cases())->mapWithKeys(fn($currency) => [$currency->value => $currency->label()]))
+                    ->searchable(),
                 Toggle::make('is_active')
                     ->default(true),
                 Textarea::make('description')
