@@ -49,9 +49,6 @@ class UsersTable
             ->recordActions([
                 Impersonate::make(),
                 ViewAction::make(),
-                Action::make('activities')
-                    ->url(fn ($record) => UserResource::getUrl('activities', ['record' => $record]))
-                    ->icon('heroicon-o-clipboard-document-list'),
                 EditAction::make(),
             ])
             ->toolbarActions([
