@@ -46,6 +46,11 @@ export function AppSidebar() {
             icon: BarChart3,
         },
         {
+            title: 'Insights',
+            href: '/insights',
+            icon: TrendingUp,
+        },
+        {
             title: 'Notifications',
             href: '/notifications',
             icon: Bell,

@@ -56,6 +56,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->with('category')
             ->where('type', 'expense')
             ->where('transaction_date', '>=', $startOfMonth)
+            ->whereNotNull('category_id')
+            ->where('category_id', '!=', '')
+            ->whereHas('category', function ($query) {
+                $query->where('type', 'expense');
+            })
             ->groupBy('category_id')
             ->orderByDesc('total')
             ->take(5)
@@ -166,12 +171,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('transactions/bulk-categorize', [App\Http\Controllers\TransactionController::class, 'bulkCategorize'])->name('transactions.bulk-categorize');
     Route::post('saved-filters', [App\Http\Controllers\TransactionController::class, 'saveFilter'])->name('filters.save');
     Route::delete('saved-filters/{filter}', [App\Http\Controllers\TransactionController::class, 'deleteFilter'])->name('filters.delete');
-    Route::resource('budgets', BudgetController::class);
     Route::get('budgets/recommendations', [App\Http\Controllers\BudgetRecommendationController::class, 'index'])->name('budgets.recommendations');
     Route::post('budgets/recommendations/apply', [App\Http\Controllers\BudgetRecommendationController::class, 'apply'])->name('budgets.recommendations.apply');
+    Route::resource('budgets', BudgetController::class);
     Route::resource('goals', GoalController::class);
     Route::post('goals/{goal}/contribute', [App\Http\Controllers\GoalContributionController::class, 'store'])->name('goals.contribute');
     Route::resource('categories', CategoryController::class);
+    Route::get('insights', [App\Http\Controllers\SpendingInsightsController::class, 'index'])->name('insights.index');
+    Route::post('insights/ai', [App\Http\Controllers\SpendingInsightsController::class, 'generateAiInsights'])->name('insights.ai');
     Route::resource('recurring-transactions', RecurringTransactionController::class);
     Route::resource('reports', ReportsController::class)->only(['index']);
     Route::resource('reminders', App\Http\Controllers\ReminderController::class);
