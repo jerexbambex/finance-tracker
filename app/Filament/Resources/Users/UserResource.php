@@ -12,6 +12,7 @@ use BackedEnum;
 use UnitEnum;
 use Filament\Infolists;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
@@ -35,7 +36,7 @@ class UserResource extends Resource
     {
         return $schema
             ->components([
-                Infolists\Components\Section::make('User Information')
+                Section::make('User Information')
                     ->columns(2)
                     ->schema([
                         Infolists\Components\TextEntry::make('name'),
@@ -52,7 +53,7 @@ class UserResource extends Resource
                             ->dateTime()
                             ->since(),
                     ]),
-                Infolists\Components\Section::make('Roles')
+                Section::make('Roles')
                     ->schema([
                         Infolists\Components\TextEntry::make('roles.name')
                             ->badge()
