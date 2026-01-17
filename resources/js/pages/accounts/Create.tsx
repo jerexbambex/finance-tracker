@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 
-export default function Create() {
+export default function Create({ currencies }: { currencies: Array<{ value: string; label: string; symbol: string }> }) {
   const { data, setData, post, processing, errors } = useForm({
     name: '',
     type: '',
@@ -112,16 +112,11 @@ export default function Create() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="USD">$ USD - US Dollar</SelectItem>
-                      <SelectItem value="EUR">€ EUR - Euro</SelectItem>
-                      <SelectItem value="GBP">£ GBP - British Pound</SelectItem>
-                      <SelectItem value="JPY">¥ JPY - Japanese Yen</SelectItem>
-                      <SelectItem value="CAD">$ CAD - Canadian Dollar</SelectItem>
-                      <SelectItem value="AUD">$ AUD - Australian Dollar</SelectItem>
-                      <SelectItem value="CHF">CHF - Swiss Franc</SelectItem>
-                      <SelectItem value="CNY">¥ CNY - Chinese Yuan</SelectItem>
-                      <SelectItem value="INR">₹ INR - Indian Rupee</SelectItem>
-                      <SelectItem value="NGN">₦ NGN - Nigerian Naira</SelectItem>
+                      {currencies.map((currency) => (
+                        <SelectItem key={currency.value} value={currency.value}>
+                          {currency.symbol} {currency.value} - {currency.label.split(' (')[0]}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
