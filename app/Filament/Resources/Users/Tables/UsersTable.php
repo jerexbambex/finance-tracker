@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Users\Tables;
 
+use App\Filament\Resources\Users\UserResource;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -47,6 +49,9 @@ class UsersTable
             ->recordActions([
                 Impersonate::make(),
                 ViewAction::make(),
+                Action::make('activities')
+                    ->url(fn ($record) => UserResource::getUrl('activities', ['record' => $record]))
+                    ->icon('heroicon-o-clipboard-document-list'),
                 EditAction::make(),
             ])
             ->toolbarActions([

@@ -84,6 +84,7 @@ class UserResource extends Resource
             'index' => ListUsers::route('/'),
             'create' => CreateUser::route('/create'),
             'view' => \App\Filament\Resources\Users\Pages\ViewUser::route('/{record}'),
+            'activities' => \App\Filament\Resources\Users\Pages\ListUserActivities::route('/{record}/activities'),
             'edit' => EditUser::route('/{record}/edit'),
         ];
     }
