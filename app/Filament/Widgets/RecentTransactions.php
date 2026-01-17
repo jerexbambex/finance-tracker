@@ -18,11 +18,15 @@ class RecentTransactions extends TableWidget
         return $table
             ->query(
                 Transaction::query()
-                    ->where('user_id', auth()->id())
+                    ->with(['user', 'account', 'category'])
                     ->latest('transaction_date')
                     ->limit(10)
             )
             ->columns([
+                TextColumn::make('user.name')
+                    ->label('User')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('transaction_date')
                     ->date()
                     ->sortable(),
