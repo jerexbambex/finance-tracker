@@ -9,6 +9,7 @@ use App\Filament\Resources\Goals\Schemas\GoalForm;
 use App\Filament\Resources\Goals\Tables\GoalsTable;
 use App\Models\Goal;
 use BackedEnum;
+use UnitEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -20,7 +21,7 @@ class GoalResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
     
-    protected static ?string $navigationGroup = 'Planning';
+    protected static UnitEnum|string|null $navigationGroup = 'Planning';
 
     protected static ?int $navigationSort = 2;
 

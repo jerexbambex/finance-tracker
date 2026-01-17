@@ -9,6 +9,7 @@ use App\Filament\Resources\ActivityLogs\Schemas\ActivityLogForm;
 use App\Filament\Resources\ActivityLogs\Tables\ActivityLogsTable;
 use Spatie\Activitylog\Models\Activity;
 use BackedEnum;
+use UnitEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -20,7 +21,7 @@ class ActivityLogResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
     
-    protected static ?string $navigationGroup = 'Administration';
+    protected static UnitEnum|string|null $navigationGroup = 'Administration';
 
     protected static ?int $navigationSort = 4;
     
