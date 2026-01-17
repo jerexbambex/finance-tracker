@@ -10,6 +10,7 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use STS\FilamentImpersonate\Tables\Actions\Impersonate;
 
 class UsersTable
 {
@@ -44,6 +45,7 @@ class UsersTable
                     ->preload(),
             ])
             ->recordActions([
+                Impersonate::make(),
                 ViewAction::make(),
                 EditAction::make(),
             ])
