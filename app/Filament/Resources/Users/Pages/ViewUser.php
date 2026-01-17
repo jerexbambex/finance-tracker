@@ -27,7 +27,7 @@ class ViewUser extends ViewRecord
         ];
     }
 
-    public static function infolist(Schema $schema): Schema
+    public function infolist(Schema $schema): Schema
     {
         return $schema
             ->components([
