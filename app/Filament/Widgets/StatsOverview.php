@@ -43,6 +43,14 @@ class StatsOverview extends StatsOverviewWidget
         $activeBudgets = Budget::where('is_active', true)->count();
         $activeGoals = Goal::where('is_active', true)->where('is_completed', false)->count();
         $totalUsers = \App\Models\User::count();
+        $activeUsers = \App\Models\User::where('updated_at', '>=', now()->subDays(30))->count();
+        $totalTransactions = Transaction::whereYear('transaction_date', now()->year)
+            ->whereMonth('transaction_date', now()->month)
+            ->count();
+        $budgetsExceeded = Budget::where('is_active', true)
+            ->get()
+            ->filter(fn($b) => $b->getPercentageUsed() >= 100)
+            ->count();
 
         // Format currency amounts
         $formatCurrencies = function($amounts) {
@@ -66,16 +74,16 @@ class StatsOverview extends StatsOverviewWidget
                 ->color('danger'),
 
             Stat::make('Total Users', $totalUsers)
-                ->description('Registered users')
+                ->description($activeUsers . ' active (30 days)')
                 ->color('primary'),
 
-            Stat::make('Active Budgets', $activeBudgets)
-                ->description('Currently tracking')
+            Stat::make('Transactions', $totalTransactions)
+                ->description('This month')
                 ->color('info'),
 
-            Stat::make('Active Goals', $activeGoals)
-                ->description('In progress')
-                ->color('warning'),
+            Stat::make('Budgets Exceeded', $budgetsExceeded)
+                ->description('Needs attention')
+                ->color($budgetsExceeded > 0 ? 'danger' : 'success'),
         ];
     }
 }
