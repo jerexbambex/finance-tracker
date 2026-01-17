@@ -40,8 +40,23 @@ class GoalPolicy
     {
         return $user->hasRole('admin') || $user->id === $goal->user_id;
     }
-        return $user->id === $goal->user_id;
+
+    /**
+     * Determine whether the user can restore the model.
+     */
+    public function restore(User $user, Goal $goal): bool
+    {
+        return $user->hasRole('admin');
     }
+
+    /**
+     * Determine whether the user can permanently delete the model.
+     */
+    public function forceDelete(User $user, Goal $goal): bool
+    {
+        return $user->hasRole('admin');
+    }
+}
 
     /**
      * Determine whether the user can restore the model.
