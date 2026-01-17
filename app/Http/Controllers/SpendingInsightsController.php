@@ -26,13 +26,13 @@ class SpendingInsightsController extends Controller
     public function generateAiInsights(Request $request)
     {
         $user = $request->user();
-        
+
         // Prepare spending summary for AI
         $spendingSummary = $this->prepareSpendingSummary($user);
-        
+
         // Call AWS Bedrock for AI analysis
         $aiInsights = $this->callBedrockForAnalysis($spendingSummary);
-        
+
         return response()->json(['insights' => $aiInsights]);
     }
 
@@ -44,7 +44,7 @@ class SpendingInsightsController extends Controller
         foreach ($categories as $category) {
             $threeMonthsAgo = now()->subMonths(3);
             $lastMonth = now()->subMonth();
-            
+
             $avgSpending = $user->transactions()
                 ->where('category_id', $category->id)
                 ->where('type', 'expense')
@@ -65,7 +65,7 @@ class SpendingInsightsController extends Controller
                     'average' => $avgSpending / 100,
                     'increase_percent' => round($increase, 1),
                     'type' => 'warning',
-                    'message' => "Your {$category->name} spending is " . round($increase, 0) . "% higher than usual",
+                    'message' => "Your {$category->name} spending is ".round($increase, 0).'% higher than usual',
                 ];
             }
         }
@@ -123,7 +123,7 @@ class SpendingInsightsController extends Controller
             ->where('category_id', '!=', '')
             ->get()
             ->groupBy(function ($transaction) {
-                return round($transaction->amount / 100) . '-' . substr($transaction->description, 0, 10);
+                return round($transaction->amount / 100).'-'.substr($transaction->description, 0, 10);
             });
 
         foreach ($transactions as $group) {
@@ -149,14 +149,14 @@ class SpendingInsightsController extends Controller
             ->where('type', 'expense')
             ->where('transaction_date', '>=', now()->subMonth())
             ->get()
-            ->filter(fn($t) => in_array($t->transaction_date->dayOfWeek, [0, 6]))
+            ->filter(fn ($t) => in_array($t->transaction_date->dayOfWeek, [0, 6]))
             ->sum('amount') / 100;
 
         $weekdaySpending = $user->transactions()
             ->where('type', 'expense')
             ->where('transaction_date', '>=', now()->subMonth())
             ->get()
-            ->filter(fn($t) => !in_array($t->transaction_date->dayOfWeek, [0, 6]))
+            ->filter(fn ($t) => ! in_array($t->transaction_date->dayOfWeek, [0, 6]))
             ->sum('amount') / 100;
 
         if ($weekendSpending > 0 || $weekdaySpending > 0) {
@@ -214,7 +214,7 @@ class SpendingInsightsController extends Controller
             ->where('type', 'expense')
             ->where('transaction_date', '>=', now()->subMonth())
             ->get()
-            ->filter(fn($t) => ($t->amount / 100) < 20);
+            ->filter(fn ($t) => ($t->amount / 100) < 20);
 
         if ($smallPurchases->count() > 10) {
             $results[] = [
@@ -245,7 +245,7 @@ class SpendingInsightsController extends Controller
                 ->where('transaction_date', '>=', now()->startOfMonth())
                 ->groupBy('category_id')
                 ->get()
-                ->map(fn($t) => [
+                ->map(fn ($t) => [
                     'category' => $t->category->name ?? 'Uncategorized',
                     'amount' => $t->total / 100,
                 ]),
@@ -254,7 +254,7 @@ class SpendingInsightsController extends Controller
                 ->where('period_year', now()->year)
                 ->where('period_month', now()->month)
                 ->get()
-                ->map(fn($b) => [
+                ->map(fn ($b) => [
                     'category' => $b->category->name,
                     'budgeted' => $b->amount,
                 ]),
@@ -264,12 +264,12 @@ class SpendingInsightsController extends Controller
     private function callBedrockForAnalysis($spendingSummary)
     {
         try {
-            $prompt = "Analyze this spending data and provide 3-5 personalized insights and recommendations:\n\n" .
-                      "Monthly Income: $" . number_format($spendingSummary['monthly_income'], 2) . "\n" .
-                      "Monthly Expenses: $" . number_format($spendingSummary['monthly_expenses'], 2) . "\n\n" .
-                      "Category Breakdown:\n" .
-                      $spendingSummary['category_breakdown']->map(fn($c) => "- {$c['category']}: $" . number_format($c['amount'], 2))->join("\n") . "\n\n" .
-                      "Provide actionable, specific advice in a friendly tone.";
+            $prompt = "Analyze this spending data and provide 3-5 personalized insights and recommendations:\n\n".
+                      'Monthly Income: $'.number_format($spendingSummary['monthly_income'], 2)."\n".
+                      'Monthly Expenses: $'.number_format($spendingSummary['monthly_expenses'], 2)."\n\n".
+                      "Category Breakdown:\n".
+                      $spendingSummary['category_breakdown']->map(fn ($c) => "- {$c['category']}: $".number_format($c['amount'], 2))->join("\n")."\n\n".
+                      'Provide actionable, specific advice in a friendly tone.';
 
             $result = \Aws\BedrockRuntime\BedrockRuntimeClient::factory([
                 'region' => config('services.aws.region', 'us-east-1'),
@@ -291,9 +291,11 @@ class SpendingInsightsController extends Controller
             ]);
 
             $response = json_decode($result['body'], true);
+
             return $response['content'][0]['text'] ?? 'Unable to generate AI insights at this time.';
         } catch (\Exception $e) {
-            \Log::error('Bedrock API error: ' . $e->getMessage());
+            \Log::error('Bedrock API error: '.$e->getMessage());
+
             return 'AI insights temporarily unavailable. Please try again later.';
         }
     }

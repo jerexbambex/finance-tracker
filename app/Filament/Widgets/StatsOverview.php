@@ -18,7 +18,7 @@ class StatsOverview extends StatsOverviewWidget
             ->selectRaw('currency, SUM(balance) as total')
             ->groupBy('currency')
             ->get()
-            ->mapWithKeys(fn($item) => [$item->currency => $item->total / 100]);
+            ->mapWithKeys(fn ($item) => [$item->currency => $item->total / 100]);
 
         // Get income by currency
         $incomeByCurrency = Transaction::where('transactions.type', 'income')
@@ -28,7 +28,7 @@ class StatsOverview extends StatsOverviewWidget
             ->selectRaw('accounts.currency, SUM(transactions.amount) as total')
             ->groupBy('accounts.currency')
             ->get()
-            ->mapWithKeys(fn($item) => [$item->currency => $item->total / 100]);
+            ->mapWithKeys(fn ($item) => [$item->currency => $item->total / 100]);
 
         // Get expenses by currency
         $expensesByCurrency = Transaction::where('transactions.type', 'expense')
@@ -38,7 +38,7 @@ class StatsOverview extends StatsOverviewWidget
             ->selectRaw('accounts.currency, SUM(transactions.amount) as total')
             ->groupBy('accounts.currency')
             ->get()
-            ->mapWithKeys(fn($item) => [$item->currency => $item->total / 100]);
+            ->mapWithKeys(fn ($item) => [$item->currency => $item->total / 100]);
 
         $activeBudgets = Budget::where('is_active', true)->count();
         $activeGoals = Goal::where('is_active', true)->where('is_completed', false)->count();
@@ -49,14 +49,15 @@ class StatsOverview extends StatsOverviewWidget
             ->count();
         $budgetsExceeded = Budget::where('is_active', true)
             ->get()
-            ->filter(fn($b) => $b->getPercentageUsed() >= 100)
+            ->filter(fn ($b) => $b->getPercentageUsed() >= 100)
             ->count();
 
         // Format currency amounts
-        $formatCurrencies = function($amounts) {
-            return $amounts->map(function($amount, $currency) {
+        $formatCurrencies = function ($amounts) {
+            return $amounts->map(function ($amount, $currency) {
                 $symbol = \App\Currency::tryFrom($currency)?->symbol() ?? $currency;
-                return $symbol . number_format($amount, 2);
+
+                return $symbol.number_format($amount, 2);
             })->join(', ');
         };
 
@@ -74,7 +75,7 @@ class StatsOverview extends StatsOverviewWidget
                 ->color('danger'),
 
             Stat::make('Total Users', $totalUsers)
-                ->description($activeUsers . ' active (30 days)')
+                ->description($activeUsers.' active (30 days)')
                 ->color('primary'),
 
             Stat::make('Transactions', $totalTransactions)

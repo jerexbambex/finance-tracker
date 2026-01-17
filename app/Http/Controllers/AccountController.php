@@ -17,7 +17,7 @@ class AccountController extends Controller
 
         return Inertia::render('accounts/Index', [
             'accounts' => $accounts,
-            'currencies' => collect(\App\Currency::cases())->map(fn($currency) => [
+            'currencies' => collect(\App\Currency::cases())->map(fn ($currency) => [
                 'value' => $currency->value,
                 'label' => $currency->label(),
                 'symbol' => $currency->symbol(),
@@ -28,7 +28,7 @@ class AccountController extends Controller
     public function create()
     {
         return Inertia::render('accounts/Create', [
-            'currencies' => collect(\App\Currency::cases())->map(fn($currency) => [
+            'currencies' => collect(\App\Currency::cases())->map(fn ($currency) => [
                 'value' => $currency->value,
                 'label' => $currency->label(),
                 'symbol' => $currency->symbol(),
@@ -70,7 +70,7 @@ class AccountController extends Controller
 
         return Inertia::render('accounts/Edit', [
             'account' => $account,
-            'currencies' => collect(\App\Currency::cases())->map(fn($currency) => [
+            'currencies' => collect(\App\Currency::cases())->map(fn ($currency) => [
                 'value' => $currency->value,
                 'label' => $currency->label(),
                 'symbol' => $currency->symbol(),

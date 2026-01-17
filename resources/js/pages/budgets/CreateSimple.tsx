@@ -27,7 +27,7 @@ export default function CreateSimple({ categories }: Props) {
     period_month: currentMonth,
   });
 
-  const [errors, setErrors] = useState<any>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [processing, setProcessing] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {

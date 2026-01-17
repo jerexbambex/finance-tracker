@@ -27,15 +27,15 @@ interface Props {
 }
 
 export default function Index({ accounts, currencies = [] }: Props) {
-  const { flash } = usePage().props as any;
+  const { flash } = usePage().props as { flash?: { success?: string } };
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(!!flash?.success);
 
   useEffect(() => {
     if (flash?.success) {
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
+      const timer = setTimeout(() => setShowSuccess(false), 3000);
+      return () => clearTimeout(timer);
     }
   }, [flash]);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
@@ -112,7 +112,7 @@ export default function Index({ accounts, currencies = [] }: Props) {
 
   const totalBalance = accounts.reduce((sum, acc) => sum + acc.balance, 0);
   const activeAccounts = accounts.filter(acc => acc.is_active).length;
-  const accountsByType = accounts.reduce((acc: any, account) => {
+  const accountsByType = accounts.reduce((acc: Record<string, number>, account) => {
     acc[account.type] = (acc[account.type] || 0) + 1;
     return acc;
   }, {});

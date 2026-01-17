@@ -34,7 +34,7 @@ class UserForm
                         DateTimePicker::make('email_verified_at')
                             ->label('Email Verified At'),
                     ])->columns(2),
-                
+
                 Section::make('Roles & Permissions')
                     ->schema([
                         Select::make('roles')
