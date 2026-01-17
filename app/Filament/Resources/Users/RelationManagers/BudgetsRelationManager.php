@@ -35,17 +35,26 @@ class BudgetsRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('name')
             ->columns([
-                TextColumn::make('name')
-                    ->searchable(),
                 TextColumn::make('category.name')
-                    ->badge(),
+                    ->label('Category')
+                    ->badge()
+                    ->searchable(),
                 TextColumn::make('amount')
-                    ->money(fn ($record) => $record->user->accounts()->first()?->currency ?? 'USD')
+                    ->money(fn ($record) => $record->currency ?? 'USD')
                     ->sortable(),
-                TextColumn::make('period'),
-                TextColumn::make('spent')
-                    ->money(fn ($record) => $record->user->accounts()->first()?->currency ?? 'USD')
-                    ->sortable(),
+                TextColumn::make('period_type')
+                    ->label('Period')
+                    ->badge(),
+                TextColumn::make('period_year')
+                    ->label('Year')
+                    ->toggleable(),
+                TextColumn::make('period_month')
+                    ->label('Month')
+                    ->toggleable(),
+                TextColumn::make('is_active')
+                    ->label('Active')
+                    ->badge()
+                    ->color(fn ($state) => $state ? 'success' : 'gray'),
             ])
             ->filters([
                 //
