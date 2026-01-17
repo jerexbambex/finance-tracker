@@ -20,7 +20,9 @@ class PermissionResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedKey;
     
-    
+    protected static ?string $navigationGroup = 'Administration';
+
+    protected static ?int $navigationSort = 3;
 
     public static function form(Schema $schema): Schema
     {
