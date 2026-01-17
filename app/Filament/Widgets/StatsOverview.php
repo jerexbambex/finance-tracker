@@ -14,17 +14,17 @@ class StatsOverview extends StatsOverviewWidget
     protected function getStats(): array
     {
         $totalBalance = Account::where('is_active', true)
-            ->sum('balance');
+            ->sum('balance') / 100;
 
         $thisMonthIncome = Transaction::where('type', 'income')
             ->whereYear('transaction_date', now()->year)
             ->whereMonth('transaction_date', now()->month)
-            ->sum('amount');
+            ->sum('amount') / 100;
 
         $thisMonthExpenses = Transaction::where('type', 'expense')
             ->whereYear('transaction_date', now()->year)
             ->whereMonth('transaction_date', now()->month)
-            ->sum('amount');
+            ->sum('amount') / 100;
 
         $activeBudgets = Budget::where('is_active', true)
             ->count();
@@ -34,15 +34,15 @@ class StatsOverview extends StatsOverviewWidget
             ->count();
 
         return [
-            Stat::make('Total Balance', '$'.number_format($totalBalance / 100, 2))
+            Stat::make('Total Balance', '$'.number_format($totalBalance, 2))
                 ->description('Across all accounts')
                 ->color('success'),
 
-            Stat::make('This Month Income', '$'.number_format($thisMonthIncome / 100, 2))
+            Stat::make('This Month Income', '$'.number_format($thisMonthIncome, 2))
                 ->description(now()->format('F Y'))
                 ->color('success'),
 
-            Stat::make('This Month Expenses', '$'.number_format($thisMonthExpenses / 100, 2))
+            Stat::make('This Month Expenses', '$'.number_format($thisMonthExpenses, 2))
                 ->description(now()->format('F Y'))
                 ->color('danger'),
 
