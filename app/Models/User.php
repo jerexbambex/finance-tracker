@@ -85,4 +85,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Reminder::class);
     }
+
+    public function savedFilters()
+    {
+        return $this->hasMany(SavedFilter::class);
+    }
 }

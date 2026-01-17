@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\Category;
+use App\Models\SavedFilter;
 use App\Models\Transaction;
 use App\Models\TransactionSplit;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -20,6 +21,14 @@ class TransactionController extends Controller
         $query = auth()->user()->transactions()
             ->with(['account', 'category', 'splits.category'])
             ->latest('transaction_date');
+
+        // Load saved filter if requested
+        if ($request->filter_id) {
+            $savedFilter = auth()->user()->savedFilters()->find($request->filter_id);
+            if ($savedFilter) {
+                $request->merge($savedFilter->filters);
+            }
+        }
 
         // Apply filters using when() for cleaner code
         $query->when($request->account_id, fn ($q) => $q->where('account_id', $request->account_id))
@@ -86,6 +95,10 @@ class TransactionController extends Controller
             ]);
         }
 
+        $savedFilters = auth()->user()->savedFilters()
+            ->where('type', 'transaction')
+            ->get();
+
         return Inertia::render('transactions/Index', [
             'transactions' => $transactions,
             'accounts' => $accounts,
@@ -95,7 +108,8 @@ class TransactionController extends Controller
                 'monthly' => $monthlyData,
                 'yearly' => $yearlyData,
             ],
-            'filters' => $request->only(['account_id', 'category_id', 'type']),
+            'filters' => $request->only(['account_id', 'category_id', 'type', 'date_from', 'date_to', 'search']),
+            'savedFilters' => $savedFilters,
         ]);
     }
 
@@ -346,5 +360,32 @@ class TransactionController extends Controller
         }
 
         return redirect()->back()->with('success', $message);
+    }
+
+    public function saveFilter(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'filters' => 'required|array',
+        ]);
+
+        auth()->user()->savedFilters()->create([
+            'name' => $validated['name'],
+            'type' => 'transaction',
+            'filters' => $validated['filters'],
+        ]);
+
+        return redirect()->back()->with('success', 'Filter saved successfully');
+    }
+
+    public function deleteFilter(SavedFilter $filter)
+    {
+        if ($filter->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $filter->delete();
+
+        return redirect()->back()->with('success', 'Filter deleted');
     }
 }
