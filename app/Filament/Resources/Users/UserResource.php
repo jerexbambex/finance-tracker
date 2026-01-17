@@ -10,6 +10,7 @@ use App\Filament\Resources\Users\Tables\UsersTable;
 use App\Models\User;
 use BackedEnum;
 use UnitEnum;
+use Filament\Infolists;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -28,6 +29,37 @@ class UserResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return UserForm::configure($schema);
+    }
+
+    public static function infolist(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                Infolists\Components\Section::make('User Information')
+                    ->columns(2)
+                    ->schema([
+                        Infolists\Components\TextEntry::make('name'),
+                        Infolists\Components\TextEntry::make('email')
+                            ->copyable()
+                            ->icon('heroicon-o-envelope'),
+                        Infolists\Components\TextEntry::make('email_verified_at')
+                            ->label('Email Verified')
+                            ->dateTime()
+                            ->placeholder('Not verified')
+                            ->badge()
+                            ->color(fn ($state) => $state ? 'success' : 'warning'),
+                        Infolists\Components\TextEntry::make('created_at')
+                            ->dateTime()
+                            ->since(),
+                    ]),
+                Infolists\Components\Section::make('Roles')
+                    ->schema([
+                        Infolists\Components\TextEntry::make('roles.name')
+                            ->badge()
+                            ->color('info')
+                            ->placeholder('No roles assigned'),
+                    ]),
+            ]);
     }
 
     public static function table(Table $table): Table
