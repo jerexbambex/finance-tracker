@@ -36,7 +36,10 @@ class DefaultCategoriesSeeder extends Seeder
         ];
 
         foreach ($categories as $category) {
-            \App\Models\Category::create($category + ['user_id' => null]); // Global categories
+            \App\Models\Category::firstOrCreate(
+                ['name' => $category['name'], 'type' => $category['type'], 'user_id' => null],
+                ['color' => $category['color']]
+            );
         }
     }
 }

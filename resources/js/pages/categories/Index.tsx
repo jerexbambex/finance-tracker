@@ -31,13 +31,13 @@ export default function Index({ incomeCategories, expenseCategories }: Props) {
       
       <div className="flex-1 space-y-6 p-6 md:p-8">
         <div className="mx-auto max-w-7xl space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-3xl font-bold tracking-tight">Categories</h2>
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Categories</h2>
               <p className="text-muted-foreground">Manage your income and expense categories.</p>
             </div>
             <Link href="/categories/create">
-              <Button size="sm" className="h-9 gap-2">
+              <Button size="sm" className="h-9 gap-2 w-full sm:w-auto">
                 <Plus className="h-[18px] w-[18px]" />
                 New Category
               </Button>
