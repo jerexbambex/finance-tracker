@@ -9,7 +9,7 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
     return (
         <>
             <Head title="Welcome to Budget App" />
-            <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 dark:from-gray-900 dark:via-gray-800 dark:to-emerald-950">
+            <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 dark:from-gray-900 dark:via-gray-800 dark:to-emerald-950 flex flex-col">
                 {/* Navigation */}
                 <nav className="border-b border-emerald-100 bg-white/80 backdrop-blur-sm dark:border-emerald-900 dark:bg-gray-900/80">
                     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -50,7 +50,7 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                 </nav>
 
                 {/* Hero Section */}
-                <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+                <div className="flex-1 mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
                     <div className="text-center">
                         <h1 className="text-5xl font-bold tracking-tight text-gray-900 sm:text-6xl dark:text-white">
                             Take Control of Your
