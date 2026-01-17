@@ -45,8 +45,10 @@ class AccountsRelationManager extends RelationManager
                 TextColumn::make('currency')
                     ->badge(),
                 TextColumn::make('is_active')
+                    ->label('Active')
+                    ->formatStateUsing(fn ($state) => $state ? 'Yes' : 'No')
                     ->badge()
-                    ->boolean(),
+                    ->color(fn ($state) => $state ? 'success' : 'danger'),
             ])
             ->filters([
                 //
