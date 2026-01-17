@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\Roles\Schemas;
+namespace App\Filament\Resources\RoleResource\Schemas;
 
 use Filament\Schemas\Schema;
 
