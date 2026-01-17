@@ -139,15 +139,15 @@ export default function Index({ budgets, categories, currentPeriod }: Props) {
       <Head title="Budgets" />
       
       <div className="py-12">
-        <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center mb-6">
-            <div className="flex items-center gap-4">
-              <h1 className="text-3xl font-bold">Budgets</h1>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              <h1 className="text-2xl sm:text-3xl font-bold">Budgets</h1>
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="icon" onClick={() => navigatePeriod('prev')}>
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <span className="text-lg font-medium min-w-[120px] text-center">
+                <span className="text-base sm:text-lg font-medium min-w-[120px] text-center">
                   {monthNames[currentPeriod.month - 1]} {currentPeriod.year}
                 </span>
                 <Button variant="outline" size="icon" onClick={() => navigatePeriod('next')}>
