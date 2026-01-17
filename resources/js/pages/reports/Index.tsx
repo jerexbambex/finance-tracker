@@ -30,6 +30,13 @@ interface MonthlyTrend {
   net: number;
 }
 
+interface YoYComparison {
+  month: string;
+  currentYear: number;
+  previousYear: number;
+  change: number;
+}
+
 interface Props {
   categorySpending: CategorySpending[];
   monthlyTrends: MonthlyTrend[];
@@ -38,6 +45,7 @@ interface Props {
   topCategories: CategorySpending[];
   avgDailySpending: number;
   accountSpending: AccountSpending[];
+  yoyComparison: YoYComparison[];
   startDate: string;
   endDate: string;
 }
@@ -51,7 +59,7 @@ const COLORS = [
   'hsl(173, 58%, 39%)',
 ];
 
-export default function Index({ categorySpending, monthlyTrends, totalIncome, totalExpense, topCategories, avgDailySpending, accountSpending, startDate, endDate }: Props) {
+export default function Index({ categorySpending, monthlyTrends, totalIncome, totalExpense, topCategories, avgDailySpending, accountSpending, yoyComparison, startDate, endDate }: Props) {
   const [activeCategory, setActiveCategory] = useState('');
   const [dateRange, setDateRange] = useState({ start: startDate, end: endDate });
 

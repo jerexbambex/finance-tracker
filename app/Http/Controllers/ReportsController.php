@@ -97,6 +97,36 @@ class ReportsController extends Controller
             ->sortByDesc('amount')
             ->values();
 
+        // Year-over-year comparison (current year vs previous year, by month)
+        $currentYear = now()->year;
+        $previousYear = $currentYear - 1;
+        $yoyComparison = collect();
+
+        for ($month = 1; $month <= 12; $month++) {
+            $currentYearAmount = $user->transactions()
+                ->where('type', 'expense')
+                ->whereYear('transaction_date', $currentYear)
+                ->whereMonth('transaction_date', $month)
+                ->sum(\DB::raw('amount')) / 100;
+
+            $previousYearAmount = $user->transactions()
+                ->where('type', 'expense')
+                ->whereYear('transaction_date', $previousYear)
+                ->whereMonth('transaction_date', $month)
+                ->sum(\DB::raw('amount')) / 100;
+
+            $change = $previousYearAmount > 0
+                ? (($currentYearAmount - $previousYearAmount) / $previousYearAmount) * 100
+                : 0;
+
+            $yoyComparison->push([
+                'month' => date('M', mktime(0, 0, 0, $month, 1)),
+                'currentYear' => $currentYearAmount,
+                'previousYear' => $previousYearAmount,
+                'change' => $change,
+            ]);
+        }
+
         return Inertia::render('reports/Index', [
             'categorySpending' => $categorySpending,
             'monthlyTrends' => $monthlyTrends,
@@ -105,6 +135,7 @@ class ReportsController extends Controller
             'topCategories' => $categorySpending->take(5),
             'avgDailySpending' => $avgDailySpending,
             'accountSpending' => $accountSpending,
+            'yoyComparison' => $yoyComparison,
             'startDate' => $startDate,
             'endDate' => $endDate,
         ]);
