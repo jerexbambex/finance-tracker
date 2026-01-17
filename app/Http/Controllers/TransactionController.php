@@ -333,10 +333,18 @@ class TransactionController extends Controller
             'category_id' => 'required|exists:categories,id',
         ]);
 
+        // Only update transactions that don't have splits
         $updated = auth()->user()->transactions()
             ->whereIn('id', $validated['ids'])
+            ->whereDoesntHave('splits')
             ->update(['category_id' => $validated['category_id']]);
 
-        return redirect()->back()->with('success', "Updated {$updated} transactions");
+        $skipped = count($validated['ids']) - $updated;
+        $message = "Updated {$updated} transactions";
+        if ($skipped > 0) {
+            $message .= " ({$skipped} split transactions skipped)";
+        }
+
+        return redirect()->back()->with('success', $message);
     }
 }
