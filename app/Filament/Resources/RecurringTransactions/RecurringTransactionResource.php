@@ -20,7 +20,7 @@ class RecurringTransactionResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
     
-    protected static ?string $navigationGroup = 'Automation';
+    protected static string|null $navigationGroup = 'Automation';
     
     protected static ?int $navigationSort = 1;
 
