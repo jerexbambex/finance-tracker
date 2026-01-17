@@ -74,7 +74,8 @@ export default function Index({ insights }: Props) {
         <AppLayout>
             <Head title="Spending Insights" />
 
-            <div className="space-y-8">
+            <div className="flex-1 space-y-6 p-6 md:p-8">
+                <div className="mx-auto max-w-7xl space-y-8">
                 {/* Header */}
                 <div className="flex flex-col gap-4">
                     <div>
@@ -363,6 +364,7 @@ export default function Index({ insights }: Props) {
                         )}
                     </div>
                 )}
+            </div>
             </div>
         </AppLayout>
     );
