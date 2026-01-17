@@ -22,7 +22,7 @@ interface Notification {
 interface Props {
   notifications: {
     data: Notification[];
-    links: any[];
+    links: { url: string | null; label: string; active: boolean }[];
     current_page: number;
     last_page: number;
   };

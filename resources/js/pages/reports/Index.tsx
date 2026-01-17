@@ -59,9 +59,8 @@ const COLORS = [
   'hsl(173, 58%, 39%)',
 ];
 
-export default function Index({ categorySpending, monthlyTrends, totalIncome, totalExpense, topCategories, avgDailySpending, accountSpending, yoyComparison, startDate, endDate }: Props) {
+export default function Index({ categorySpending, monthlyTrends, totalIncome, totalExpense, topCategories, avgDailySpending, startDate, endDate }: Props) {
   const [activeCategory, setActiveCategory] = useState('');
-  const [dateRange, setDateRange] = useState({ start: startDate, end: endDate });
 
   console.log('Reports data:', { 
     categorySpending: categorySpending?.length, 

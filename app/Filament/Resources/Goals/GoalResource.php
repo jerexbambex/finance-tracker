@@ -9,18 +9,18 @@ use App\Filament\Resources\Goals\Schemas\GoalForm;
 use App\Filament\Resources\Goals\Tables\GoalsTable;
 use App\Models\Goal;
 use BackedEnum;
-use UnitEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class GoalResource extends Resource
 {
     protected static ?string $model = Goal::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
-    
+
     protected static UnitEnum|string|null $navigationGroup = 'Planning';
 
     protected static ?int $navigationSort = 2;

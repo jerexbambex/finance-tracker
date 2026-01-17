@@ -29,7 +29,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Get account summaries grouped by currency
         $accounts = $user->accounts()->where('is_active', true)->get();
-        $balancesByCurrency = $accounts->groupBy('currency')->map(fn($accts) => $accts->sum('balance'));
+        $balancesByCurrency = $accounts->groupBy('currency')->map(fn ($accts) => $accts->sum('balance'));
 
         // Get recent transactions
         $recentTransactions = $user->transactions()
@@ -47,7 +47,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->selectRaw('accounts.currency, SUM(transactions.amount) as total')
             ->groupBy('accounts.currency')
             ->get()
-            ->mapWithKeys(fn($item) => [$item->currency => $item->total / 100]);
+            ->mapWithKeys(fn ($item) => [$item->currency => $item->total / 100]);
 
         $expensesByCurrency = $user->transactions()
             ->where('transactions.type', 'expense')
@@ -56,7 +56,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->selectRaw('accounts.currency, SUM(transactions.amount) as total')
             ->groupBy('accounts.currency')
             ->get()
-            ->mapWithKeys(fn($item) => [$item->currency => $item->total / 100]);
+            ->mapWithKeys(fn ($item) => [$item->currency => $item->total / 100]);
 
         // Spending by category (current month) - use raw sum
         $categorySpending = $user->transactions()
@@ -170,8 +170,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'categories' => \App\Models\Category::where(function ($q) use ($user) {
                 $q->whereNull('user_id')->orWhere('user_id', $user->id);
             })->where('is_active', true)->get(),
-            'currencies' => collect(\App\Currency::cases())->mapWithKeys(fn($currency) => [
-                $currency->value => ['symbol' => $currency->symbol(), 'label' => $currency->label()]
+            'currencies' => collect(\App\Currency::cases())->mapWithKeys(fn ($currency) => [
+                $currency->value => ['symbol' => $currency->symbol(), 'label' => $currency->label()],
             ]),
         ]);
     })->name('dashboard');

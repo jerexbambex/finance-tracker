@@ -12,7 +12,7 @@ export default function AppSidebarLayout({
     children,
     breadcrumbs = [],
 }: PropsWithChildren<{ breadcrumbs?: BreadcrumbItem[] }>) {
-    const { flash, impersonating } = usePage().props as any;
+    const { flash, impersonating } = usePage().props as { flash?: { success?: string; error?: string }; impersonating?: { name: string } };
 
     useEffect(() => {
         if (flash?.success) {

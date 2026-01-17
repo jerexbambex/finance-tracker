@@ -66,7 +66,7 @@ interface Props {
   };
 }
 
-export default function Index({ transactions, accounts, categories, chartData }: Props) {
+export default function Index({ transactions, categories, chartData }: Props) {
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
   const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>('all');
   const [currentPage, setCurrentPage] = useState(1);
@@ -75,7 +75,6 @@ export default function Index({ transactions, accounts, categories, chartData }:
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [bulkAction, setBulkAction] = useState<'delete' | 'categorize' | ''>('');
   const [bulkCategoryId, setBulkCategoryId] = useState('');
   const itemsPerPage = 10;
 
@@ -161,7 +160,7 @@ export default function Index({ transactions, accounts, categories, chartData }:
     });
     
     // Group by period
-    const grouped = filteredForChart.reduce((acc: any, t) => {
+    const grouped = filteredForChart.reduce((acc: Record<string, { period: string; income: number; expense: number }>, t) => {
       const date = new Date(t.transaction_date);
       let key = '';
       
@@ -387,7 +386,7 @@ export default function Index({ transactions, accounts, categories, chartData }:
                       <CardTitle>Income vs Expenses</CardTitle>
                       <p className="text-sm text-muted-foreground mt-1">{chartLabel}</p>
                     </div>
-                    <Select value={chartPeriod} onValueChange={(value: any) => setChartPeriod(value)}>
+                    <Select value={chartPeriod} onValueChange={(value) => setChartPeriod(value as 'daily' | 'monthly' | 'yearly')}>
                       <SelectTrigger className="w-32">
                         <SelectValue />
                       </SelectTrigger>
@@ -470,7 +469,7 @@ export default function Index({ transactions, accounts, categories, chartData }:
                       onChange={(e) => setDateTo(e.target.value)}
                       className="w-full sm:w-40"
                     />
-                    <Select value={filterType} onValueChange={(value: any) => setFilterType(value)}>
+                    <Select value={filterType} onValueChange={(value) => setFilterType(value as 'all' | 'income' | 'expense')}>
                       <SelectTrigger className="w-full sm:w-32">
                         <SelectValue />
                       </SelectTrigger>
@@ -480,7 +479,7 @@ export default function Index({ transactions, accounts, categories, chartData }:
                         <SelectItem value="expense">Expense</SelectItem>
                       </SelectContent>
                     </Select>
-                    <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+                    <Select value={sortBy} onValueChange={(value) => setSortBy(value as 'date' | 'amount')}>
                       <SelectTrigger className="w-full sm:w-32">
                         <SelectValue />
                       </SelectTrigger>

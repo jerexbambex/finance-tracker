@@ -9,18 +9,18 @@ use App\Filament\Resources\RecurringTransactions\Schemas\RecurringTransactionFor
 use App\Filament\Resources\RecurringTransactions\Tables\RecurringTransactionsTable;
 use App\Models\RecurringTransaction;
 use BackedEnum;
-use UnitEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class RecurringTransactionResource extends Resource
 {
     protected static ?string $model = RecurringTransaction::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
-    
+
     protected static UnitEnum|string|null $navigationGroup = 'Automation';
 
     protected static ?int $navigationSort = 1;

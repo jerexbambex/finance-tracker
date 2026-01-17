@@ -11,18 +11,20 @@ class AdminUserSeeder extends Seeder
     public function run(): void
     {
         $email = env('ADMIN_EMAIL', 'admin@example.com');
-        
+
         // Check if admin already exists
         $existingAdmin = User::where('email', $email)->first();
-        
+
         if ($existingAdmin && $existingAdmin->hasRole('admin')) {
             $this->command->info('Admin user already exists with admin role.');
+
             return;
         }
 
         if ($existingAdmin) {
             $existingAdmin->assignRole('admin');
             $this->command->info('Admin role assigned to existing user.');
+
             return;
         }
 

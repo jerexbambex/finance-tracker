@@ -20,7 +20,7 @@ class AccountResource extends Resource
     protected static ?string $model = Account::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBanknotes;
-    
+
     protected static UnitEnum|string|null $navigationGroup = 'Financial';
 
     protected static ?int $navigationSort = 1;

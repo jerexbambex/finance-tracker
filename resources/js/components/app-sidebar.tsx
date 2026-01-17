@@ -22,7 +22,7 @@ import { type NavItem } from '@/types';
 import AppLogo from './app-logo';
 
 export function AppSidebar() {
-    const { unreadNotifications } = usePage().props as any;
+    const { unreadNotifications } = usePage().props as { unreadNotifications?: number };
 
     const overviewItems: NavItem[] = [
         {

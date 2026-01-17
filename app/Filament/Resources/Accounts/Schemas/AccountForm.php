@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Accounts\Schemas;
 
-use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -41,7 +40,7 @@ class AccountForm
                 Select::make('currency')
                     ->required()
                     ->default('USD')
-                    ->options(collect(\App\Currency::cases())->mapWithKeys(fn($currency) => [$currency->value => $currency->label()]))
+                    ->options(collect(\App\Currency::cases())->mapWithKeys(fn ($currency) => [$currency->value => $currency->label()]))
                     ->searchable(),
                 Toggle::make('is_active')
                     ->default(true),
