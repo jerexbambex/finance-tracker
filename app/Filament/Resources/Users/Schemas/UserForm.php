@@ -2,11 +2,10 @@
 
 namespace App\Filament\Resources\Users\Schemas;
 
-use Filament\Schemas\Components\DateTimePicker;
-use Filament\Schemas\Components\Section;
-use Filament\Schemas\Components\Select;
-use Filament\Schemas\Components\TextInput;
-use Filament\Schemas\Components\Toggle;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Hash;
 
