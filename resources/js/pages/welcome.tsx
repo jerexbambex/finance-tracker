@@ -2,6 +2,7 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import { dashboard, login, register } from '@/routes';
 import { type SharedData } from '@/types';
 import { Wallet, TrendingUp, PieChart, Target, ArrowRight } from 'lucide-react';
+import AppearanceToggleDropdown from '@/components/appearance-dropdown';
 
 export default function Welcome({ canRegister = true }: { canRegister?: boolean }) {
     const { auth } = usePage<SharedData>().props;
@@ -9,135 +10,142 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
     return (
         <>
             <Head title="Welcome to Budget App" />
-            <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 dark:from-gray-900 dark:via-gray-800 dark:to-emerald-950 flex flex-col">
+            <div className="flex min-h-screen flex-col">
                 {/* Navigation */}
-                <nav className="border-b border-emerald-100 bg-white/80 backdrop-blur-sm dark:border-emerald-900 dark:bg-gray-900/80">
-                    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                        <div className="flex h-16 items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <Wallet className="h-8 w-8 text-emerald-600" />
-                                <span className="text-xl font-bold text-gray-900 dark:text-white">Budget App</span>
-                            </div>
-                            <div className="flex items-center gap-4">
-                                {auth.user ? (
-                                    <Link
-                                        href={dashboard()}
-                                        className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
-                                    >
-                                        Dashboard
-                                    </Link>
-                                ) : (
-                                    <>
-                                        <Link
-                                            href={login()}
-                                            className="text-sm font-medium text-gray-700 hover:text-emerald-600 dark:text-gray-300"
-                                        >
-                                            Log in
-                                        </Link>
-                                        {canRegister && (
-                                            <Link
-                                                href={register()}
-                                                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
-                                            >
-                                                Get Started
-                                            </Link>
-                                        )}
-                                    </>
-                                )}
-                            </div>
+                <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                    <div className="container mx-auto flex h-14 max-w-screen-2xl items-center px-4">
+                        <div className="mr-4 flex">
+                            <Link href="/" className="mr-6 flex items-center space-x-2">
+                                <Wallet className="h-6 w-6" />
+                                <span className="font-bold">Budget App</span>
+                            </Link>
                         </div>
-                    </div>
-                </nav>
-
-                {/* Hero Section */}
-                <div className="flex-1 mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-                    <div className="text-center">
-                        <h1 className="text-5xl font-bold tracking-tight text-gray-900 sm:text-6xl dark:text-white">
-                            Take Control of Your
-                            <span className="block text-emerald-600">Financial Future</span>
-                        </h1>
-                        <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-600 dark:text-gray-300">
-                            Track expenses, set budgets, and achieve your financial goals with our powerful yet simple budget management tool.
-                        </p>
-                        <div className="mt-10 flex items-center justify-center gap-4">
+                        <div className="flex flex-1 items-center justify-end space-x-2">
+                            <AppearanceToggleDropdown />
                             {auth.user ? (
                                 <Link
                                     href={dashboard()}
-                                    className="flex items-center gap-2 rounded-lg bg-emerald-600 px-6 py-3 text-base font-medium text-white hover:bg-emerald-700"
+                                    className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2"
                                 >
-                                    Go to Dashboard
-                                    <ArrowRight className="h-5 w-5" />
+                                    Dashboard
                                 </Link>
                             ) : (
                                 <>
+                                    <Link
+                                        href={login()}
+                                        className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
+                                    >
+                                        Log in
+                                    </Link>
                                     {canRegister && (
                                         <Link
                                             href={register()}
-                                            className="flex items-center gap-2 rounded-lg bg-emerald-600 px-6 py-3 text-base font-medium text-white hover:bg-emerald-700"
+                                            className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2"
                                         >
-                                            Start Free
-                                            <ArrowRight className="h-5 w-5" />
+                                            Get Started
                                         </Link>
                                     )}
-                                    <Link
-                                        href={login()}
-                                        className="rounded-lg border border-emerald-600 px-6 py-3 text-base font-medium text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950"
-                                    >
-                                        Sign In
-                                    </Link>
                                 </>
                             )}
                         </div>
                     </div>
+                </header>
 
-                    {/* Features */}
-                    <div className="mt-32 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-                        <div className="rounded-xl bg-white p-6 shadow-sm dark:bg-gray-800">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900">
-                                <Wallet className="h-6 w-6 text-emerald-600" />
+                {/* Hero Section */}
+                <section className="container mx-auto flex flex-1 flex-col items-center justify-center gap-6 px-4 py-16 md:py-24 lg:py-32">
+                    <div className="flex max-w-[980px] flex-col items-center gap-4 text-center">
+                        <h1 className="text-3xl font-bold leading-tight tracking-tighter md:text-5xl lg:text-6xl lg:leading-[1.1]">
+                            Take Control of Your Financial Future
+                        </h1>
+                        <p className="max-w-[750px] text-lg text-muted-foreground sm:text-xl">
+                            Track expenses, set budgets, and achieve your financial goals with our powerful yet simple budget management tool.
+                        </p>
+                    </div>
+                    <div className="flex flex-col gap-2 min-[400px]:flex-row">
+                        {auth.user ? (
+                            <Link
+                                href={dashboard()}
+                                className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-10 px-8"
+                            >
+                                Go to Dashboard
+                                <ArrowRight className="ml-2 h-4 w-4" />
+                            </Link>
+                        ) : (
+                            <>
+                                {canRegister && (
+                                    <Link
+                                        href={register()}
+                                        className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-10 px-8"
+                                    >
+                                        Get Started
+                                        <ArrowRight className="ml-2 h-4 w-4" />
+                                    </Link>
+                                )}
+                                <Link
+                                    href={login()}
+                                    className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-10 px-8"
+                                >
+                                    Sign In
+                                </Link>
+                            </>
+                        )}
+                    </div>
+                </section>
+
+                {/* Features */}
+                <section className="container mx-auto px-4 py-8 md:py-12 lg:py-16">
+                    <div className="mx-auto grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        <div className="relative overflow-hidden rounded-lg border bg-background p-2">
+                            <div className="flex h-full flex-col justify-between rounded-md p-6">
+                                <Wallet className="h-12 w-12 mb-4" />
+                                <div className="space-y-2">
+                                    <h3 className="font-bold">Track Expenses</h3>
+                                    <p className="text-sm text-muted-foreground">
+                                        Monitor your spending across multiple accounts and categories.
+                                    </p>
+                                </div>
                             </div>
-                            <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">Track Expenses</h3>
-                            <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                                Monitor your spending across multiple accounts and categories in real-time.
-                            </p>
                         </div>
-
-                        <div className="rounded-xl bg-white p-6 shadow-sm dark:bg-gray-800">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900">
-                                <PieChart className="h-6 w-6 text-emerald-600" />
+                        <div className="relative overflow-hidden rounded-lg border bg-background p-2">
+                            <div className="flex h-full flex-col justify-between rounded-md p-6">
+                                <PieChart className="h-12 w-12 mb-4" />
+                                <div className="space-y-2">
+                                    <h3 className="font-bold">Smart Budgets</h3>
+                                    <p className="text-sm text-muted-foreground">
+                                        Set monthly budgets and get alerts when approaching limits.
+                                    </p>
+                                </div>
                             </div>
-                            <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">Smart Budgets</h3>
-                            <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                                Set monthly budgets and get alerts when you're approaching your limits.
-                            </p>
                         </div>
-
-                        <div className="rounded-xl bg-white p-6 shadow-sm dark:bg-gray-800">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900">
-                                <Target className="h-6 w-6 text-emerald-600" />
+                        <div className="relative overflow-hidden rounded-lg border bg-background p-2">
+                            <div className="flex h-full flex-col justify-between rounded-md p-6">
+                                <Target className="h-12 w-12 mb-4" />
+                                <div className="space-y-2">
+                                    <h3 className="font-bold">Financial Goals</h3>
+                                    <p className="text-sm text-muted-foreground">
+                                        Set and track progress towards your savings goals.
+                                    </p>
+                                </div>
                             </div>
-                            <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">Financial Goals</h3>
-                            <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                                Set and track progress towards your savings goals and financial milestones.
-                            </p>
                         </div>
-
-                        <div className="rounded-xl bg-white p-6 shadow-sm dark:bg-gray-800">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900">
-                                <TrendingUp className="h-6 w-6 text-emerald-600" />
+                        <div className="relative overflow-hidden rounded-lg border bg-background p-2">
+                            <div className="flex h-full flex-col justify-between rounded-md p-6">
+                                <TrendingUp className="h-12 w-12 mb-4" />
+                                <div className="space-y-2">
+                                    <h3 className="font-bold">Insights & Reports</h3>
+                                    <p className="text-sm text-muted-foreground">
+                                        Visualize your financial data with charts and reports.
+                                    </p>
+                                </div>
                             </div>
-                            <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">Insights & Reports</h3>
-                            <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                                Visualize your financial data with charts and detailed reports.
-                            </p>
                         </div>
                     </div>
-                </div>
+                </section>
 
                 {/* Footer */}
-                <footer className="border-t border-emerald-100 bg-white/80 backdrop-blur-sm dark:border-emerald-900 dark:bg-gray-900/80">
-                    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                        <p className="text-center text-sm text-gray-600 dark:text-gray-400">
+                <footer className="mt-auto border-t py-6 md:py-0">
+                    <div className="container mx-auto flex flex-col items-center justify-center gap-4 px-4 md:h-24 md:flex-row">
+                        <p className="text-center text-sm leading-loose text-muted-foreground">
                             © {new Date().getFullYear()} Budget App. All rights reserved.
                         </p>
                     </div>
