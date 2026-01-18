@@ -1,4 +1,4 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,9 +26,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
-import { TrendingUp, TrendingDown, Wallet, Pencil, Trash2, MoreVertical, Eye } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, Pencil, Trash2, MoreVertical, Eye, CheckCircle } from 'lucide-react';
 
 interface Transaction {
   id: string;
@@ -63,6 +63,8 @@ interface Props {
 }
 
 export default function Index({ transactions, categories, chartData }: Props) {
+  const { flash } = usePage().props as { flash?: { success?: string } };
+  const [showSuccess, setShowSuccess] = useState(!!flash?.success);
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
   const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>('all');
   const [currentPage, setCurrentPage] = useState(1);
@@ -73,6 +75,13 @@ export default function Index({ transactions, categories, chartData }: Props) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkCategoryId, setBulkCategoryId] = useState('');
   const itemsPerPage = 10;
+
+  useEffect(() => {
+    if (flash?.success) {
+      const timer = setTimeout(() => setShowSuccess(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [flash]);
 
   const toggleSelection = (id: string) => {
     setSelectedIds(prev => 
@@ -233,6 +242,13 @@ export default function Index({ transactions, categories, chartData }: Props) {
       
       <div className="py-6 sm:py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {showSuccess && (
+            <div className="mb-4 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              <p className="text-green-800">{flash?.success}</p>
+            </div>
+          )}
+          
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
             <h1 className="text-2xl sm:text-3xl font-bold">Transactions</h1>
             <div className="flex gap-2">

@@ -250,7 +250,7 @@ class TransactionController extends Controller
             $transaction->addMediaFromRequest('receipt')->toMediaCollection('receipts');
         }
 
-        return redirect()->route('transactions.index');
+        return redirect()->route('transactions.index')->with('success', 'Transaction updated successfully.');
     }
 
     public function destroy(Transaction $transaction)
