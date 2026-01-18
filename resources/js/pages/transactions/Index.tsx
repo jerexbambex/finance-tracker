@@ -536,8 +536,12 @@ export default function Index({ transactions, categories, chartData }: Props) {
                     </TableHeader>
                     <TableBody>
                       {paginatedTransactions.map((transaction) => (
-                        <TableRow key={transaction.id}>
-                          <TableCell>
+                        <TableRow 
+                          key={transaction.id}
+                          className="cursor-pointer hover:bg-muted/50 transition-colors"
+                          onClick={() => router.visit(`/transactions/${transaction.id}`)}
+                        >
+                          <TableCell onClick={(e) => e.stopPropagation()}>
                             <input
                               type="checkbox"
                               checked={selectedIds.includes(transaction.id)}
@@ -585,7 +589,7 @@ export default function Index({ transactions, categories, chartData }: Props) {
                             {formatCurrency(transaction.amount)}
                           </span>
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" size="icon" className="h-8 w-8">
