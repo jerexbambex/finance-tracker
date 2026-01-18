@@ -19,20 +19,16 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
 import { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
-import { TrendingUp, TrendingDown, Wallet, Pencil, Trash2 } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, Pencil, Trash2, MoreVertical, Eye } from 'lucide-react';
 
 interface Transaction {
   id: string;
@@ -540,8 +536,12 @@ export default function Index({ transactions, categories, chartData }: Props) {
                     </TableHeader>
                     <TableBody>
                       {paginatedTransactions.map((transaction) => (
-                        <TableRow key={transaction.id}>
-                          <TableCell>
+                        <TableRow 
+                          key={transaction.id}
+                          className="cursor-pointer hover:bg-muted/50 transition-colors"
+                          onClick={() => router.visit(`/transactions/${transaction.id}`)}
+                        >
+                          <TableCell onClick={(e) => e.stopPropagation()}>
                             <input
                               type="checkbox"
                               checked={selectedIds.includes(transaction.id)}
@@ -589,38 +589,40 @@ export default function Index({ transactions, categories, chartData }: Props) {
                             {formatCurrency(transaction.amount)}
                           </span>
                         </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <Link href={`/transactions/${transaction.id}/edit`}>
+                        <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
                               <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <Pencil className="h-3.5 w-3.5" />
+                                <MoreVertical className="h-4 w-4" />
                               </Button>
-                            </Link>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                  <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Delete Transaction</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Are you sure you want to delete this transaction? This action cannot be undone.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => router.delete(`/transactions/${transaction.id}`)}
-                                    className="bg-destructive hover:bg-destructive/90"
-                                  >
-                                    Delete
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem asChild>
+                                <Link href={`/transactions/${transaction.id}`} className="cursor-pointer">
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  View
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem asChild>
+                                <Link href={`/transactions/${transaction.id}/edit`} className="cursor-pointer">
+                                  <Pencil className="h-4 w-4 mr-2" />
+                                  Edit
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  if (confirm('Are you sure you want to delete this transaction?')) {
+                                    router.delete(`/transactions/${transaction.id}`);
+                                  }
+                                }}
+                                className="text-destructive focus:text-destructive cursor-pointer"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     ))}

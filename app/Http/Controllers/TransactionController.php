@@ -204,7 +204,7 @@ class TransactionController extends Controller
     {
         $this->authorize('view', $transaction);
 
-        $transaction->load(['account', 'category']);
+        $transaction->load(['account', 'category', 'media']);
 
         return Inertia::render('transactions/Show', [
             'transaction' => $transaction,
