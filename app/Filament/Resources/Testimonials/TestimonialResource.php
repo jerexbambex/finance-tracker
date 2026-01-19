@@ -23,6 +23,12 @@ class TestimonialResource extends Resource
 
     protected static UnitEnum|string|null $navigationGroup = 'Content';
 
+    protected static ?string $navigationLabel = 'Testimonials';
+
+    protected static ?string $pluralModelLabel = 'Testimonials';
+
+    protected static ?string $modelLabel = 'Testimonial';
+
     public static function form(Schema $schema): Schema
     {
         return TestimonialForm::configure($schema);
