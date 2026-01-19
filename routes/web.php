@@ -225,9 +225,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/testimonials', [App\Http\Controllers\TestimonialController::class, 'store'])->name('testimonials.store');
     Route::delete('/testimonials/{testimonial}', [App\Http\Controllers\TestimonialController::class, 'destroy'])->name('testimonials.destroy');
 
-    Route::get('/settings', [App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
-    Route::post('/settings/import', [App\Http\Controllers\SettingsController::class, 'importData'])->name('settings.import');
-
     Route::get('/transfers/create', [App\Http\Controllers\TransferController::class, 'create'])->name('transfers.create');
     Route::post('/transfers', [App\Http\Controllers\TransferController::class, 'store'])->name('transfers.store');
 });

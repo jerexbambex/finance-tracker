@@ -5,14 +5,14 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-class SettingsController extends Controller
+class DataManagementController extends Controller
 {
     public function index()
     {
-        return Inertia::render('settings/Index');
+        return Inertia::render('settings/data-management');
     }
 
-    public function importData(Request $request)
+    public function import(Request $request)
     {
         $request->validate([
             'file' => 'required|file|mimes:json|max:10240', // 10MB max
@@ -45,6 +45,6 @@ class SettingsController extends Controller
             }
         }
 
-        return redirect()->route('settings.index')->with('success', 'Data imported successfully!');
+        return redirect()->route('settings.data-management')->with('success', 'Data imported successfully!');
     }
 }
