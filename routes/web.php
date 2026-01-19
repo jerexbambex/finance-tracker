@@ -168,6 +168,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->take(5)
             ->get();
 
+        // User's testimonials
+        $userTestimonials = $user->testimonials()->latest()->get();
+
         return Inertia::render('dashboard', [
             'accounts' => $accounts,
             'balancesByCurrency' => $balancesByCurrency,
@@ -180,6 +183,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'budgetAlerts' => $budgetAlerts,
             'goals' => $goals,
             'upcomingReminders' => $upcomingReminders,
+            'userTestimonials' => $userTestimonials,
             'categories' => \App\Models\Category::where(function ($q) use ($user) {
                 $q->whereNull('user_id')->orWhere('user_id', $user->id);
             })->where('is_active', true)->get(),
@@ -217,6 +221,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/export/transactions', [App\Http\Controllers\ExportController::class, 'transactions'])->name('export.transactions');
     Route::get('/export/all-data', [App\Http\Controllers\ExportController::class, 'allData'])->name('export.all-data');
+
+    Route::post('/testimonials', [App\Http\Controllers\TestimonialController::class, 'store'])->name('testimonials.store');
+    Route::delete('/testimonials/{testimonial}', [App\Http\Controllers\TestimonialController::class, 'destroy'])->name('testimonials.destroy');
 
     Route::get('/settings', [App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
     Route::post('/settings/import', [App\Http\Controllers\SettingsController::class, 'importData'])->name('settings.import');
