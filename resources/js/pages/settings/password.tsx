@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
-import AccountLayout from '@/layouts/account/layout';
+import SettingsLayout from '@/layouts/settings/layout';
 import { edit } from '@/routes/user-password';
 import { type BreadcrumbItem } from '@/types';
 
@@ -30,7 +30,7 @@ export default function Password() {
 
             <h1 className="sr-only">Password Settings</h1>
 
-            <AccountLayout>
+            <SettingsLayout>
                 <div className="space-y-6">
                     <HeadingSmall
                         title="Update password"
@@ -142,7 +142,7 @@ export default function Password() {
                         )}
                     </Form>
                 </div>
-            </AccountLayout>
+            </SettingsLayout>
         </AppLayout>
     );
 }

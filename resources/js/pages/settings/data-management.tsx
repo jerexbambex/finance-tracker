@@ -1,6 +1,6 @@
 import { Head, useForm } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
-import AccountLayout from '@/layouts/account/layout';
+import SettingsLayout from '@/layouts/settings/layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -11,7 +11,7 @@ import { type BreadcrumbItem } from '@/types';
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Data Management',
-        href: '/account/data-management',
+        href: '/settings/data-management',
     },
 ];
 
@@ -23,7 +23,7 @@ export default function DataManagement() {
   const handleImport = (e: React.FormEvent) => {
     e.preventDefault();
     if (data.file) {
-      post('/account/data-management/import');
+      post('/settings/data-management/import');
     }
   };
 
@@ -31,7 +31,7 @@ export default function DataManagement() {
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Data Management" />
       
-      <AccountLayout>
+      <SettingsLayout>
         <div className="space-y-6">
           <div>
             <h3 className="text-lg font-medium">Data Management</h3>
@@ -89,7 +89,7 @@ export default function DataManagement() {
             </CardContent>
           </Card>
         </div>
-      </AccountLayout>
+      </SettingsLayout>
     </AppLayout>
   );
 }

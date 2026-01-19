@@ -9,7 +9,7 @@ class AccountController extends Controller
 {
     public function dataManagement()
     {
-        return Inertia::render('account/data-management');
+        return Inertia::render('settings/data-management');
     }
 
     public function importData(Request $request)
@@ -45,6 +45,6 @@ class AccountController extends Controller
             }
         }
 
-        return redirect()->route('account.data-management')->with('success', 'Data imported successfully!');
+        return redirect()->route('settings.data-management')->with('success', 'Data imported successfully!');
     }
 }

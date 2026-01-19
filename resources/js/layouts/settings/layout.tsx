@@ -35,12 +35,12 @@ const sidebarNavItems: NavItem[] = [
     },
     {
         title: 'Data Management',
-        href: '/account/data-management',
+        href: '/settings/data-management',
         icon: null,
     },
 ];
 
-export default function AccountLayout({ children }: PropsWithChildren) {
+export default function SettingsLayout({ children }: PropsWithChildren) {
     const { urlIsActive } = useActiveUrl();
 
     // When server-side rendering, we only render the layout on the client...
@@ -51,7 +51,7 @@ export default function AccountLayout({ children }: PropsWithChildren) {
     return (
         <div className="px-4 py-6">
             <Heading
-                title="Account Settings"
+                title="Settings"
                 description="Manage your profile and account settings"
             />
 
