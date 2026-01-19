@@ -51,7 +51,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
     return (
         <div className="px-4 py-6">
             <Heading
-                title="Settings"
+                title="Account Settings"
                 description="Manage your profile and account settings"
             />
 
