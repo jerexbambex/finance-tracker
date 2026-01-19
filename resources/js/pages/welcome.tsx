@@ -1,14 +1,44 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import { dashboard, login, register } from '@/routes';
 import { type SharedData } from '@/types';
-import { Wallet, TrendingUp, PieChart, Target, ArrowRight, DollarSign, Calendar, Bell } from 'lucide-react';
+import { Wallet, TrendingUp, PieChart, Target, ArrowRight, DollarSign, Calendar, Bell, Shield, Lock, CheckCircle } from 'lucide-react';
 import AppearanceToggleDropdown from '@/components/appearance-dropdown';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 
 export default function Welcome({ canRegister = true }: { canRegister?: boolean }) {
     const { auth } = usePage<SharedData>().props;
     const [activeFeature, setActiveFeature] = useState(0);
+    const [showFloatingCTA, setShowFloatingCTA] = useState(false);
+    const [animatedCount, setAnimatedCount] = useState(0);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setShowFloatingCTA(window.scrollY > 600);
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    useEffect(() => {
+        const target = 1000000;
+        const duration = 2000;
+        const steps = 60;
+        const increment = target / steps;
+        let current = 0;
+        
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                setAnimatedCount(target);
+                clearInterval(timer);
+            } else {
+                setAnimatedCount(Math.floor(current));
+            }
+        }, duration / steps);
+
+        return () => clearInterval(timer);
+    }, []);
 
     const features = [
         {
@@ -184,14 +214,31 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                 </header>
 
                 {/* Hero Section */}
-                <section className="container mx-auto flex flex-1 flex-col items-center justify-center gap-6 px-4 py-16 md:py-24 lg:py-32">
-                    <div className="flex max-w-[980px] flex-col items-center gap-4 text-center">
+                <section className="container mx-auto flex flex-1 flex-col items-center justify-center gap-6 px-4 py-16 md:py-24 lg:py-32 relative overflow-hidden">
+                    {/* Animated background elements */}
+                    <div className="absolute inset-0 -z-10 overflow-hidden">
+                        <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-primary/5 rounded-full blur-3xl animate-pulse" />
+                        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse delay-1000" />
+                    </div>
+
+                    <div className="flex max-w-[980px] flex-col items-center gap-4 text-center animate-in fade-in slide-in-from-bottom-4 duration-1000">
+                        <div className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm">
+                            <CheckCircle className="h-4 w-4 text-green-500" />
+                            <span className="text-muted-foreground">Trusted by thousands of users</span>
+                        </div>
                         <h1 className="text-3xl font-bold leading-tight tracking-tighter md:text-5xl lg:text-6xl lg:leading-[1.1]">
                             Take Control of Your Financial Future
                         </h1>
                         <p className="max-w-[750px] text-lg text-muted-foreground sm:text-xl">
                             Track expenses, set budgets, and achieve your financial goals with our powerful yet simple budget management tool.
                         </p>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
+                            <Shield className="h-4 w-4" />
+                            <span>Bank-level security</span>
+                            <span className="mx-2">•</span>
+                            <Lock className="h-4 w-4" />
+                            <span>Your data is encrypted</span>
+                        </div>
                     </div>
                     <div className="flex flex-col gap-2 min-[400px]:flex-row">
                         {auth.user ? (
@@ -227,7 +274,7 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                 {/* Features */}
                 <section className="container mx-auto px-4 py-8 md:py-12 lg:py-16">
                     <div className="mx-auto max-w-6xl space-y-8">
-                        <div className="text-center space-y-2">
+                        <div className="text-center space-y-2 animate-in fade-in slide-in-from-bottom-4 duration-700">
                             <h2 className="text-2xl font-bold tracking-tight md:text-3xl">Everything you need to manage your finances</h2>
                             <p className="text-muted-foreground">Click on any feature to see it in action</p>
                         </div>
@@ -241,9 +288,10 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                                         <button
                                             key={index}
                                             onClick={() => setActiveFeature(index)}
-                                            className={`relative overflow-hidden rounded-lg border bg-background p-2 text-left transition-all hover:shadow-md ${
+                                            className={`relative overflow-hidden rounded-lg border bg-background p-2 text-left transition-all hover:shadow-md animate-in fade-in slide-in-from-bottom-4 duration-700 ${
                                                 activeFeature === index ? 'ring-2 ring-primary shadow-md' : ''
                                             }`}
+                                            style={{ animationDelay: `${index * 100}ms` }}
                                         >
                                             <div className="flex h-full flex-col justify-between rounded-md p-6">
                                                 <Icon className={`h-12 w-12 mb-4 transition-colors ${activeFeature === index ? 'text-primary' : ''}`} />
@@ -260,7 +308,7 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                             </div>
 
                             {/* Interactive Demo */}
-                            <div className="lg:sticky lg:top-20 h-fit">
+                            <div className="lg:sticky lg:top-20 h-fit animate-in fade-in slide-in-from-right-4 duration-700 delay-300">
                                 <div className="rounded-lg border bg-muted/50 p-6">
                                     <div className="mb-4 flex items-center gap-2">
                                         <div className="flex gap-1.5">
@@ -283,21 +331,21 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                 <section className="container mx-auto px-4 py-8 md:py-12 lg:py-16 border-t">
                     <div className="mx-auto max-w-5xl">
                         <div className="grid gap-8 sm:grid-cols-3">
-                            <div className="text-center space-y-2">
+                            <div className="text-center space-y-2 animate-in fade-in slide-in-from-bottom-4 duration-700">
                                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mb-2">
                                     <DollarSign className="h-6 w-6 text-primary" />
                                 </div>
-                                <h3 className="text-3xl font-bold">$1M+</h3>
+                                <h3 className="text-3xl font-bold">${(animatedCount / 1000000).toFixed(1)}M+</h3>
                                 <p className="text-sm text-muted-foreground">Money tracked</p>
                             </div>
-                            <div className="text-center space-y-2">
+                            <div className="text-center space-y-2 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
                                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mb-2">
                                     <Calendar className="h-6 w-6 text-primary" />
                                 </div>
                                 <h3 className="text-3xl font-bold">50K+</h3>
                                 <p className="text-sm text-muted-foreground">Transactions logged</p>
                             </div>
-                            <div className="text-center space-y-2">
+                            <div className="text-center space-y-2 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
                                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mb-2">
                                     <Bell className="h-6 w-6 text-primary" />
                                 </div>
@@ -307,6 +355,19 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                         </div>
                     </div>
                 </section>
+
+                {/* Floating CTA */}
+                {!auth.user && showFloatingCTA && (
+                    <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom-4 duration-500">
+                        <Link
+                            href={canRegister ? register() : login()}
+                            className="inline-flex items-center justify-center rounded-full text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow-lg hover:shadow-xl hover:scale-105 h-12 px-6"
+                        >
+                            {canRegister ? 'Get Started Free' : 'Sign In'}
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                        </Link>
+                    </div>
+                )}
 
                 {/* Footer */}
                 <footer className="mt-auto border-t py-6 md:py-0">
