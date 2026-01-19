@@ -14,8 +14,21 @@ use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
 Route::get('/', function () {
+    $testimonials = \App\Models\Testimonial::with('user')
+        ->approved()
+        ->featured()
+        ->latest('approved_at')
+        ->take(3)
+        ->get()
+        ->map(fn ($testimonial) => [
+            'name' => $testimonial->user->name,
+            'content' => $testimonial->content,
+            'rating' => $testimonial->rating,
+        ]);
+
     return Inertia::render('welcome', [
         'canRegister' => Features::enabled(Features::registration()),
+        'testimonials' => $testimonials,
     ]);
 })->name('home');
 

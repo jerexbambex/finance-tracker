@@ -6,7 +6,7 @@ import AppearanceToggleDropdown from '@/components/appearance-dropdown';
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 
-export default function Welcome({ canRegister = true }: { canRegister?: boolean }) {
+export default function Welcome({ canRegister = true, testimonials = [] }: { canRegister?: boolean; testimonials?: Array<{ name: string; content: string; rating: number }> }) {
     const { auth } = usePage<SharedData>().props;
     const [activeFeature, setActiveFeature] = useState(0);
     const [showFloatingCTA, setShowFloatingCTA] = useState(false);
@@ -353,6 +353,164 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                                 <p className="text-sm text-muted-foreground">Budget alerts sent</p>
                             </div>
                         </div>
+                    </div>
+                </section>
+
+                {/* How it Works */}
+                <section className="container mx-auto px-4 py-8 md:py-12 lg:py-16 border-t">
+                    <div className="mx-auto max-w-5xl space-y-8">
+                        <div className="text-center space-y-2">
+                            <h2 className="text-2xl font-bold tracking-tight md:text-3xl">Get started in 3 simple steps</h2>
+                            <p className="text-muted-foreground">Start managing your finances in minutes</p>
+                        </div>
+                        <div className="grid gap-8 md:grid-cols-3">
+                            {[
+                                { step: '01', title: 'Create Account', description: 'Sign up for free in seconds. No credit card required.', icon: '👤' },
+                                { step: '02', title: 'Add Accounts', description: 'Connect your bank accounts or add them manually.', icon: '🏦' },
+                                { step: '03', title: 'Start Tracking', description: 'Set budgets, track expenses, and achieve your goals.', icon: '📊' },
+                            ].map((item, i) => (
+                                <div key={i} className="relative">
+                                    <div className="flex flex-col items-center text-center space-y-4">
+                                        <div className="relative">
+                                            <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center text-4xl">
+                                                {item.icon}
+                                            </div>
+                                            <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
+                                                {item.step}
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <h3 className="font-bold text-lg">{item.title}</h3>
+                                            <p className="text-sm text-muted-foreground">{item.description}</p>
+                                        </div>
+                                    </div>
+                                    {i < 2 && (
+                                        <div className="hidden md:block absolute top-10 left-[60%] w-[80%] h-0.5 bg-border">
+                                            <ArrowRight className="absolute -right-2 -top-2 h-5 w-5 text-muted-foreground" />
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+
+                {/* Testimonials */}
+                <section className="container mx-auto px-4 py-8 md:py-12 lg:py-16 border-t bg-muted/30">
+                    <div className="mx-auto max-w-5xl space-y-8">
+                        <div className="text-center space-y-2">
+                            <h2 className="text-2xl font-bold tracking-tight md:text-3xl">Loved by users worldwide</h2>
+                            <p className="text-muted-foreground">See what our users have to say</p>
+                        </div>
+                        <div className="grid gap-6 md:grid-cols-3">
+                            {testimonials.length > 0 ? (
+                                testimonials.map((testimonial, i) => (
+                                    <Card key={i} className="p-6 space-y-4 hover:shadow-lg transition-shadow">
+                                        <div className="flex gap-1">
+                                            {Array.from({ length: testimonial.rating }).map((_, i) => (
+                                                <span key={i} className="text-yellow-500">★</span>
+                                            ))}
+                                        </div>
+                                        <p className="text-sm text-muted-foreground italic">"{testimonial.content}"</p>
+                                        <div className="flex items-center gap-3 pt-2 border-t">
+                                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-xl">
+                                                {testimonial.name.charAt(0).toUpperCase()}
+                                            </div>
+                                            <div>
+                                                <p className="font-semibold text-sm">{testimonial.name}</p>
+                                            </div>
+                                        </div>
+                                    </Card>
+                                ))
+                            ) : (
+                                // Fallback testimonials
+                                [
+                                    {
+                                        name: 'Sarah Johnson',
+                                        role: 'Freelancer',
+                                        content: 'This app completely changed how I manage my finances. I finally have control over my spending!',
+                                        avatar: '👩‍💼',
+                                        rating: 5,
+                                    },
+                                    {
+                                        name: 'Michael Chen',
+                                        role: 'Small Business Owner',
+                                        content: 'The budget tracking features are incredible. I can see exactly where my money goes each month.',
+                                        avatar: '👨‍💻',
+                                        rating: 5,
+                                    },
+                                    {
+                                        name: 'Emily Rodriguez',
+                                        role: 'Teacher',
+                                        content: 'Simple, intuitive, and powerful. I reached my savings goal 3 months early thanks to this app!',
+                                        avatar: '👩‍🏫',
+                                        rating: 5,
+                                    },
+                                ].map((testimonial, i) => (
+                                    <Card key={i} className="p-6 space-y-4 hover:shadow-lg transition-shadow">
+                                        <div className="flex gap-1">
+                                            {Array.from({ length: testimonial.rating }).map((_, i) => (
+                                                <span key={i} className="text-yellow-500">★</span>
+                                            ))}
+                                        </div>
+                                        <p className="text-sm text-muted-foreground italic">"{testimonial.content}"</p>
+                                        <div className="flex items-center gap-3 pt-2 border-t">
+                                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-xl">
+                                                {testimonial.avatar}
+                                            </div>
+                                            <div>
+                                                <p className="font-semibold text-sm">{testimonial.name}</p>
+                                                <p className="text-xs text-muted-foreground">{testimonial.role}</p>
+                                            </div>
+                                        </div>
+                                    </Card>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                </section>
+
+                {/* Final CTA */}
+                <section className="container mx-auto px-4 py-16 md:py-24">
+                    <div className="mx-auto max-w-3xl text-center space-y-6">
+                        <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+                            Ready to take control of your finances?
+                        </h2>
+                        <p className="text-lg text-muted-foreground">
+                            Join thousands of users who are already managing their money smarter.
+                        </p>
+                        <div className="flex flex-col gap-2 min-[400px]:flex-row justify-center">
+                            {auth.user ? (
+                                <Link
+                                    href={dashboard()}
+                                    className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-11 px-8"
+                                >
+                                    Go to Dashboard
+                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                </Link>
+                            ) : (
+                                <>
+                                    {canRegister && (
+                                        <Link
+                                            href={register()}
+                                            className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-11 px-8"
+                                        >
+                                            Start Free Today
+                                            <ArrowRight className="ml-2 h-4 w-4" />
+                                        </Link>
+                                    )}
+                                    <Link
+                                        href={login()}
+                                        className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-11 px-8"
+                                    >
+                                        Sign In
+                                    </Link>
+                                </>
+                            )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                            No credit card required • Free forever • Cancel anytime
+                        </p>
                     </div>
                 </section>
 
