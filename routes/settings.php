@@ -12,8 +12,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('settings/profile', [ProfileController::class, 'update'])->name('profile.update');
 
-    Route::get('settings/data-management', [\App\Http\Controllers\AccountController::class, 'dataManagement'])->name('settings.data-management');
-    Route::post('settings/data-management/import', [\App\Http\Controllers\AccountController::class, 'importData'])->name('settings.data-management.import');
+    Route::get('settings/data-management', [\App\Http\Controllers\DataManagementController::class, 'index'])->name('settings.data-management');
+    Route::post('settings/data-management/import', [\App\Http\Controllers\DataManagementController::class, 'import'])->name('settings.data-management.import');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
