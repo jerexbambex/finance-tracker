@@ -232,4 +232,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/transfers', [App\Http\Controllers\TransferController::class, 'store'])->name('transfers.store');
 });
 
-require __DIR__.'/settings.php';
+require __DIR__.'/account.php';
