@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
-import SettingsLayout from '@/layouts/settings/layout';
+import AccountLayout from '@/layouts/account/layout';
 import { edit } from '@/routes/profile';
 import { send } from '@/routes/verification';
 import { type BreadcrumbItem, type SharedData } from '@/types';
@@ -36,7 +36,7 @@ export default function Profile({
 
             <h1 className="sr-only">Profile Settings</h1>
 
-            <SettingsLayout>
+            <AccountLayout>
                 <div className="space-y-6">
                     <HeadingSmall
                         title="Profile information"
@@ -144,7 +144,7 @@ export default function Profile({
                 </div>
 
                 <DeleteUser />
-            </SettingsLayout>
+            </AccountLayout>
         </AppLayout>
     );
 }

@@ -3,7 +3,7 @@ import { Head } from '@inertiajs/react';
 import AppearanceTabs from '@/components/appearance-tabs';
 import HeadingSmall from '@/components/heading-small';
 import AppLayout from '@/layouts/app-layout';
-import SettingsLayout from '@/layouts/settings/layout';
+import AccountLayout from '@/layouts/account/layout';
 import { edit as editAppearance } from '@/routes/appearance';
 import { type BreadcrumbItem } from '@/types';
 
@@ -21,7 +21,7 @@ export default function Appearance() {
 
             <h1 className="sr-only">Appearance Settings</h1>
 
-            <SettingsLayout>
+            <AccountLayout>
                 <div className="space-y-6">
                     <HeadingSmall
                         title="Appearance settings"
@@ -29,7 +29,7 @@ export default function Appearance() {
                     />
                     <AppearanceTabs />
                 </div>
-            </SettingsLayout>
+            </AccountLayout>
         </AppLayout>
     );
 }

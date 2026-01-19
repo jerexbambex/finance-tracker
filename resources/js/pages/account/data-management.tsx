@@ -1,6 +1,6 @@
 import { Head, useForm } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
-import SettingsLayout from '@/layouts/settings/layout';
+import AccountLayout from '@/layouts/account/layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -11,11 +11,11 @@ import { type BreadcrumbItem } from '@/types';
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Data Management',
-        href: '/settings/data-management',
+        href: '/account/data-management',
     },
 ];
 
-export default function Index() {
+export default function DataManagement() {
   const { data, setData, post, processing } = useForm({
     file: null as File | null,
   });
@@ -23,7 +23,7 @@ export default function Index() {
   const handleImport = (e: React.FormEvent) => {
     e.preventDefault();
     if (data.file) {
-      post('/settings/data-management/import');
+      post('/account/data-management/import');
     }
   };
 
@@ -31,7 +31,7 @@ export default function Index() {
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Data Management" />
       
-      <SettingsLayout>
+      <AccountLayout>
         <div className="space-y-6">
           <div>
             <h3 className="text-lg font-medium">Data Management</h3>
@@ -89,7 +89,7 @@ export default function Index() {
             </CardContent>
           </Card>
         </div>
-      </SettingsLayout>
+      </AccountLayout>
     </AppLayout>
   );
 }

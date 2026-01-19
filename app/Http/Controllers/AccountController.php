@@ -2,106 +2,49 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Account;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class AccountController extends Controller
 {
-    use AuthorizesRequests;
-
-    public function index()
+    public function dataManagement()
     {
-        $accounts = auth()->user()->accounts()->with('transactions')->get();
-
-        return Inertia::render('accounts/Index', [
-            'accounts' => $accounts,
-            'currencies' => collect(\App\Currency::cases())->map(fn ($currency) => [
-                'value' => $currency->value,
-                'label' => $currency->label(),
-                'symbol' => $currency->symbol(),
-            ]),
-        ]);
+        return Inertia::render('account/data-management');
     }
 
-    public function create()
+    public function importData(Request $request)
     {
-        return Inertia::render('accounts/Create', [
-            'currencies' => collect(\App\Currency::cases())->map(fn ($currency) => [
-                'value' => $currency->value,
-                'label' => $currency->label(),
-                'symbol' => $currency->symbol(),
-            ]),
-        ]);
-    }
-
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'type' => 'required|string|in:checking,savings,credit_card,investment,cash',
-            'balance' => 'required|numeric|min:0',
-            'currency' => 'required|string|size:3',
-            'description' => 'nullable|string',
+        $request->validate([
+            'file' => 'required|file|mimes:json|max:10240', // 10MB max
         ]);
 
-        auth()->user()->accounts()->create($validated);
+        $json = file_get_contents($request->file('file')->getRealPath());
+        $data = json_decode($json, true);
 
-        return redirect()->route('accounts.index');
-    }
+        if (! $data || ! isset($data['exported_at'])) {
+            return back()->withErrors(['file' => 'Invalid backup file format.']);
+        }
 
-    public function show(Account $account)
-    {
-        $this->authorize('view', $account);
+        $user = auth()->user();
 
-        $account->load(['transactions' => function ($query) {
-            $query->with('category')->latest('transaction_date');
-        }]);
+        // Import data - simple append strategy
+        // Note: This creates new records rather than updating existing ones
+        // Duplicate detection would require matching on unique fields (name, date, amount, etc.)
 
-        return Inertia::render('accounts/Show', [
-            'account' => $account,
-        ]);
-    }
+        if (isset($data['accounts'])) {
+            foreach ($data['accounts'] as $account) {
+                unset($account['id'], $account['user_id'], $account['created_at'], $account['updated_at']);
+                $user->accounts()->create($account);
+            }
+        }
 
-    public function edit(Account $account)
-    {
-        $this->authorize('update', $account);
+        if (isset($data['categories'])) {
+            foreach ($data['categories'] as $category) {
+                unset($category['id'], $category['user_id'], $category['created_at'], $category['updated_at']);
+                $user->categories()->create($category);
+            }
+        }
 
-        return Inertia::render('accounts/Edit', [
-            'account' => $account,
-            'currencies' => collect(\App\Currency::cases())->map(fn ($currency) => [
-                'value' => $currency->value,
-                'label' => $currency->label(),
-                'symbol' => $currency->symbol(),
-            ]),
-        ]);
-    }
-
-    public function update(Request $request, Account $account)
-    {
-        $this->authorize('update', $account);
-
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'type' => 'required|string|in:checking,savings,credit_card,investment,cash',
-            'balance' => 'required|numeric|min:0',
-            'currency' => 'string|size:3',
-            'description' => 'nullable|string',
-            'is_active' => 'boolean',
-        ]);
-
-        $account->update($validated);
-
-        return redirect()->route('accounts.index');
-    }
-
-    public function destroy(Account $account)
-    {
-        $this->authorize('delete', $account);
-
-        $account->delete();
-
-        return redirect()->route('accounts.index');
+        return redirect()->route('account.data-management')->with('success', 'Data imported successfully!');
     }
 }

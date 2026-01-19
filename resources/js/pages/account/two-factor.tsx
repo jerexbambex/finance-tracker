@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useTwoFactorAuth } from '@/hooks/use-two-factor-auth';
 import AppLayout from '@/layouts/app-layout';
-import SettingsLayout from '@/layouts/settings/layout';
+import AccountLayout from '@/layouts/account/layout';
 import { disable, enable, show } from '@/routes/two-factor';
 import { type BreadcrumbItem } from '@/types';
 
@@ -47,7 +47,7 @@ export default function TwoFactor({
 
             <h1 className="sr-only">Two-Factor Authentication Settings</h1>
 
-            <SettingsLayout>
+            <AccountLayout>
                 <div className="space-y-6">
                     <HeadingSmall
                         title="Two-Factor Authentication"
@@ -135,7 +135,7 @@ export default function TwoFactor({
                         errors={errors}
                     />
                 </div>
-            </SettingsLayout>
+            </AccountLayout>
         </AppLayout>
     );
 }

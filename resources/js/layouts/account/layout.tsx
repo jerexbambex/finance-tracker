@@ -35,12 +35,12 @@ const sidebarNavItems: NavItem[] = [
     },
     {
         title: 'Data Management',
-        href: '/settings/data-management',
+        href: '/account/data-management',
         icon: null,
     },
 ];
 
-export default function SettingsLayout({ children }: PropsWithChildren) {
+export default function AccountLayout({ children }: PropsWithChildren) {
     const { urlIsActive } = useActiveUrl();
 
     // When server-side rendering, we only render the layout on the client...
