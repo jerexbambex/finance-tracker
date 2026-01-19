@@ -6,6 +6,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } f
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import AppLayout from '@/layouts/app-layout';
 import QuickAddTransaction from '@/components/QuickAddTransaction';
+import TestimonialWidget from '@/components/TestimonialWidget';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 
@@ -75,6 +76,14 @@ interface Reminder {
     category?: { name: string; color?: string };
 }
 
+interface UserTestimonial {
+    id: string;
+    content: string;
+    rating: number;
+    is_approved: boolean;
+    created_at: string;
+}
+
 interface Props {
     accounts: Account[];
     balancesByCurrency: Record<string, number>;
@@ -88,10 +97,11 @@ interface Props {
     goals: Goal[];
     categories: Category[];
     upcomingReminders: Reminder[];
+    userTestimonials: UserTestimonial[];
     currencies: Record<string, { symbol: string; label: string }>;
 }
 
-export default function Dashboard({ accounts, balancesByCurrency, recentTransactions, incomeByCurrency, expensesByCurrency, categorySpending, monthlyTrend, budgets, budgetAlerts, goals, categories, upcomingReminders, currencies }: Props) {
+export default function Dashboard({ accounts, balancesByCurrency, recentTransactions, incomeByCurrency, expensesByCurrency, categorySpending, monthlyTrend, budgets, budgetAlerts, goals, categories, upcomingReminders, userTestimonials, currencies }: Props) {
     const formatCurrency = (amount: number, currency: string = 'USD') => {
         const currencyInfo = currencies[currency];
         return `${currencyInfo?.symbol || '$'}${amount.toFixed(2)}`;
@@ -487,6 +497,8 @@ export default function Dashboard({ accounts, balancesByCurrency, recentTransact
                             </CardContent>
                         </Card>
                     )}
+
+                    <TestimonialWidget testimonials={userTestimonials} />
                 </div>
             </div>
             </div>
