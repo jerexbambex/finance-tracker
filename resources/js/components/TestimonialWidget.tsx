@@ -22,7 +22,6 @@ interface Props {
 
 export default function TestimonialWidget({ testimonials }: Props) {
     const [showForm, setShowForm] = useState(false);
-    const [rating, setRating] = useState(5);
     
     const { data, setData, post, processing, reset, errors } = useForm({
         content: '',
@@ -31,18 +30,17 @@ export default function TestimonialWidget({ testimonials }: Props) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route('testimonials.store'), {
+        post('/testimonials', {
             onSuccess: () => {
                 reset();
                 setShowForm(false);
-                setRating(5);
             },
         });
     };
 
     const handleDelete = (id: string) => {
         if (confirm('Are you sure you want to delete this testimonial?')) {
-            router.delete(route('testimonials.destroy', id));
+            router.delete(`/testimonials/${id}`);
         }
     };
 
@@ -71,15 +69,12 @@ export default function TestimonialWidget({ testimonials }: Props) {
                                     <button
                                         key={star}
                                         type="button"
-                                        onClick={() => {
-                                            setRating(star);
-                                            setData('rating', star);
-                                        }}
+                                        onClick={() => setData('rating', star)}
                                         className="focus:outline-none"
                                     >
                                         <Star
                                             className={`h-6 w-6 ${
-                                                star <= rating
+                                                star <= data.rating
                                                     ? 'fill-yellow-500 text-yellow-500'
                                                     : 'text-muted-foreground'
                                             }`}
