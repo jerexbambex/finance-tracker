@@ -14,10 +14,7 @@ class BudgetOverview extends ChartWidget
 
     protected function getData(): array
     {
-        $user = auth()->user();
-
-        $budgets = Budget::where('user_id', $user->id)
-            ->where('is_active', true)
+        $budgets = Budget::where('is_active', true)
             ->where('period_type', 'monthly')
             ->where('period_year', now()->year)
             ->where('period_month', now()->month)
@@ -29,16 +26,24 @@ class BudgetOverview extends ChartWidget
         $spentData = [];
 
         foreach ($budgets as $budget) {
-            $spent = Transaction::where('user_id', $user->id)
-                ->where('category_id', $budget->category_id)
+            $spent = Transaction::where('category_id', $budget->category_id)
                 ->where('type', 'expense')
                 ->whereYear('transaction_date', now()->year)
                 ->whereMonth('transaction_date', now()->month)
                 ->sum('amount');
 
-            $labels[] = $budget->category->name;
-            $budgetData[] = $budget->amount / 100;
-            $spentData[] = $spent / 100;
+            $categoryName = $budget->category->name;
+            
+            // Aggregate by category if multiple users have budgets for same category
+            if (in_array($categoryName, $labels)) {
+                $index = array_search($categoryName, $labels);
+                $budgetData[$index] += $budget->amount / 100;
+                $spentData[$index] += $spent / 100;
+            } else {
+                $labels[] = $categoryName;
+                $budgetData[] = $budget->amount / 100;
+                $spentData[] = $spent / 100;
+            }
         }
 
         return [
