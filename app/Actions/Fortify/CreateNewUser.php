@@ -39,7 +39,7 @@ class CreateNewUser implements CreatesNewUsers
             'password' => $input['password'],
         ]);
 
-        $user->notify(new WelcomeNotification());
+        $user->notify(new WelcomeNotification);
 
         return $user;
     }

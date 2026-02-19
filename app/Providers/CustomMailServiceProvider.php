@@ -11,8 +11,8 @@ class CustomMailServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->app['mail.manager']->extend('smtp', function ($config) {
-            $factory = new EsmtpTransportFactory();
-            
+            $factory = new EsmtpTransportFactory;
+
             // Use smtps for SSL (port 465), smtp+tls for STARTTLS (port 587)
             $scheme = isset($config['encryption']) && $config['encryption'] === 'ssl' ? 'smtps' : 'smtp';
             if ($scheme === 'smtp' && isset($config['encryption']) && $config['encryption'] === 'tls') {
