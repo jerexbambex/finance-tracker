@@ -3,22 +3,40 @@ import { Star } from 'lucide-react';
 
 const testimonials = [
     {
-        quote: "I used to spend 4 hours a month on my finances. Now it takes 15 minutes. The automation is flawless.",
+        quote: "I've tried Mint, YNAB, and Personal Capital. Budget App is the only one I actually stuck with.",
         author: "Alex Rivera",
-        role: "Software Architect",
+        role: "Software Engineer",
         tag: "Saved 45hrs/yr"
     },
     {
-        quote: "Finally, a finance app that looks and feels like modern software. No clutter, just clarity.",
+        quote: "Finally hit my emergency fund goal after 3 months. The visual progress tracking kept me motivated.",
         author: "Sarah Chen",
         role: "Product Designer",
-        tag: "Net Worth +22%"
+        tag: "Goal Achieved"
     },
     {
-        quote: "The ability to customize categories and rules is exactly what I needed. It adapts to my life, not the other way around.",
+        quote: "My wife and I can finally see our shared expenses without awkward money conversations.",
         author: "James Wilson",
-        role: "Freelance Developer",
-        tag: "Debt Free in 8mo"
+        role: "Small Business Owner",
+        tag: "Family Harmony"
+    },
+    {
+        quote: "As a freelancer with irregular income, this is the first tool that actually helps me plan ahead.",
+        author: "Maria Garcia",
+        role: "Freelance Writer",
+        tag: "Income Smoothed"
+    },
+    {
+        quote: "Reduced my dining out spending by 40% just by seeing the numbers clearly. No judgment, just data.",
+        author: "David Kim",
+        role: "Marketing Manager",
+        tag: "$480/mo Saved"
+    },
+    {
+        quote: "The automatic categorization is scary accurate. Saves me so much time compared to manual entry.",
+        author: "Emily Thompson",
+        role: "Teacher",
+        tag: "99% Accurate"
     }
 ];
 
@@ -28,70 +46,67 @@ export default function Testimonials() {
     return (
         <section className="py-24 bg-background overflow-hidden border-b border-border/40">
             <div className="container mx-auto px-6 max-w-7xl">
-                <div className="grid lg:grid-cols-2 gap-16 items-center">
-
-                    {/* Left: Headline & Trust Stats */}
-                    <div className="space-y-10">
-                        <div className="space-y-6">
-                            <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-tight">
-                                Trusted by <span className="text-primary">smart savers</span> worldwide.
-                            </h2>
-                            <p className="text-xl text-muted-foreground max-w-md">
-                                Join thousands of users who have stopped stressing about money and started building wealth.
-                            </p>
+                {/* Header */}
+                <div className="text-center mb-16 space-y-6">
+                    <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-tight">
+                        Trusted by <span className="text-primary">smart savers</span> worldwide
+                    </h2>
+                    <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                        Join thousands who have stopped stressing about money and started building wealth.
+                    </p>
+                    
+                    {/* Stats */}
+                    <div className="flex flex-wrap justify-center gap-8 pt-4">
+                        <div className="text-center">
+                            <div className="text-3xl font-black text-foreground">$50M+</div>
+                            <div className="text-sm text-muted-foreground">Assets Tracked</div>
                         </div>
-
-                        <div className="grid grid-cols-2 gap-6 pt-4">
-                            <div className="p-6 rounded-2xl bg-muted/30 border border-border/50">
-                                <div className="text-4xl font-black text-foreground mb-1">$50M+</div>
-                                <div className="text-sm text-muted-foreground font-medium uppercase tracking-wider">Assets Tracked</div>
-                            </div>
-                            <div className="p-6 rounded-2xl bg-muted/30 border border-border/50">
-                                <div className="text-4xl font-black text-foreground mb-1">4.9/5</div>
-                                <div className="flex gap-0.5 text-amber-500 mb-1">
-                                    {[1, 2, 3, 4, 5].map(i => <Star key={i} className="h-4 w-4 fill-current" />)}
-                                </div>
-                                <div className="text-sm text-muted-foreground font-medium uppercase tracking-wider">App Store Rating</div>
+                        <div className="text-center">
+                            <div className="text-3xl font-black text-foreground">4.9/5</div>
+                            <div className="flex gap-0.5 text-amber-500 justify-center mt-1">
+                                {[1, 2, 3, 4, 5].map(i => <Star key={i} className="h-4 w-4 fill-current" />)}
                             </div>
                         </div>
-
-                        <div className="space-y-4 pt-4">
-                            <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Used by people at</p>
-                            <div className="flex flex-wrap gap-6 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
-                                {companies.map((c, i) => (
-                                    <span key={i} className="text-lg font-bold">{c}</span>
-                                ))}
-                            </div>
+                        <div className="text-center">
+                            <div className="text-3xl font-black text-foreground">12K+</div>
+                            <div className="text-sm text-muted-foreground">Active Users</div>
                         </div>
                     </div>
+                </div>
 
-                    {/* Right: Testimonial Cards */}
-                    <div className="space-y-6 relative">
-                        <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-blue-600/20 blur-3xl opacity-20 rounded-full" />
-
-                        {testimonials.map((t, idx) => (
-                            <motion.div
-                                key={idx}
-                                initial={{ opacity: 0, x: 20 }}
-                                whileInView={{ opacity: 1, x: 0 }}
-                                transition={{ delay: idx * 0.1, duration: 0.5 }}
-                                viewport={{ once: true }}
-                                className="relative p-8 rounded-3xl bg-card border border-border/50 shadow-sm hover:shadow-xl hover:border-primary/20 transition-all duration-300"
-                            >
-                                <p className="text-lg text-foreground mb-6 leading-relaxed font-medium">"{t.quote}"</p>
-                                <div className="flex justify-between items-center border-t border-border/50 pt-6">
-                                    <div>
-                                        <div className="font-bold text-foreground">{t.author}</div>
-                                        <div className="text-sm text-muted-foreground">{t.role}</div>
-                                    </div>
-                                    <div className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold border border-primary/20">
-                                        {t.tag}
-                                    </div>
+                {/* Testimonial Grid - 3 columns on desktop, 2 on tablet, 1 on mobile */}
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {testimonials.map((t, idx) => (
+                        <motion.div
+                            key={idx}
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ delay: idx * 0.1, duration: 0.5 }}
+                            viewport={{ once: true }}
+                            className="p-6 rounded-2xl bg-card border border-border/50 shadow-sm hover:shadow-lg hover:border-primary/20 transition-all duration-300"
+                        >
+                            <p className="text-foreground mb-6 leading-relaxed">"{t.quote}"</p>
+                            <div className="flex justify-between items-end border-t border-border/50 pt-4">
+                                <div>
+                                    <div className="font-bold text-foreground text-sm">{t.author}</div>
+                                    <div className="text-xs text-muted-foreground">{t.role}</div>
                                 </div>
-                            </motion.div>
+                                <div className="px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold border border-primary/20">
+                                    {t.tag}
+                                </div>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+
+                {/* Companies */}
+                <div className="mt-16 text-center space-y-4">
+                    <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Used by people at</p>
+                    <div className="flex flex-wrap justify-center gap-8 opacity-50">
+                        {companies.map((c, i) => (
+                            <span key={i} className="text-lg font-bold">{c}</span>
                         ))}
                     </div>
-
                 </div>
             </div>
         </section>

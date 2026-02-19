@@ -4,10 +4,12 @@ import Hero from '@/components/Landing/Hero';
 import PainPoints from '@/components/Landing/PainPoints';
 import UnifiedWorkspace from '@/components/Landing/UnifiedWorkspace';
 import Features from '@/components/Landing/Features';
+import UseCaseTabs from '@/components/Landing/UseCaseTabs';
 import HowItWorks from '@/components/Landing/HowItWorks';
 import Security from '@/components/Landing/Security';
 import PricingTeaser from '@/components/Landing/PricingTeaser';
 import Testimonials from '@/components/Landing/Testimonials';
+import CTA from '@/components/Landing/CTA';
 import Footer from '@/components/Landing/Footer';
 
 
@@ -26,10 +28,12 @@ export default function Welcome() {
                     <PainPoints />
                     <UnifiedWorkspace />
                     <Features />
+                    <UseCaseTabs />
                     <HowItWorks />
                     <Security />
                     <Testimonials />
                     <PricingTeaser />
+                    <CTA />
                 </main>
 
                 <Footer />

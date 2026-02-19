@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { ArrowRight, Play, ShieldCheck, Sparkles, TrendingUp, Users } from 'lucide-react';
+import { ArrowRight, Play, Sparkles, TrendingUp } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { SharedData } from '@/types';
 
@@ -41,9 +41,9 @@ export default function Hero() {
                             transition={{ duration: 0.5, delay: 0.1 }}
                             className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground leading-[1.1]"
                         >
-                            Master your money with{' '}
+                            Financial management for people who{' '}
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-500 dark:from-emerald-400 dark:via-teal-400 dark:to-cyan-400">
-                                clarity and confidence
+                                actually want to save
                             </span>
                         </motion.h1>
 
@@ -54,9 +54,28 @@ export default function Hero() {
                             transition={{ duration: 0.5, delay: 0.2 }}
                             className="text-lg text-muted-foreground leading-relaxed max-w-lg mx-auto lg:mx-0"
                         >
-                            Unify your spending, savings, and investments in one intelligent dashboard.
-                            Let AI handle the complexity while you focus on building wealth.
+                            Budget App replaces spreadsheets, expense trackers, and goal planners with one unified workspace. Zero bloat, zero complexity—just clarity.
                         </motion.p>
+
+                        {/* REPLACES Section */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: 0.25 }}
+                            className="space-y-3"
+                        >
+                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Replaces</p>
+                            <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
+                                {['Excel Spreadsheets', 'Mint', 'YNAB', 'Personal Capital', 'EveryDollar'].map((tool) => (
+                                    <span
+                                        key={tool}
+                                        className="px-3 py-1.5 rounded-full border border-border/50 bg-muted/30 text-xs font-medium text-muted-foreground"
+                                    >
+                                        {tool}
+                                    </span>
+                                ))}
+                            </div>
+                        </motion.div>
 
                         {/* CTAs */}
                         <motion.div
@@ -92,26 +111,24 @@ export default function Hero() {
                             )}
                         </motion.div>
 
-                        {/* Trust indicators */}
+                        {/* Stats - Outcome focused */}
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ duration: 0.8, delay: 0.5 }}
-                            className="pt-4 flex flex-wrap justify-center lg:justify-start items-center gap-6 text-sm text-muted-foreground"
+                            className="pt-4 grid grid-cols-3 gap-6 text-center lg:text-left"
                         >
-                            <div className="flex items-center gap-2">
-                                <Users className="h-4 w-4 text-primary" />
-                                <span className="font-medium">12,000+ users</span>
+                            <div>
+                                <div className="text-3xl font-bold text-foreground">73%</div>
+                                <div className="text-xs text-muted-foreground mt-1">Less time on finances</div>
                             </div>
-                            <div className="hidden sm:block w-px h-4 bg-border" />
-                            <div className="flex items-center gap-2">
-                                <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                                <span className="font-medium">Bank-level security</span>
+                            <div>
+                                <div className="text-3xl font-bold text-foreground">$2.4K</div>
+                                <div className="text-xs text-muted-foreground mt-1">Avg. savings increase</div>
                             </div>
-                            <div className="hidden sm:block w-px h-4 bg-border" />
-                            <div className="flex items-center gap-2">
-                                <TrendingUp className="h-4 w-4 text-teal-500" />
-                                <span className="font-medium">Free forever tier</span>
+                            <div>
+                                <div className="text-3xl font-bold text-foreground">4.9/5</div>
+                                <div className="text-xs text-muted-foreground mt-1">User satisfaction</div>
                             </div>
                         </motion.div>
                     </div>

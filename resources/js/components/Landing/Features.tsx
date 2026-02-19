@@ -74,9 +74,9 @@ export default function Features() {
                         transition={{ delay: 0.1 }}
                         className="text-3xl md:text-4xl font-bold tracking-tight text-foreground"
                     >
-                        Everything you need to{' '}
+                        One workspace with{' '}
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500 dark:from-emerald-400 dark:to-teal-400">
-                            manage money smarter
+                            batteries included
                         </span>
                     </motion.h2>
                     <motion.p
@@ -86,7 +86,7 @@ export default function Features() {
                         transition={{ delay: 0.2 }}
                         className="text-muted-foreground max-w-2xl mx-auto"
                     >
-                        Powerful tools wrapped in a simple interface. No complexity, just clarity.
+                        Everything you need to manage money. Nothing you don't.
                     </motion.p>
                 </div>
 
