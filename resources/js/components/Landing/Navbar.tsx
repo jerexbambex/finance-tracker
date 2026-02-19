@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { Wallet, Menu, X, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { SharedData } from '@/types';
+import { Wallet, Menu, X, ArrowRight } from 'lucide-react';
+import { useState, useEffect } from 'react';
+
 import AppearanceToggleDropdown from '@/components/appearance-dropdown';
+import { SharedData } from '@/types';
 
 
 export default function Navbar() {
@@ -50,7 +51,7 @@ export default function Navbar() {
                 <div className="hidden md:flex items-center gap-4">
                     <AppearanceToggleDropdown />
 
-                    {auth.user ? (
+                    {user ? (
                         <Link
                             href="/dashboard"
                             className="h-10 inline-flex items-center justify-center rounded-lg bg-primary px-6 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-all shadow-md hover:shadow-lg"
@@ -100,7 +101,7 @@ export default function Navbar() {
                             <a href="#testimonials" className="text-base font-medium py-2 border-b border-border/50" onClick={() => setMobileMenuOpen(false)}>Stories</a>
 
                             <div className="pt-4 flex flex-col gap-3">
-                                {auth.user ? (
+                                {user ? (
                                     <Link
                                         href="/dashboard"
                                         className="h-12 flex items-center justify-center rounded-xl bg-primary text-primary-foreground font-bold"
