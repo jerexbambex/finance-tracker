@@ -30,21 +30,21 @@ export default function Navbar() {
         >
             <div className="container mx-auto flex max-w-7xl items-center justify-between px-6">
                 {/* Logo */}
-                <div className="flex items-center gap-2">
+                <Link href="/" className="flex items-center gap-2 group transition-transform hover:scale-105">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-blue-600 text-white shadow-lg shadow-blue-500/20">
                         <Wallet className="h-5 w-5" strokeWidth={2} />
                     </div>
                     <span className="text-xl font-bold tracking-tight text-foreground">
                         Budget App
                     </span>
-                </div>
+                </Link>
 
                 {/* Desktop Navigation */}
                 <nav className="hidden md:flex items-center gap-8">
-                    <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Features</a>
-                    <a href="#how-it-works" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">How it Works</a>
-                    <a href="#testimonials" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Stories</a>
-                    <a href="#security" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Security</a>
+                    <a href="/#features" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Features</a>
+                    <a href="/#how-it-works" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">How it Works</a>
+                    <a href="/#testimonials" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Stories</a>
+                    <a href="/#security" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Security</a>
                 </nav>
 
                 {/* Actions */}
@@ -96,9 +96,9 @@ export default function Navbar() {
                         className="md:hidden border-b bg-background/95 backdrop-blur-xl"
                     >
                         <div className="container mx-auto px-6 py-6 space-y-4 flex flex-col">
-                            <a href="#features" className="text-base font-medium py-2 border-b border-border/50" onClick={() => setMobileMenuOpen(false)}>Features</a>
-                            <a href="#how-it-works" className="text-base font-medium py-2 border-b border-border/50" onClick={() => setMobileMenuOpen(false)}>How it Works</a>
-                            <a href="#testimonials" className="text-base font-medium py-2 border-b border-border/50" onClick={() => setMobileMenuOpen(false)}>Stories</a>
+                            <a href="/#features" className="text-base font-medium py-2 border-b border-border/50" onClick={() => setMobileMenuOpen(false)}>Features</a>
+                            <a href="/#how-it-works" className="text-base font-medium py-2 border-b border-border/50" onClick={() => setMobileMenuOpen(false)}>How it Works</a>
+                            <a href="/#testimonials" className="text-base font-medium py-2 border-b border-border/50" onClick={() => setMobileMenuOpen(false)}>Stories</a>
 
                             <div className="pt-4 flex flex-col gap-3">
                                 {user ? (

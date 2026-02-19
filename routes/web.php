@@ -32,6 +32,10 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
+Route::get('/privacy-policy', function () {
+    return Inertia::render('PrivacyPolicy');
+})->name('privacy-policy');
+
 Route::get('/test-export', function () {
     return 'Export route works!';
 });
