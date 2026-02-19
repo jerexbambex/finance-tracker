@@ -1,7 +1,7 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { TrendingUp, TrendingDown, Wallet, Pencil, Trash2, MoreVertical, Eye, CheckCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -415,7 +415,7 @@ export default function Index({ transactions, categories, chartData }: Props) {
                 <CardContent>
                   {currentChartData.length > 0 ? (
                     <ChartContainer config={chartConfig} className="h-[300px] w-full">
-                      <BarChart accessibilityLayer data={currentChartData}>
+                      <LineChart accessibilityLayer data={currentChartData}>
                         <CartesianGrid vertical={false} />
                         <XAxis 
                           dataKey="period" 
@@ -429,17 +429,21 @@ export default function Index({ transactions, categories, chartData }: Props) {
                           tickFormatter={(value) => `$${value}`}
                         />
                         <ChartTooltip content={<ChartTooltipContent />} />
-                        <Bar 
+                        <Line 
                           dataKey="income" 
-                          fill="var(--color-income)"
-                          radius={4}
+                          stroke="var(--color-income)"
+                          strokeWidth={2}
+                          dot={{ r: 4 }}
+                          activeDot={{ r: 6 }}
                         />
-                        <Bar 
+                        <Line 
                           dataKey="expense" 
-                          fill="var(--color-expense)"
-                          radius={4}
+                          stroke="var(--color-expense)"
+                          strokeWidth={2}
+                          dot={{ r: 4 }}
+                          activeDot={{ r: 6 }}
                         />
-                      </BarChart>
+                      </LineChart>
                     </ChartContainer>
                   ) : (
                     <div className="flex items-center justify-center h-[300px] text-muted-foreground">
