@@ -55,7 +55,7 @@ export default function Hero() {
                             transition={{ duration: 0.5, delay: 0.2 }}
                             className="text-lg text-muted-foreground leading-relaxed max-w-lg mx-auto lg:mx-0"
                         >
-                            Budget App replaces spreadsheets, expense trackers, and goal planners with one unified workspace. Zero bloat, zero complexity—just clarity.
+                            Budget App replaces spreadsheets, expense trackers, and goal planners with one unified workspace. Zero bloat, zero complexity, just clarity.
                         </motion.p>
 
                         {/* REPLACES Section */}
