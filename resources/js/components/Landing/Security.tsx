@@ -145,23 +145,64 @@ export default function Security() {
                                 </div>
                             </div>
 
-                            {/* Chart Area - Simplified visualization */}
+                            {/* Chart Area - Income vs Expense Bar graph */}
                             <div className="h-48 rounded-xl bg-slate-800/50 border border-white/5 p-4 relative overflow-hidden">
-                                {/* Simulated chart bars */}
-                                <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-2">
-                                    {[40, 55, 35, 70, 50, 80, 65, 90, 75, 85, 95, 88].map((h, i) => (
-                                        <motion.div
-                                            key={i}
-                                            initial={{ height: 0 }}
-                                            whileInView={{ height: `${h}%` }}
-                                            viewport={{ once: true }}
-                                            transition={{ duration: 0.8, delay: i * 0.05 }}
-                                            className="flex-1 bg-gradient-to-t from-emerald-600 to-teal-400 rounded-t opacity-80"
-                                        />
+                                {/* Grid lines */}
+                                <div className="absolute inset-4 flex flex-col justify-between">
+                                    {[...Array(4)].map((_, i) => (
+                                        <div key={i} className="h-px bg-white/5" />
                                     ))}
                                 </div>
-                                {/* Chart labels */}
-                                <div className="absolute bottom-0 left-4 right-4 flex justify-between text-[9px] text-slate-600">
+                                
+                                {/* Legend */}
+                                <div className="absolute top-2 right-4 flex gap-4 text-[10px]">
+                                    <div className="flex items-center gap-1.5">
+                                        <div className="h-2 w-2 rounded-sm bg-emerald-400" />
+                                        <span className="text-slate-400">Income</span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                        <div className="h-2 w-2 rounded-sm bg-red-400" />
+                                        <span className="text-slate-400">Expense</span>
+                                    </div>
+                                </div>
+                                
+                                {/* Bar chart - Income vs Expense */}
+                                <div className="absolute bottom-8 left-4 right-4 flex items-end justify-between gap-3 h-[calc(100%-3rem)]">
+                                    {[
+                                        { income: 70, expense: 45 },
+                                        { income: 65, expense: 50 },
+                                        { income: 80, expense: 40 },
+                                        { income: 75, expense: 55 },
+                                        { income: 85, expense: 45 },
+                                        { income: 90, expense: 50 },
+                                        { income: 88, expense: 48 },
+                                        { income: 92, expense: 52 },
+                                        { income: 95, expense: 50 },
+                                        { income: 90, expense: 55 },
+                                        { income: 98, expense: 48 },
+                                        { income: 95, expense: 45 }
+                                    ].map((data, i) => (
+                                        <div key={i} className="flex items-end gap-1 h-full" style={{ width: '6%' }}>
+                                            <motion.div
+                                                initial={{ height: 0, opacity: 0 }}
+                                                whileInView={{ height: `${data.income}%`, opacity: 1 }}
+                                                viewport={{ once: true }}
+                                                transition={{ duration: 0.6, delay: i * 0.08, ease: "easeOut" }}
+                                                className="flex-1 bg-gradient-to-t from-emerald-600 to-emerald-400 rounded-t-sm shadow-lg shadow-emerald-500/20"
+                                            />
+                                            <motion.div
+                                                initial={{ height: 0, opacity: 0 }}
+                                                whileInView={{ height: `${data.expense}%`, opacity: 1 }}
+                                                viewport={{ once: true }}
+                                                transition={{ duration: 0.6, delay: i * 0.08 + 0.05, ease: "easeOut" }}
+                                                className="flex-1 bg-gradient-to-t from-red-600 to-red-400 rounded-t-sm shadow-lg shadow-red-500/20"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                                
+                                {/* Month labels */}
+                                <div className="absolute bottom-2 left-4 right-4 flex justify-between text-[9px] text-slate-500 font-medium">
                                     {['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'].map((m, i) => (
                                         <span key={i} className="flex-1 text-center">{m}</span>
                                     ))}
