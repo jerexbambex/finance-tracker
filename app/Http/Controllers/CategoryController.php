@@ -15,11 +15,18 @@ class CategoryController extends Controller
     {
         $categories = Category::where(function ($q) {
             $q->whereNull('user_id')->orWhere('user_id', auth()->id());
-        })->where('is_active', true)->get()->groupBy('type');
+        })
+        ->where('is_active', true)
+        ->orderBy('name')
+        ->get()
+        ->unique(function ($category) {
+            return $category->name . '-' . $category->type;
+        })
+        ->groupBy('type');
 
         return Inertia::render('categories/Index', [
-            'incomeCategories' => $categories->get('income', collect()),
-            'expenseCategories' => $categories->get('expense', collect()),
+            'incomeCategories' => $categories->get('income', collect())->values(),
+            'expenseCategories' => $categories->get('expense', collect())->values(),
         ]);
     }
 
