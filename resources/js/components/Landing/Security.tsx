@@ -147,80 +147,85 @@ export default function Security() {
 
                             {/* Chart Area - Income vs Expense Line graph */}
                             <div className="h-48 rounded-xl bg-slate-800/50 border border-white/5 p-4 relative overflow-hidden">
-                                {/* Recharts Line Chart */}
                                 <div className="w-full h-full">
-                                    <svg className="w-full h-full" viewBox="0 0 400 160" preserveAspectRatio="xMidYMid meet">
-                                        {/* Grid lines */}
-                                        <line x1="0" y1="40" x2="400" y2="40" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
-                                        <line x1="0" y1="80" x2="400" y2="80" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
-                                        <line x1="0" y1="120" x2="400" y2="120" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+                                    <svg className="w-full h-full" viewBox="0 0 360 140" preserveAspectRatio="xMidYMid meet">
+                                        {/* Horizontal grid lines */}
+                                        <line x1="30" y1="20" x2="350" y2="20" stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
+                                        <line x1="30" y1="50" x2="350" y2="50" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+                                        <line x1="30" y1="80" x2="350" y2="80" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+                                        <line x1="30" y1="110" x2="350" y2="110" stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
                                         
-                                        {/* Income line (green) - curved */}
+                                        {/* Income line (green) - smooth curve */}
                                         <motion.path
                                             initial={{ pathLength: 0, opacity: 0 }}
                                             whileInView={{ pathLength: 1, opacity: 1 }}
                                             viewport={{ once: true }}
-                                            transition={{ duration: 1.5, ease: "easeInOut" }}
-                                            d="M 20,100 C 40,90 60,110 80,80 C 100,50 120,70 140,60 C 160,50 180,65 200,45 C 220,25 240,40 260,35 C 280,30 300,45 320,30 C 340,15 360,25 380,20"
+                                            transition={{ duration: 1.2, ease: "easeInOut" }}
+                                            d="M 30,85 Q 50,80 70,75 T 110,60 T 150,50 T 190,45 T 230,40 T 270,38 T 310,35 L 350,32"
                                             fill="none"
                                             stroke="#10b981"
-                                            strokeWidth="2"
+                                            strokeWidth="2.5"
+                                            strokeLinecap="round"
                                         />
                                         {/* Income dots */}
                                         {[
-                                            { x: 20, y: 100 }, { x: 80, y: 80 }, { x: 140, y: 60 }, 
-                                            { x: 200, y: 45 }, { x: 260, y: 35 }, { x: 320, y: 30 }, { x: 380, y: 20 }
+                                            { x: 30, y: 85 }, { x: 70, y: 75 }, { x: 110, y: 60 }, 
+                                            { x: 150, y: 50 }, { x: 190, y: 45 }, { x: 230, y: 40 }, 
+                                            { x: 270, y: 38 }, { x: 310, y: 35 }, { x: 350, y: 32 }
                                         ].map((point, i) => (
                                             <motion.circle
                                                 key={`income-${i}`}
                                                 initial={{ scale: 0, opacity: 0 }}
                                                 whileInView={{ scale: 1, opacity: 1 }}
                                                 viewport={{ once: true }}
-                                                transition={{ duration: 0.3, delay: 1.5 + i * 0.1 }}
+                                                transition={{ duration: 0.3, delay: 1.2 + i * 0.08 }}
                                                 cx={point.x}
                                                 cy={point.y}
-                                                r="4"
+                                                r="3.5"
                                                 fill="#10b981"
                                             />
                                         ))}
                                         
-                                        {/* Expense line (red) - curved */}
+                                        {/* Expense line (red) - smooth curve */}
                                         <motion.path
                                             initial={{ pathLength: 0, opacity: 0 }}
                                             whileInView={{ pathLength: 1, opacity: 1 }}
                                             viewport={{ once: true }}
-                                            transition={{ duration: 1.5, ease: "easeInOut", delay: 0.2 }}
-                                            d="M 20,120 C 40,115 60,125 80,110 C 100,95 120,105 140,100 C 160,95 180,100 200,95 C 220,90 240,95 260,92 C 280,89 300,93 320,90 C 340,87 360,90 380,88"
+                                            transition={{ duration: 1.2, ease: "easeInOut", delay: 0.15 }}
+                                            d="M 30,95 Q 50,92 70,90 T 110,85 T 150,82 T 190,80 T 230,78 T 270,77 T 310,76 L 350,75"
                                             fill="none"
                                             stroke="#ef4444"
-                                            strokeWidth="2"
+                                            strokeWidth="2.5"
+                                            strokeLinecap="round"
                                         />
                                         {/* Expense dots */}
                                         {[
-                                            { x: 20, y: 120 }, { x: 80, y: 110 }, { x: 140, y: 100 }, 
-                                            { x: 200, y: 95 }, { x: 260, y: 92 }, { x: 320, y: 90 }, { x: 380, y: 88 }
+                                            { x: 30, y: 95 }, { x: 70, y: 90 }, { x: 110, y: 85 }, 
+                                            { x: 150, y: 82 }, { x: 190, y: 80 }, { x: 230, y: 78 }, 
+                                            { x: 270, y: 77 }, { x: 310, y: 76 }, { x: 350, y: 75 }
                                         ].map((point, i) => (
                                             <motion.circle
                                                 key={`expense-${i}`}
                                                 initial={{ scale: 0, opacity: 0 }}
                                                 whileInView={{ scale: 1, opacity: 1 }}
                                                 viewport={{ once: true }}
-                                                transition={{ duration: 0.3, delay: 1.7 + i * 0.1 }}
+                                                transition={{ duration: 0.3, delay: 1.35 + i * 0.08 }}
                                                 cx={point.x}
                                                 cy={point.y}
-                                                r="4"
+                                                r="3.5"
                                                 fill="#ef4444"
                                             />
                                         ))}
                                         
                                         {/* Month labels */}
-                                        {['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'].map((month, i) => (
+                                        {['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S'].map((month, i) => (
                                             <text
                                                 key={month + i}
-                                                x={20 + i * 33}
-                                                y="150"
+                                                x={30 + i * 40}
+                                                y="130"
                                                 fill="rgb(100, 116, 139)"
-                                                fontSize="10"
+                                                fontSize="9"
+                                                fontWeight="500"
                                                 textAnchor="middle"
                                             >
                                                 {month}
@@ -228,10 +233,12 @@ export default function Security() {
                                         ))}
                                         
                                         {/* Legend */}
-                                        <circle cx="300" cy="10" r="3" fill="#10b981" />
-                                        <text x="308" y="13" fill="rgb(148, 163, 184)" fontSize="10">Income</text>
-                                        <circle cx="350" cy="10" r="3" fill="#ef4444" />
-                                        <text x="358" y="13" fill="rgb(148, 163, 184)" fontSize="10">Expense</text>
+                                        <g transform="translate(260, 8)">
+                                            <circle cx="0" cy="0" r="3" fill="#10b981" />
+                                            <text x="8" y="3" fill="rgb(148, 163, 184)" fontSize="9" fontWeight="500">Income</text>
+                                            <circle cx="50" cy="0" r="3" fill="#ef4444" />
+                                            <text x="58" y="3" fill="rgb(148, 163, 184)" fontSize="9" fontWeight="500">Expense</text>
+                                        </g>
                                     </svg>
                                 </div>
                                 
