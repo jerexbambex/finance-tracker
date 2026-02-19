@@ -145,60 +145,94 @@ export default function Security() {
                                 </div>
                             </div>
 
-                            {/* Chart Area - Income vs Expense Bar graph */}
+                            {/* Chart Area - Income vs Expense Line graph */}
                             <div className="h-48 rounded-xl bg-slate-800/50 border border-white/5 p-4 relative overflow-hidden">
-                                {/* Grid lines */}
-                                <div className="absolute inset-4 flex flex-col justify-between">
-                                    {[...Array(4)].map((_, i) => (
-                                        <div key={i} className="h-px bg-white/5" />
-                                    ))}
-                                </div>
-                                
-                                {/* Legend */}
-                                <div className="absolute top-2 right-4 flex gap-4 text-[10px]">
-                                    <div className="flex items-center gap-1.5">
-                                        <div className="h-2 w-2 rounded-sm bg-emerald-400" />
-                                        <span className="text-slate-400">Income</span>
-                                    </div>
-                                    <div className="flex items-center gap-1.5">
-                                        <div className="h-2 w-2 rounded-sm bg-red-400" />
-                                        <span className="text-slate-400">Expense</span>
-                                    </div>
-                                </div>
-                                
-                                {/* Bar chart - Income vs Expense */}
-                                <div className="absolute bottom-8 left-4 right-4 flex items-end justify-between gap-3 h-[calc(100%-3rem)]">
-                                    {[
-                                        { income: 70, expense: 45 },
-                                        { income: 65, expense: 50 },
-                                        { income: 80, expense: 40 },
-                                        { income: 75, expense: 55 },
-                                        { income: 85, expense: 45 },
-                                        { income: 90, expense: 50 },
-                                        { income: 88, expense: 48 },
-                                        { income: 92, expense: 52 },
-                                        { income: 95, expense: 50 },
-                                        { income: 90, expense: 55 },
-                                        { income: 98, expense: 48 },
-                                        { income: 95, expense: 45 }
-                                    ].map((data, i) => (
-                                        <div key={i} className="flex items-end gap-1 h-full" style={{ width: '6%' }}>
-                                            <motion.div
-                                                initial={{ height: 0, opacity: 0 }}
-                                                whileInView={{ height: `${data.income}%`, opacity: 1 }}
+                                {/* Recharts Line Chart */}
+                                <div className="w-full h-full">
+                                    <svg className="w-full h-full" viewBox="0 0 400 160" preserveAspectRatio="xMidYMid meet">
+                                        {/* Grid lines */}
+                                        <line x1="0" y1="40" x2="400" y2="40" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+                                        <line x1="0" y1="80" x2="400" y2="80" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+                                        <line x1="0" y1="120" x2="400" y2="120" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+                                        
+                                        {/* Income line (green) - curved */}
+                                        <motion.path
+                                            initial={{ pathLength: 0, opacity: 0 }}
+                                            whileInView={{ pathLength: 1, opacity: 1 }}
+                                            viewport={{ once: true }}
+                                            transition={{ duration: 1.5, ease: "easeInOut" }}
+                                            d="M 20,100 C 40,90 60,110 80,80 C 100,50 120,70 140,60 C 160,50 180,65 200,45 C 220,25 240,40 260,35 C 280,30 300,45 320,30 C 340,15 360,25 380,20"
+                                            fill="none"
+                                            stroke="#10b981"
+                                            strokeWidth="2"
+                                        />
+                                        {/* Income dots */}
+                                        {[
+                                            { x: 20, y: 100 }, { x: 80, y: 80 }, { x: 140, y: 60 }, 
+                                            { x: 200, y: 45 }, { x: 260, y: 35 }, { x: 320, y: 30 }, { x: 380, y: 20 }
+                                        ].map((point, i) => (
+                                            <motion.circle
+                                                key={`income-${i}`}
+                                                initial={{ scale: 0, opacity: 0 }}
+                                                whileInView={{ scale: 1, opacity: 1 }}
                                                 viewport={{ once: true }}
-                                                transition={{ duration: 0.6, delay: i * 0.08, ease: "easeOut" }}
-                                                className="flex-1 bg-gradient-to-t from-emerald-600 to-emerald-400 rounded-t-sm shadow-lg shadow-emerald-500/20"
+                                                transition={{ duration: 0.3, delay: 1.5 + i * 0.1 }}
+                                                cx={point.x}
+                                                cy={point.y}
+                                                r="4"
+                                                fill="#10b981"
                                             />
-                                            <motion.div
-                                                initial={{ height: 0, opacity: 0 }}
-                                                whileInView={{ height: `${data.expense}%`, opacity: 1 }}
+                                        ))}
+                                        
+                                        {/* Expense line (red) - curved */}
+                                        <motion.path
+                                            initial={{ pathLength: 0, opacity: 0 }}
+                                            whileInView={{ pathLength: 1, opacity: 1 }}
+                                            viewport={{ once: true }}
+                                            transition={{ duration: 1.5, ease: "easeInOut", delay: 0.2 }}
+                                            d="M 20,120 C 40,115 60,125 80,110 C 100,95 120,105 140,100 C 160,95 180,100 200,95 C 220,90 240,95 260,92 C 280,89 300,93 320,90 C 340,87 360,90 380,88"
+                                            fill="none"
+                                            stroke="#ef4444"
+                                            strokeWidth="2"
+                                        />
+                                        {/* Expense dots */}
+                                        {[
+                                            { x: 20, y: 120 }, { x: 80, y: 110 }, { x: 140, y: 100 }, 
+                                            { x: 200, y: 95 }, { x: 260, y: 92 }, { x: 320, y: 90 }, { x: 380, y: 88 }
+                                        ].map((point, i) => (
+                                            <motion.circle
+                                                key={`expense-${i}`}
+                                                initial={{ scale: 0, opacity: 0 }}
+                                                whileInView={{ scale: 1, opacity: 1 }}
                                                 viewport={{ once: true }}
-                                                transition={{ duration: 0.6, delay: i * 0.08 + 0.05, ease: "easeOut" }}
-                                                className="flex-1 bg-gradient-to-t from-red-600 to-red-400 rounded-t-sm shadow-lg shadow-red-500/20"
+                                                transition={{ duration: 0.3, delay: 1.7 + i * 0.1 }}
+                                                cx={point.x}
+                                                cy={point.y}
+                                                r="4"
+                                                fill="#ef4444"
                                             />
-                                        </div>
-                                    ))}
+                                        ))}
+                                        
+                                        {/* Month labels */}
+                                        {['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'].map((month, i) => (
+                                            <text
+                                                key={month + i}
+                                                x={20 + i * 33}
+                                                y="150"
+                                                fill="rgb(100, 116, 139)"
+                                                fontSize="10"
+                                                textAnchor="middle"
+                                            >
+                                                {month}
+                                            </text>
+                                        ))}
+                                        
+                                        {/* Legend */}
+                                        <circle cx="300" cy="10" r="3" fill="#10b981" />
+                                        <text x="308" y="13" fill="rgb(148, 163, 184)" fontSize="10">Income</text>
+                                        <circle cx="350" cy="10" r="3" fill="#ef4444" />
+                                        <text x="358" y="13" fill="rgb(148, 163, 184)" fontSize="10">Expense</text>
+                                    </svg>
                                 </div>
                                 
                                 {/* Month labels */}
