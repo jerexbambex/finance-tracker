@@ -146,85 +146,51 @@ export default function Security() {
                             </div>
 
                             {/* Chart Area - Income vs Expense Line graph */}
-                            <div className="h-48 rounded-xl bg-slate-800/50 border border-white/5 p-4 relative overflow-hidden">
+                            <div className="h-48 rounded-xl bg-slate-800/50 border border-white/5 p-6 relative overflow-hidden">
                                 <div className="w-full h-full">
-                                    <svg className="w-full h-full" viewBox="0 0 360 140" preserveAspectRatio="xMidYMid meet">
-                                        {/* Horizontal grid lines */}
-                                        <line x1="30" y1="20" x2="350" y2="20" stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
-                                        <line x1="30" y1="50" x2="350" y2="50" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
-                                        <line x1="30" y1="80" x2="350" y2="80" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
-                                        <line x1="30" y1="110" x2="350" y2="110" stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
+                                    <svg className="w-full h-full" viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet">
+                                        {/* Grid lines */}
+                                        <line x1="40" y1="30" x2="380" y2="30" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+                                        <line x1="40" y1="60" x2="380" y2="60" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+                                        <line x1="40" y1="90" x2="380" y2="90" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+                                        <line x1="40" y1="120" x2="380" y2="120" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
                                         
-                                        {/* Income line (green) - smooth curve */}
+                                        {/* Income line (green) */}
                                         <motion.path
                                             initial={{ pathLength: 0, opacity: 0 }}
                                             whileInView={{ pathLength: 1, opacity: 1 }}
                                             viewport={{ once: true }}
-                                            transition={{ duration: 1.2, ease: "easeInOut" }}
-                                            d="M 30,85 Q 50,80 70,75 T 110,60 T 150,50 T 190,45 T 230,40 T 270,38 T 310,35 L 350,32"
+                                            transition={{ duration: 1.5, ease: "easeInOut" }}
+                                            d="M 40,95 L 80,85 L 120,75 L 160,65 L 200,55 L 240,50 L 280,45 L 320,42 L 360,38 L 380,35"
                                             fill="none"
                                             stroke="#10b981"
                                             strokeWidth="2.5"
                                             strokeLinecap="round"
+                                            strokeLinejoin="round"
                                         />
-                                        {/* Income dots */}
-                                        {[
-                                            { x: 30, y: 85 }, { x: 70, y: 75 }, { x: 110, y: 60 }, 
-                                            { x: 150, y: 50 }, { x: 190, y: 45 }, { x: 230, y: 40 }, 
-                                            { x: 270, y: 38 }, { x: 310, y: 35 }, { x: 350, y: 32 }
-                                        ].map((point, i) => (
-                                            <motion.circle
-                                                key={`income-${i}`}
-                                                initial={{ scale: 0, opacity: 0 }}
-                                                whileInView={{ scale: 1, opacity: 1 }}
-                                                viewport={{ once: true }}
-                                                transition={{ duration: 0.3, delay: 1.2 + i * 0.08 }}
-                                                cx={point.x}
-                                                cy={point.y}
-                                                r="3.5"
-                                                fill="#10b981"
-                                            />
-                                        ))}
                                         
-                                        {/* Expense line (red) - smooth curve */}
+                                        {/* Expense line (red) */}
                                         <motion.path
                                             initial={{ pathLength: 0, opacity: 0 }}
                                             whileInView={{ pathLength: 1, opacity: 1 }}
                                             viewport={{ once: true }}
-                                            transition={{ duration: 1.2, ease: "easeInOut", delay: 0.15 }}
-                                            d="M 30,95 Q 50,92 70,90 T 110,85 T 150,82 T 190,80 T 230,78 T 270,77 T 310,76 L 350,75"
+                                            transition={{ duration: 1.5, ease: "easeInOut", delay: 0.2 }}
+                                            d="M 40,105 L 80,100 L 120,98 L 160,95 L 200,93 L 240,91 L 280,89 L 320,88 L 360,87 L 380,86"
                                             fill="none"
                                             stroke="#ef4444"
                                             strokeWidth="2.5"
                                             strokeLinecap="round"
+                                            strokeLinejoin="round"
                                         />
-                                        {/* Expense dots */}
-                                        {[
-                                            { x: 30, y: 95 }, { x: 70, y: 90 }, { x: 110, y: 85 }, 
-                                            { x: 150, y: 82 }, { x: 190, y: 80 }, { x: 230, y: 78 }, 
-                                            { x: 270, y: 77 }, { x: 310, y: 76 }, { x: 350, y: 75 }
-                                        ].map((point, i) => (
-                                            <motion.circle
-                                                key={`expense-${i}`}
-                                                initial={{ scale: 0, opacity: 0 }}
-                                                whileInView={{ scale: 1, opacity: 1 }}
-                                                viewport={{ once: true }}
-                                                transition={{ duration: 0.3, delay: 1.35 + i * 0.08 }}
-                                                cx={point.x}
-                                                cy={point.y}
-                                                r="3.5"
-                                                fill="#ef4444"
-                                            />
-                                        ))}
                                         
                                         {/* Month labels */}
-                                        {['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S'].map((month, i) => (
+                                        {['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O'].map((month, i) => (
                                             <text
                                                 key={month + i}
-                                                x={30 + i * 40}
-                                                y="130"
+                                                x={40 + i * 38}
+                                                y="140"
                                                 fill="rgb(100, 116, 139)"
-                                                fontSize="9"
+                                                fontSize="11"
                                                 fontWeight="500"
                                                 textAnchor="middle"
                                             >
@@ -233,20 +199,13 @@ export default function Security() {
                                         ))}
                                         
                                         {/* Legend */}
-                                        <g transform="translate(260, 8)">
-                                            <circle cx="0" cy="0" r="3" fill="#10b981" />
-                                            <text x="8" y="3" fill="rgb(148, 163, 184)" fontSize="9" fontWeight="500">Income</text>
-                                            <circle cx="50" cy="0" r="3" fill="#ef4444" />
-                                            <text x="58" y="3" fill="rgb(148, 163, 184)" fontSize="9" fontWeight="500">Expense</text>
+                                        <g transform="translate(280, 12)">
+                                            <line x1="0" y1="0" x2="12" y2="0" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" />
+                                            <text x="18" y="4" fill="rgb(148, 163, 184)" fontSize="11" fontWeight="500">Income</text>
+                                            <line x1="70" y1="0" x2="82" y2="0" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" />
+                                            <text x="88" y="4" fill="rgb(148, 163, 184)" fontSize="11" fontWeight="500">Expense</text>
                                         </g>
                                     </svg>
-                                </div>
-                                
-                                {/* Month labels */}
-                                <div className="absolute bottom-2 left-4 right-4 flex justify-between text-[9px] text-slate-500 font-medium">
-                                    {['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'].map((m, i) => (
-                                        <span key={i} className="flex-1 text-center">{m}</span>
-                                    ))}
                                 </div>
                             </div>
 
