@@ -1,5 +1,4 @@
 import { X, Check } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 export default function ProblemSolution() {
     return (

@@ -1,16 +1,17 @@
 import { Head } from '@inertiajs/react';
-import Navbar from '@/components/Landing/Navbar';
-import Hero from '@/components/Landing/Hero';
-import PainPoints from '@/components/Landing/PainPoints';
-import UnifiedWorkspace from '@/components/Landing/UnifiedWorkspace';
-import Features from '@/components/Landing/Features';
-import UseCaseTabs from '@/components/Landing/UseCaseTabs';
-import HowItWorks from '@/components/Landing/HowItWorks';
-import Security from '@/components/Landing/Security';
-import PricingTeaser from '@/components/Landing/PricingTeaser';
-import Testimonials from '@/components/Landing/Testimonials';
+
 import CTA from '@/components/Landing/CTA';
+import Features from '@/components/Landing/Features';
 import Footer from '@/components/Landing/Footer';
+import Hero from '@/components/Landing/Hero';
+import HowItWorks from '@/components/Landing/HowItWorks';
+import Navbar from '@/components/Landing/Navbar';
+import PainPoints from '@/components/Landing/PainPoints';
+import PricingTeaser from '@/components/Landing/PricingTeaser';
+import Security from '@/components/Landing/Security';
+import Testimonials from '@/components/Landing/Testimonials';
+import UnifiedWorkspace from '@/components/Landing/UnifiedWorkspace';
+import UseCaseTabs from '@/components/Landing/UseCaseTabs';
 
 
 

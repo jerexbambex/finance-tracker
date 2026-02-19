@@ -1,9 +1,11 @@
 import { Head, Link, router } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
+import { Bell, Check, Plus, Trash2 } from 'lucide-react';
+
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Bell, Check, Plus, Trash2 } from 'lucide-react';
+import AppLayout from '@/layouts/app-layout';
+
 
 interface Reminder {
   id: string;

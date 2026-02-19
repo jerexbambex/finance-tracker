@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
-import { ArrowRight, Play, Sparkles, TrendingUp } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { ArrowRight, Play, Sparkles, TrendingUp } from 'lucide-react';
+
 import { SharedData } from '@/types';
 
 export default function Hero() {

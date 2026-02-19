@@ -1,5 +1,5 @@
-import { UserPlus, Building2, TrendingUp } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { UserPlus, Building2, TrendingUp } from 'lucide-react';
 
 export default function HowItWorks() {
     return (

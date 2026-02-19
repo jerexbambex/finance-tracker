@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Cloud, Database, Globe, Server } from 'lucide-react';
+import { Database, Globe, Server } from 'lucide-react';
 
 export default function Integrations() {
     return (

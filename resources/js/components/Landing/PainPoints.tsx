@@ -1,5 +1,5 @@
-import { XCircle, GitMerge, ZapOff, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { XCircle, GitMerge, ZapOff, CheckCircle2 } from 'lucide-react';
 
 const painPoints = [
     {
