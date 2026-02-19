@@ -1,6 +1,6 @@
 import { Head } from '@inertiajs/react';
 import { ArrowUpRight, ArrowDownRight, TrendingUp, Wallet, Clock } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 import QuickAddTransaction from '@/components/QuickAddTransaction';
 import TestimonialWidget from '@/components/TestimonialWidget';
@@ -318,14 +318,14 @@ export default function Dashboard({ accounts, balancesByCurrency, recentTransact
                                             }}
                                             className="h-[200px]"
                                         >
-                                            <BarChart data={monthlyTrend}>
+                                            <LineChart data={monthlyTrend}>
                                                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                                                 <XAxis dataKey="month" className="text-xs" />
                                                 <YAxis className="text-xs" />
                                                 <ChartTooltip content={<ChartTooltipContent />} />
-                                                <Bar dataKey="income" fill="#10b981" radius={[4, 4, 0, 0]} />
-                                                <Bar dataKey="expense" fill="#ef4444" radius={[4, 4, 0, 0]} />
-                                            </BarChart>
+                                                <Line type="monotone" dataKey="income" stroke="#10b981" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                                                <Line type="monotone" dataKey="expense" stroke="#ef4444" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                                            </LineChart>
                                         </ChartContainer>
                                     </CardContent>
                                 </Card>

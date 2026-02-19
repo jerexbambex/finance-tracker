@@ -430,6 +430,7 @@ export default function Index({ transactions, categories, chartData }: Props) {
                         />
                         <ChartTooltip content={<ChartTooltipContent />} />
                         <Line 
+                          type="monotone"
                           dataKey="income" 
                           stroke="var(--color-income)"
                           strokeWidth={2}
@@ -437,6 +438,7 @@ export default function Index({ transactions, categories, chartData }: Props) {
                           activeDot={{ r: 6 }}
                         />
                         <Line 
+                          type="monotone"
                           dataKey="expense" 
                           stroke="var(--color-expense)"
                           strokeWidth={2}

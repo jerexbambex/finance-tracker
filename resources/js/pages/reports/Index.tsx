@@ -2,7 +2,7 @@ import { Head } from '@inertiajs/react';
 import { Download, TrendingUp, TrendingDown, PieChart as PieChartIcon } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import * as React from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, PieChart, Pie, Legend, Label } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, PieChart, Pie, Legend, Label } from 'recharts';
 import { Sector } from 'recharts';
 import { type PieSectorDataItem } from 'recharts/types/polar/Pie';
 
@@ -308,7 +308,7 @@ export default function Index({ categorySpending, monthlyTrends, totalIncome, to
             <CardContent>
               {monthlyTrends.length > 0 ? (
                 <ChartContainer config={trendsConfig} className="h-[400px] w-full">
-                  <BarChart accessibilityLayer data={monthlyTrends}>
+                  <LineChart accessibilityLayer data={monthlyTrends}>
                     <CartesianGrid vertical={false} />
                     <XAxis 
                       dataKey="month" 
@@ -323,9 +323,9 @@ export default function Index({ categorySpending, monthlyTrends, totalIncome, to
                     />
                     <ChartTooltip content={<ChartTooltipContent />} />
                     <Legend />
-                    <Bar dataKey="income" fill="var(--color-income)" radius={4} name="Income" />
-                    <Bar dataKey="expense" fill="var(--color-expense)" radius={4} name="Expenses" />
-                  </BarChart>
+                    <Line type="monotone" dataKey="income" stroke="var(--color-income)" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} name="Income" />
+                    <Line type="monotone" dataKey="expense" stroke="var(--color-expense)" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} name="Expenses" />
+                  </LineChart>
                 </ChartContainer>
               ) : (
                 <p className="text-muted-foreground text-center py-12">No trend data available</p>
