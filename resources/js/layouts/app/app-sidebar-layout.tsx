@@ -1,5 +1,5 @@
-import { type PropsWithChildren, useEffect } from 'react';
 import { usePage } from '@inertiajs/react';
+import { type PropsWithChildren, useEffect } from 'react';
 import { toast, Toaster } from 'sonner';
 
 import { AppContent } from '@/components/app-content';

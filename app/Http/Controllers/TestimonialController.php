@@ -26,7 +26,7 @@ class TestimonialController extends Controller
     public function destroy(Testimonial $testimonial)
     {
         $this->authorize('delete', $testimonial);
-        
+
         $testimonial->delete();
 
         return back()->with('success', 'Testimonial deleted successfully.');

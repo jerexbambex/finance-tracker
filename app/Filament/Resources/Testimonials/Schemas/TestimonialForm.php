@@ -18,13 +18,13 @@ class TestimonialForm
                     ->required()
                     ->searchable()
                     ->preload(),
-                
+
                 Textarea::make('content')
                     ->required()
                     ->rows(4)
                     ->maxLength(500)
                     ->columnSpanFull(),
-                
+
                 Select::make('rating')
                     ->options([
                         1 => '1 Star',
@@ -35,11 +35,11 @@ class TestimonialForm
                     ])
                     ->default(5)
                     ->required(),
-                
+
                 Toggle::make('is_approved')
                     ->label('Approved')
                     ->default(false),
-                
+
                 Toggle::make('is_featured')
                     ->label('Featured on Homepage')
                     ->default(false),

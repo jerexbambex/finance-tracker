@@ -1,15 +1,16 @@
-import { Head, Link } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, PieChart, Pie, Cell, Legend, Label } from 'recharts';
+import { Head } from '@inertiajs/react';
 import { Download, TrendingUp, TrendingDown, PieChart as PieChartIcon } from 'lucide-react';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
+import * as React from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, PieChart, Pie, Legend, Label } from 'recharts';
 import { Sector } from 'recharts';
 import { type PieSectorDataItem } from 'recharts/types/polar/Pie';
-import * as React from 'react';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import AppLayout from '@/layouts/app-layout';
 
 interface CategorySpending {
   category: string;

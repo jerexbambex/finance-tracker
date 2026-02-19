@@ -1,8 +1,9 @@
 import { Head, Link, router } from "@inertiajs/react";
-import AppLayout from "@/layouts/app-layout";
-import { Button } from "@/components/ui/button";
-import { Bell, CheckCheck, AlertTriangle, Target, TrendingUp, Check } from "lucide-react";
+import { Bell, CheckCheck, Check } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import AppLayout from "@/layouts/app-layout";
 
 interface Notification {
   id: string;

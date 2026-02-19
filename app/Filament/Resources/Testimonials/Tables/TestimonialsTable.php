@@ -20,28 +20,28 @@ class TestimonialsTable
                 TextColumn::make('user.name')
                     ->searchable()
                     ->sortable(),
-                
+
                 TextColumn::make('content')
                     ->limit(50)
                     ->searchable(),
-                
+
                 TextColumn::make('rating')
                     ->badge()
-                    ->color(fn ($state) => match(true) {
+                    ->color(fn ($state) => match (true) {
                         $state >= 4 => 'success',
                         $state >= 3 => 'warning',
                         default => 'danger',
                     })
                     ->formatStateUsing(fn ($state) => str_repeat('⭐', $state)),
-                
+
                 IconColumn::make('is_approved')
                     ->boolean()
                     ->label('Approved'),
-                
+
                 IconColumn::make('is_featured')
                     ->boolean()
                     ->label('Featured'),
-                
+
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -50,10 +50,10 @@ class TestimonialsTable
             ->filters([
                 TernaryFilter::make('is_approved')
                     ->label('Approval Status'),
-                
+
                 TernaryFilter::make('is_featured')
                     ->label('Featured'),
-                
+
                 SelectFilter::make('rating')
                     ->options([
                         5 => '5 Stars',

@@ -1,11 +1,13 @@
 import { Head, Link } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { TrendingUp, TrendingDown, Minus, AlertTriangle, Lightbulb, Sparkles, ArrowUpRight, ArrowDownRight, Calendar, DollarSign, Repeat } from 'lucide-react';
-import { useState } from 'react';
 import axios from 'axios';
+import { TrendingUp, TrendingDown, Minus, AlertTriangle, Lightbulb, Sparkles, ArrowUpRight, Calendar, DollarSign, Repeat } from 'lucide-react';
+import { useState } from 'react';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import AppLayout from '@/layouts/app-layout';
+
 
 interface Insight {
     category?: string;

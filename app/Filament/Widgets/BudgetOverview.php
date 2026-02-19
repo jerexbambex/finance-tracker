@@ -33,7 +33,7 @@ class BudgetOverview extends ChartWidget
                 ->sum('amount');
 
             $categoryName = $budget->category->name;
-            
+
             // Aggregate by category if multiple users have budgets for same category
             if (in_array($categoryName, $labels)) {
                 $index = array_search($categoryName, $labels);
