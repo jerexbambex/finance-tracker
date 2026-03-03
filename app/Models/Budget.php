@@ -12,10 +12,15 @@ class Budget extends Model
     protected $fillable = [
         'user_id',
         'category_id',
+        'name',
         'amount',
+        'currency',
         'period_type',
         'period_year',
         'period_month',
+        'start_date',
+        'end_date',
+        'notes',
         'is_active',
     ];
 
@@ -23,6 +28,8 @@ class Budget extends Model
         'is_active' => 'boolean',
         'period_year' => 'integer',
         'period_month' => 'integer',
+        'start_date' => 'date',
+        'end_date' => 'date',
     ];
 
     public function getAmountAttribute($value)

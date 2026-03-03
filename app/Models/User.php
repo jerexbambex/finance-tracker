@@ -103,6 +103,16 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasMany(SavedFilter::class);
     }
 
+    public function aiConversations()
+    {
+        return $this->hasMany(AiConversation::class);
+    }
+
+    public function aiToolRuns()
+    {
+        return $this->hasMany(AiToolRun::class);
+    }
+
     public function canAccessPanel(Panel $panel): bool
     {
         // Allow if user has admin role OR if someone is impersonating (the impersonator has admin access)
