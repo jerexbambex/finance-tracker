@@ -232,6 +232,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/transfers/create', [App\Http\Controllers\TransferController::class, 'create'])->name('transfers.create');
     Route::post('/transfers', [App\Http\Controllers\TransferController::class, 'store'])->name('transfers.store');
 
+    // AI Chat
+    Route::get('/chat', function () {
+        return Inertia::render('chat');
+    })->name('chat');
+
     // AI Chat API
     Route::post('/api/chat', [App\Http\Controllers\Api\ChatController::class, 'chat'])->name('api.chat');
 });
