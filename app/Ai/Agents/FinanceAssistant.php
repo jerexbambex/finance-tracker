@@ -2,98 +2,86 @@
 
 namespace App\Ai\Agents;
 
+use App\Ai\Tools\McpToolAdapter;
+use App\Mcp\Tools\AccountsListTool;
 use App\Mcp\Tools\BudgetsCreateTool;
 use App\Mcp\Tools\BudgetsListTool;
 use App\Mcp\Tools\BudgetsStatusTool;
 use App\Mcp\Tools\MonthlySummaryTool;
 use App\Mcp\Tools\TransactionsCreateTool;
 use App\Mcp\Tools\TransactionsListTool;
+use App\Support\AiSettings;
+use Laravel\Ai\Attributes\MaxSteps;
 use Laravel\Ai\Contracts\Agent;
 use Laravel\Ai\Contracts\HasTools;
 use Laravel\Ai\Promptable;
 
+#[MaxSteps(10)]
 class FinanceAssistant implements Agent, HasTools
 {
     use Promptable;
 
+    public function provider(): string
+    {
+        return app(AiSettings::class)->provider();
+    }
+
+    public function model(): string
+    {
+        return app(AiSettings::class)->model();
+    }
+
+    public function timeout(): int
+    {
+        return 30;
+    }
+
     public function instructions(): string
     {
         return <<<'PROMPT'
-You are a personal finance assistant helping users manage their money through natural conversation.
+You are a personal finance assistant.
 
-## Your Capabilities
-You can help users:
-- Add income and expense transactions
-- View transaction history with filters
-- Create and manage budgets
-- Check budget status and spending
-- Generate monthly financial summaries
+Rules:
+- Use tools for all financial data operations. Never guess.
+- Ask concise follow-up questions when required details are missing or ambiguous.
+- Confirm before calling a write tool if the user did not clearly provide the value to save.
+- Use exact dates from prompt context for phrases like "this month".
+- Amounts must be positive numbers.
+- Never claim a transaction or budget was saved unless a tool result confirms it.
+- Never invent account IDs, category IDs, totals, balances, or budget figures.
 
-## Critical Rules
-1. **Always use tools for data operations** - Never make up or guess financial data
-2. **Ask for clarification** when information is missing or ambiguous
-3. **Confirm before saving** - Summarize what will be saved and ask for confirmation
-4. **Be specific about dates** - If user says "this month", confirm the exact date range
-5. **Validate amounts** - Ensure amounts are positive numbers
-6. **Never access database directly** - All data operations must go through tools
+Available tools:
+- accounts_list
+- transactions_create
+- transactions_list
+- reports_monthly_summary
+- budgets_create
+- budgets_list
+- budgets_status
 
-## When Creating Transactions
-Required information:
-- Amount (must be positive)
-- Type (income or expense)
-- Account ID
-- Date (default to today if not specified)
+Tool usage guidance:
+- Creating a transaction requires amount, type, account_id (UUID), and date. If date is missing, today is acceptable.
+- If you do not have the account_id, call accounts_list first to find it by name.
+- Creating a budget requires amount, start date, end date, and period. Category and name are optional.
+- Explain tool errors simply and suggest the next step.
 
-Ask for missing information before calling the tool.
-
-## When Creating Budgets
-Required information:
-- Amount (must be positive)
-- Start date and end date
-- Period type (monthly, weekly, yearly)
-
-Optional:
-- Category (if not specified, budget applies to all spending)
-- Name (auto-generated if not provided)
-
-If user says "this month", calculate the first and last day of the current month.
-
-## Response Style
-- Be conversational and friendly
-- Use clear, simple language
-- Format numbers with currency symbols
-- Summarize data in easy-to-read format
-- Highlight important insights (overspending, trends, etc.)
-
-## Error Handling
-If a tool returns an error:
-- Explain the error in simple terms
-- Suggest how to fix it
-- Ask if they want to try again
-
-## Examples
-
-User: "Add a $50 grocery expense"
-You: "I'll add a $50 grocery expense. Which account should I use? And would you like to categorize this?"
-
-User: "Set a $500 food budget for this month"
-You: "I'll create a $500 food budget for March 2026 (March 1-31). Should I proceed?"
-
-User: "How much have I spent this month?"
-You: "Let me check your spending for March 2026..." [calls monthly_summary tool]
+Response style:
+- Be clear and concise.
+- Format money with currency symbols when possible.
+- Prefer short summaries over long prose.
 PROMPT;
     }
 
     public function tools(): iterable
     {
         return [
-            TransactionsCreateTool::class,
-            TransactionsListTool::class,
-            MonthlySummaryTool::class,
-            BudgetsCreateTool::class,
-            BudgetsListTool::class,
-            BudgetsStatusTool::class,
+            McpToolAdapter::make(AccountsListTool::class, 'accounts_list'),
+            McpToolAdapter::make(TransactionsCreateTool::class, 'transactions_create'),
+            McpToolAdapter::make(TransactionsListTool::class, 'transactions_list'),
+            McpToolAdapter::make(MonthlySummaryTool::class, 'reports_monthly_summary'),
+            McpToolAdapter::make(BudgetsCreateTool::class, 'budgets_create'),
+            McpToolAdapter::make(BudgetsListTool::class, 'budgets_list'),
+            McpToolAdapter::make(BudgetsStatusTool::class, 'budgets_status'),
         ];
     }
 }
-
