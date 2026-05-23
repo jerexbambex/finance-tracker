@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutGrid, Wallet, ArrowUpDown, PieChart, Target, Folder, Settings, TrendingUp, BarChart3, Bell, Repeat } from 'lucide-react';
+import { LayoutGrid, Wallet, ArrowUpDown, PieChart, Target, Folder, Settings, TrendingUp, BarChart3, Bell, Repeat, MessageSquare } from 'lucide-react';
 
 import AppearanceToggleDropdown from '@/components/appearance-dropdown';
 import { NavFooter } from '@/components/nav-footer';
@@ -49,6 +49,11 @@ export function AppSidebar() {
             title: 'Insights',
             href: '/insights',
             icon: TrendingUp,
+        },
+        {
+            title: 'AI Chat',
+            href: '/chat',
+            icon: MessageSquare,
         },
         {
             title: 'Notifications',
