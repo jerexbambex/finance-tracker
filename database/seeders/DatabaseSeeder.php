@@ -17,6 +17,13 @@ class DatabaseSeeder extends Seeder
             DefaultCategoriesSeeder::class,
         ]);
 
+        // call the RolesAndPermissionsSeeder to set up roles and permissions
+        $this->call(RolesAndPermissionsSeeder::class);
+        // call the AdminUserSeeder to create an admin user
+        $this->call(AdminUserSeeder::class);
+        // call the CategorySeeder to create some sample categories
+        //        $this->call(CategorySeeder::class);
+
         User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',

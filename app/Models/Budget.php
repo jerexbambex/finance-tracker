@@ -4,17 +4,22 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Budget extends Model
 {
     use HasUuids;
 
+    public const UNCATEGORIZED_SCOPE = '00000000-0000-0000-0000-000000000000';
+
     protected $fillable = [
         'user_id',
         'category_id',
+        'category_scope',
         'name',
         'amount',
         'currency',
+        'period',
         'period_type',
         'period_year',
         'period_month',
@@ -42,12 +47,29 @@ class Budget extends Model
         $this->attributes['amount'] = $value * 100;
     }
 
-    public function user()
+    public function getPeriodAttribute($value): string
+    {
+        return $value ?? $this->attributes['period_type'] ?? 'monthly';
+    }
+
+    public function setPeriodAttribute($value): void
+    {
+        $this->attributes['period'] = $value;
+        $this->attributes['period_type'] = $value;
+    }
+
+    public function setCategoryIdAttribute($value): void
+    {
+        $this->attributes['category_id'] = $value;
+        $this->attributes['category_scope'] = $value ?: self::UNCATEGORIZED_SCOPE;
+    }
+
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function category()
+    public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
     }
@@ -66,7 +88,7 @@ class Budget extends Model
         return $query->sum('amount') / 100;
     }
 
-    public function getPercentageUsed()
+    public function getPercentageUsed(): float
     {
         $spent = $this->getSpentAmount();
 
