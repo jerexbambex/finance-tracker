@@ -54,7 +54,7 @@ export default function Security() {
                         viewport={{ once: true }}
                         className="text-sm font-semibold text-emerald-400 uppercase tracking-wider"
                     >
-                        Real Results
+                        Impact
                     </motion.p>
                     <motion.h2
                         initial={{ opacity: 0, y: 10 }}
@@ -63,9 +63,9 @@ export default function Security() {
                         transition={{ delay: 0.1 }}
                         className="text-3xl md:text-5xl font-bold tracking-tight"
                     >
-                        Numbers that speak{' '}
+                        Money managed.{' '}
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400">
-                            for themselves
+                            Lives changed.
                         </span>
                     </motion.h2>
                     <motion.p
@@ -75,7 +75,7 @@ export default function Security() {
                         transition={{ delay: 0.2 }}
                         className="text-slate-400 max-w-2xl mx-auto"
                     >
-                        Our users don't just track money—they transform their financial lives.
+                        Our users don't just track money — they transform their financial lives.
                     </motion.p>
                 </div>
 

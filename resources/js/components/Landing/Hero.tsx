@@ -1,6 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Play, Sparkles, TrendingUp } from 'lucide-react';
+import { ArrowRight, Bot, MessageSquare, Sparkles } from 'lucide-react';
 
 import { SharedData } from '@/types';
 
@@ -10,11 +10,13 @@ export default function Hero() {
 
     return (
         <section className="relative pt-28 pb-20 md:pt-40 md:pb-28 overflow-hidden">
-            {/* Soft gradient background inspired by Laravel AI */}
+            {/* Background gradients */}
             <div className="absolute inset-0 -z-10">
                 <div className="absolute inset-0 bg-gradient-to-b from-emerald-50/50 via-background to-background dark:from-emerald-950/20" />
                 <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-emerald-200/30 dark:bg-emerald-900/20 blur-[120px] rounded-full" />
                 <div className="absolute top-20 right-1/4 w-[500px] h-[500px] bg-teal-200/20 dark:bg-teal-900/10 blur-[100px] rounded-full" />
+                {/* AI accent glow */}
+                <div className="absolute bottom-1/4 left-1/3 w-[400px] h-[400px] bg-violet-200/15 dark:bg-violet-900/10 blur-[120px] rounded-full" />
                 {/* Subtle grid pattern */}
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#0001_1px,transparent_1px),linear-gradient(to_bottom,#0001_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#fff1_1px,transparent_1px),linear-gradient(to_bottom,#fff1_1px,transparent_1px)] bg-[size:60px_60px] opacity-30" />
             </div>
@@ -29,10 +31,11 @@ export default function Hero() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.5 }}
-                            className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-medium text-primary backdrop-blur-sm mx-auto lg:mx-0"
+                            className="inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/8 px-4 py-2 text-sm font-medium text-violet-600 dark:text-violet-400 backdrop-blur-sm mx-auto lg:mx-0"
                         >
                             <Sparkles className="h-4 w-4" />
-                            <span>Smart finance for modern life</span>
+                            <span>AI Finance Assistant — now live</span>
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                         </motion.div>
 
                         {/* Headline with gradient keywords */}
@@ -55,7 +58,8 @@ export default function Hero() {
                             transition={{ duration: 0.5, delay: 0.2 }}
                             className="text-lg text-muted-foreground leading-relaxed max-w-lg mx-auto lg:mx-0"
                         >
-                            Budget App replaces spreadsheets, expense trackers, and goal planners with one unified workspace. Zero bloat, zero complexity, just clarity.
+                            Budget App combines smart expense tracking, goal planning, and an AI finance assistant in one workspace.{' '}
+                            <span className="text-foreground font-medium">Just ask. It handles the rest.</span>
                         </motion.p>
 
                         {/* REPLACES Section */}
@@ -99,15 +103,16 @@ export default function Hero() {
                                         href="/register"
                                         className="h-12 px-7 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 flex items-center gap-2"
                                     >
-                                        Start Managing Smarter
+                                        Get Started Free
                                         <ArrowRight className="h-4 w-4" />
                                     </Link>
-                                    <button className="h-12 px-6 rounded-lg border border-border bg-background/80 backdrop-blur-sm hover:bg-muted text-foreground font-semibold transition-all flex items-center gap-2 group">
-                                        <span className="h-8 w-8 rounded-full bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                                            <Play className="h-3 w-3 ml-0.5 text-primary" fill="currentColor" />
-                                        </span>
-                                        <span>View Demo</span>
-                                    </button>
+                                    <Link
+                                        href="/register"
+                                        className="h-12 px-6 rounded-lg border border-violet-500/40 bg-violet-500/5 hover:bg-violet-500/10 text-violet-600 dark:text-violet-400 font-semibold transition-all flex items-center gap-2 group"
+                                    >
+                                        <MessageSquare className="h-4 w-4" />
+                                        <span>Try AI Chat</span>
+                                    </Link>
                                 </>
                             )}
                         </motion.div>
@@ -260,20 +265,52 @@ export default function Hero() {
                                 </div>
                             </div>
 
-                            {/* Floating notification card */}
+                            {/* Floating AI chat preview card */}
                             <motion.div
-                                initial={{ opacity: 0, x: 20, y: 20 }}
+                                initial={{ opacity: 0, x: -20, y: 20 }}
                                 animate={{ opacity: 1, x: 0, y: 0 }}
-                                transition={{ duration: 0.6, delay: 0.8 }}
-                                className="absolute -bottom-4 -left-4 md:-left-8 bg-card border border-border/50 rounded-xl p-3 shadow-lg backdrop-blur-sm"
+                                transition={{ duration: 0.6, delay: 0.9 }}
+                                className="absolute -bottom-6 -left-4 md:-left-10 w-[220px] bg-card border border-border/60 rounded-2xl p-3.5 shadow-xl backdrop-blur-sm"
                             >
-                                <div className="flex items-center gap-3">
-                                    <div className="h-10 w-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
-                                        <TrendingUp className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                                {/* Chat header */}
+                                <div className="flex items-center gap-2 mb-3 pb-2.5 border-b border-border/40">
+                                    <div className="h-6 w-6 rounded-full bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center">
+                                        <Bot className="h-3 w-3 text-violet-600 dark:text-violet-400" />
+                                    </div>
+                                    <span className="text-[11px] font-semibold text-foreground">AI Finance Assistant</span>
+                                    <span className="ml-auto h-2 w-2 rounded-full bg-emerald-500 flex-shrink-0" />
+                                </div>
+                                {/* User message */}
+                                <div className="flex justify-end mb-2">
+                                    <div className="bg-primary text-primary-foreground text-[10px] px-2.5 py-1.5 rounded-xl rounded-tr-sm max-w-[150px] leading-snug">
+                                        Set a $500 food budget for May
+                                    </div>
+                                </div>
+                                {/* AI response */}
+                                <div className="flex items-start gap-1.5">
+                                    <div className="h-5 w-5 rounded-full bg-violet-100 dark:bg-violet-900/40 flex-shrink-0 flex items-center justify-center mt-0.5">
+                                        <Bot className="h-2.5 w-2.5 text-violet-600 dark:text-violet-400" />
+                                    </div>
+                                    <div className="bg-muted text-foreground text-[10px] px-2.5 py-1.5 rounded-xl rounded-tl-sm leading-snug">
+                                        ✅ Food budget of $500 created for May 2026!
+                                    </div>
+                                </div>
+                            </motion.div>
+
+                            {/* Floating AI insight card (top right) */}
+                            <motion.div
+                                initial={{ opacity: 0, x: 20, y: -10 }}
+                                animate={{ opacity: 1, x: 0, y: 0 }}
+                                transition={{ duration: 0.6, delay: 1.1 }}
+                                className="absolute -top-4 -right-4 md:-right-6 bg-card border border-border/60 rounded-xl p-3 shadow-lg backdrop-blur-sm"
+                            >
+                                <div className="flex items-center gap-2.5">
+                                    <div className="h-8 w-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center flex-shrink-0">
+                                        <Sparkles className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                                     </div>
                                     <div>
-                                        <p className="text-xs font-semibold text-foreground">Savings Goal Hit!</p>
-                                        <p className="text-[10px] text-muted-foreground">Emergency fund complete</p>
+                                        <p className="text-[10px] font-semibold text-foreground">AI Insight</p>
+                                        <p className="text-[10px] text-muted-foreground">You'll hit your savings goal<br />3 weeks early this month</p>
                                     </div>
                                 </div>
                             </motion.div>

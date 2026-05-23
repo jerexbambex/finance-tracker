@@ -45,6 +45,13 @@ export default function Navbar() {
                     <a href="/#how-it-works" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">How it Works</a>
                     <a href="/#testimonials" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Stories</a>
                     <a href="/#security" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Security</a>
+                    <Link
+                        href="/register"
+                        className="inline-flex items-center gap-1.5 text-sm font-semibold text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 transition-colors"
+                    >
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        AI Chat
+                    </Link>
                 </nav>
 
                 {/* Actions */}
@@ -99,6 +106,14 @@ export default function Navbar() {
                             <a href="/#features" className="text-base font-medium py-2 border-b border-border/50" onClick={() => setMobileMenuOpen(false)}>Features</a>
                             <a href="/#how-it-works" className="text-base font-medium py-2 border-b border-border/50" onClick={() => setMobileMenuOpen(false)}>How it Works</a>
                             <a href="/#testimonials" className="text-base font-medium py-2 border-b border-border/50" onClick={() => setMobileMenuOpen(false)}>Stories</a>
+                            <Link
+                                href="/register"
+                                className="flex items-center gap-2 text-base font-semibold py-2 border-b border-border/50 text-violet-600 dark:text-violet-400"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                AI Chat
+                            </Link>
 
                             <div className="pt-4 flex flex-col gap-3">
                                 {user ? (
