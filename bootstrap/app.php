@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsurePremium;
 use App\Http\Middleware\ForceJsonResponse;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -35,6 +36,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->api(prepend: [
             ForceJsonResponse::class,
+        ]);
+
+        $middleware->alias([
+            'ensure.premium' => EnsurePremium::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

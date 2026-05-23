@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\MediaLibrary\HasMedia;
@@ -11,12 +12,13 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Transaction extends Model implements HasMedia
 {
-    use HasUuids, InteractsWithMedia, LogsActivity;
+    use HasUuids, InteractsWithMedia, LogsActivity, SoftDeletes;
 
     protected $fillable = [
         'user_id',
         'account_id',
         'category_id',
+        'client_id',
         'type',
         'amount',
         'currency',

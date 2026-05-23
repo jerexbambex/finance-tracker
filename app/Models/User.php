@@ -40,6 +40,7 @@ class User extends Authenticatable implements FilamentUser
         'subscription_tier',
         'premium_since',
         'subscription_expires_at',
+        'last_synced_at',
     ];
 
     /**
@@ -68,6 +69,7 @@ class User extends Authenticatable implements FilamentUser
             'two_factor_confirmed_at' => 'datetime',
             'premium_since' => 'datetime',
             'subscription_expires_at' => 'datetime',
+            'last_synced_at' => 'datetime',
             'biometric_enabled' => 'boolean',
         ];
     }

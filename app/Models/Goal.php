@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Goal extends Model
 {
-    use HasUuids;
+    use HasUuids, SoftDeletes;
 
     protected $fillable = [
         'user_id',
@@ -17,6 +18,7 @@ class Goal extends Model
         'current_amount',
         'target_date',
         'category',
+        'client_id',
         'is_completed',
         'is_active',
     ];

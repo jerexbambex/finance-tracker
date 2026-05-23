@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\GoalController;
 use App\Http\Controllers\Api\InsightsController;
 use App\Http\Controllers\Api\SettingsController;
+use App\Http\Controllers\Api\SyncController;
 use App\Http\Controllers\Api\TransactionController;
 use Illuminate\Support\Facades\Route;
 
@@ -101,4 +102,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/settings', [SettingsController::class, 'show'])->name('api.settings.show');
     Route::match(['put', 'patch'], '/settings', [SettingsController::class, 'update'])
         ->name('api.settings.update');
+
+    // Sync (premium only). Free users get a 402 from EnsurePremium.
+    Route::middleware('ensure.premium')->prefix('sync')->group(function () {
+        Route::post('/push', [SyncController::class, 'push'])->name('api.sync.push');
+        Route::get('/pull', [SyncController::class, 'pull'])->name('api.sync.pull');
+        Route::get('/status', [SyncController::class, 'status'])->name('api.sync.status');
+    });
 });
