@@ -12,6 +12,7 @@ import AppLayout from '@/layouts/app-layout';
 interface Account {
   id: string;
   name: string;
+  currency: string;
 }
 
 interface Category {
@@ -49,6 +50,13 @@ export default function Edit({ transaction, accounts, categories }: Props) {
     notes: transaction.notes || '',
     receipt: null as File | null,
   });
+
+  const selectedAccount = accounts.find((a) => a.id === data.account_id) ?? null;
+  const currencySymbol = selectedAccount
+    ? new Intl.NumberFormat('en-US', { style: 'currency', currency: selectedAccount.currency, minimumFractionDigits: 0 })
+        .formatToParts(0)
+        .find((p) => p.type === 'currency')?.value ?? selectedAccount.currency
+    : '';
 
   const filteredCategories = categories.filter(
     (cat) => cat.type === data.type
@@ -113,7 +121,7 @@ export default function Edit({ transaction, accounts, categories }: Props) {
                     <SelectContent>
                       {accounts.map((account) => (
                         <SelectItem key={account.id} value={account.id}>
-                          {account.name}
+                          {account.name} <span className="text-muted-foreground">({account.currency})</span>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -139,15 +147,22 @@ export default function Edit({ transaction, accounts, categories }: Props) {
 
                 <div>
                   <Label htmlFor="amount">Amount</Label>
-                  <Input
-                    id="amount"
-                    type="number"
-                    step="0.01"
-                    value={data.amount}
-                    onChange={(e) => setData('amount', e.target.value)}
-                    placeholder="0.00"
-                    className={errors.amount ? 'border-red-500' : ''}
-                  />
+                  <div className="relative">
+                    {currencySymbol && (
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm pointer-events-none">
+                        {currencySymbol}
+                      </span>
+                    )}
+                    <Input
+                      id="amount"
+                      type="number"
+                      step="0.01"
+                      value={data.amount}
+                      onChange={(e) => setData('amount', e.target.value)}
+                      placeholder="0.00"
+                      className={`${currencySymbol ? 'pl-8' : ''} ${errors.amount ? 'border-red-500' : ''}`}
+                    />
+                  </div>
                   {errors.amount && <p className="text-red-500 text-sm mt-1">{errors.amount}</p>}
                 </div>
 
