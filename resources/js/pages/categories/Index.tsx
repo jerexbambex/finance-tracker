@@ -57,7 +57,7 @@ export default function Index({ incomeCategories, expenseCategories }: Props) {
             <CardContent>
               <div className="space-y-3">
                 {incomeCategories.map((category) => (
-                  <div key={category.id} className="flex items-center gap-3 rounded-lg border border-border/40 p-3 hover:bg-accent transition-colors">
+                  <div key={category.id} className="flex items-center gap-3 rounded-lg border border-border/40 p-3 hover:bg-muted transition-colors">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       {category.color && (
                         <div
@@ -112,7 +112,7 @@ export default function Index({ incomeCategories, expenseCategories }: Props) {
             <CardContent>
               <div className="space-y-3">
                 {expenseCategories.map((category) => (
-                  <div key={category.id} className="flex items-center gap-3 rounded-lg border border-border/40 p-3 hover:bg-accent transition-colors">
+                  <div key={category.id} className="flex items-center gap-3 rounded-lg border border-border/40 p-3 hover:bg-muted transition-colors">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       {category.color && (
                         <div

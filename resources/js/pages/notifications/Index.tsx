@@ -105,7 +105,7 @@ export default function Index({ notifications, unreadCount }: Props) {
               {notifications.data.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`group flex items-start gap-3 p-4 rounded-lg border transition-colors hover:bg-accent/50 ${
+                  className={`group flex items-start gap-3 p-4 rounded-lg border transition-colors hover:bg-muted/50 ${
                     !notification.read_at ? "bg-accent/30 border-primary/20" : "bg-card"
                   }`}
                 >
@@ -150,7 +150,7 @@ export default function Index({ notifications, unreadCount }: Props) {
                   className={`px-3 py-2 text-sm rounded-md transition-colors ${
                     link.active
                       ? "bg-primary text-primary-foreground"
-                      : "hover:bg-accent"
+                      : "hover:bg-muted"
                   }`}
                   dangerouslySetInnerHTML={{ __html: link.label }}
                 />

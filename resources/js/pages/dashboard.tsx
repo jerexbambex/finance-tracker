@@ -381,7 +381,7 @@ export default function Dashboard({ accounts, balancesByCurrency, recentTransact
                         <CardContent>
                             <div className="space-y-3">
                                 {accounts.slice(0, 5).map((account) => (
-                                    <div key={account.id} className="flex items-center gap-3 rounded-lg border border-border/40 p-3 hover:bg-accent transition-colors">
+                                    <div key={account.id} className="flex items-center gap-3 rounded-lg border border-border/40 p-3 hover:bg-muted transition-colors">
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2">
                                                 <p className="text-sm font-medium truncate">{account.name}</p>
@@ -413,7 +413,7 @@ export default function Dashboard({ accounts, balancesByCurrency, recentTransact
                         <CardContent>
                             <div className="space-y-3">
                                 {recentTransactions.slice(0, 5).map((transaction) => (
-                                    <div key={transaction.id} className="flex items-center gap-3 rounded-lg border border-border/40 p-3 hover:bg-accent transition-colors">
+                                    <div key={transaction.id} className="flex items-center gap-3 rounded-lg border border-border/40 p-3 hover:bg-muted transition-colors">
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2">
                                                 <p className="text-sm font-medium truncate">{transaction.description}</p>
@@ -496,7 +496,7 @@ export default function Dashboard({ accounts, balancesByCurrency, recentTransact
                                         const isDueToday = dueDate.toDateString() === new Date().toDateString();
                                         
                                         return (
-                                            <div key={reminder.id} className="flex items-center gap-3 rounded-lg border border-border/40 p-3 hover:bg-accent transition-colors">
+                                            <div key={reminder.id} className="flex items-center gap-3 rounded-lg border border-border/40 p-3 hover:bg-muted transition-colors">
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center gap-2">
                                                         <p className="text-sm font-medium truncate">{reminder.title}</p>
