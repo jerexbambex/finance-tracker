@@ -1,5 +1,6 @@
 import { Head } from '@inertiajs/react';
 import { ArrowUpRight, ArrowDownRight, TrendingUp, Wallet, Clock } from 'lucide-react';
+import { useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 import QuickAddTransaction from '@/components/QuickAddTransaction';
@@ -7,6 +8,7 @@ import TestimonialWidget from '@/components/TestimonialWidget';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
@@ -23,6 +25,7 @@ interface Account {
     name: string;
     type: string;
     balance: number;
+    currency: string;
 }
 
 interface Transaction {
@@ -31,7 +34,7 @@ interface Transaction {
     amount: number;
     description: string;
     transaction_date: string;
-    account: { name: string };
+    account: { name: string; currency: string };
     category?: { name: string };
 }
 
@@ -42,6 +45,7 @@ interface Budget {
     amount: number;
     spent: number;
     status: 'ok' | 'warning' | 'exceeded';
+    currency: string;
 }
 
 interface Goal {
@@ -60,13 +64,14 @@ interface Category {
 interface CategorySpending {
     name: string;
     amount: number;
+    currency: string;
     color: string;
 }
 
 interface MonthlyTrend {
     month: string;
-    income: number;
-    expense: number;
+    income: Record<string, number>;
+    expense: Record<string, number>;
 }
 
 interface Reminder {
@@ -103,18 +108,34 @@ interface Props {
 }
 
 export default function Dashboard({ accounts, balancesByCurrency, recentTransactions, incomeByCurrency, expensesByCurrency, categorySpending, monthlyTrend, budgets, budgetAlerts, goals, categories, upcomingReminders, userTestimonials, currencies }: Props) {
-    const formatCurrency = (amount: number, currency: string = 'USD') => {
+    const primaryCurrency = Object.keys(balancesByCurrency)[0] ?? 'USD';
+
+    const trendCurrencies = [...new Set(
+        monthlyTrend.flatMap((d) => [...Object.keys(d.income), ...Object.keys(d.expense)]),
+    )];
+    const [trendCurrency, setTrendCurrency] = useState(trendCurrencies[0] ?? primaryCurrency);
+    const trendChartData = monthlyTrend.map((d) => ({
+        month: d.month,
+        income: d.income[trendCurrency] ?? 0,
+        expense: d.expense[trendCurrency] ?? 0,
+    }));
+
+    const formatCurrency = (amount: number, currency: string = primaryCurrency) => {
         const currencyInfo = currencies[currency];
         return `${currencyInfo?.symbol || '$'}${amount.toFixed(2)}`;
     };
 
     const formatCurrencyGroup = (amounts: Record<string, number>) => {
-        return Object.entries(amounts).map(([currency, amount]) => formatCurrency(amount, currency)).join(', ') || '$0.00';
+        return Object.entries(amounts).map(([currency, amount]) => formatCurrency(amount, currency)).join(', ') || formatCurrency(0);
     };
 
-    const totalIncome = Object.values(incomeByCurrency).reduce((sum, val) => sum + val, 0);
-    const totalExpenses = Object.values(expensesByCurrency).reduce((sum, val) => sum + val, 0);
-    const netIncome = totalIncome - totalExpenses;
+    const netByCurrency = Object.keys({ ...incomeByCurrency, ...expensesByCurrency }).reduce<Record<string, number>>(
+        (acc, currency) => ({
+            ...acc,
+            [currency]: (incomeByCurrency[currency] ?? 0) - (expensesByCurrency[currency] ?? 0),
+        }),
+        {},
+    );
 
     const formatDate = (date: string) => {
         const d = new Date(date);
@@ -187,13 +208,13 @@ export default function Dashboard({ accounts, balancesByCurrency, recentTransact
                     <Card className="border-border/40">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Net Income</CardTitle>
-                            <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${netIncome >= 0 ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
-                                <TrendingUp className={`h-[18px] w-[18px] ${netIncome >= 0 ? 'text-green-600' : 'text-red-600'}`} />
+                            <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${Object.values(netByCurrency).every((v) => v >= 0) ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
+                                <TrendingUp className={`h-[18px] w-[18px] ${Object.values(netByCurrency).every((v) => v >= 0) ? 'text-green-600' : 'text-red-600'}`} />
                             </div>
                         </CardHeader>
                         <CardContent>
-                            <div className={`text-2xl font-bold ${netIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                {formatCurrency(netIncome)}
+                            <div className={`text-2xl font-bold ${Object.values(netByCurrency).every((v) => v >= 0) ? 'text-green-600' : 'text-red-600'}`}>
+                                {formatCurrencyGroup(netByCurrency)}
                             </div>
                             <p className="text-xs text-muted-foreground mt-1">This month</p>
                         </CardContent>
@@ -295,7 +316,7 @@ export default function Dashboard({ accounts, balancesByCurrency, recentTransact
                                                     <div className="flex-1 min-w-0">
                                                         <p className="text-sm font-medium truncate">{category.name}</p>
                                                     </div>
-                                                    <p className="text-sm font-semibold">{formatCurrency(category.amount)}</p>
+                                                    <p className="text-sm font-semibold">{formatCurrency(category.amount, category.currency)}</p>
                                                 </div>
                                             ))}
                                         </div>
@@ -307,8 +328,24 @@ export default function Dashboard({ accounts, balancesByCurrency, recentTransact
                             {monthlyTrend.length > 0 && (
                                 <Card className="border-border/40">
                                     <CardHeader>
-                                        <CardTitle>6-Month Trend</CardTitle>
-                                        <p className="text-xs text-muted-foreground">Income vs Expenses</p>
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <CardTitle>6-Month Trend</CardTitle>
+                                                <p className="text-xs text-muted-foreground">Income vs Expenses</p>
+                                            </div>
+                                            {trendCurrencies.length > 1 && (
+                                                <Select value={trendCurrency} onValueChange={setTrendCurrency}>
+                                                    <SelectTrigger className="w-24 h-7 text-xs">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {trendCurrencies.map((c) => (
+                                                            <SelectItem key={c} value={c}>{c}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            )}
+                                        </div>
                                     </CardHeader>
                                     <CardContent>
                                         <ChartContainer
@@ -318,10 +355,10 @@ export default function Dashboard({ accounts, balancesByCurrency, recentTransact
                                             }}
                                             className="h-[200px]"
                                         >
-                                            <LineChart data={monthlyTrend}>
+                                            <LineChart data={trendChartData}>
                                                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                                                 <XAxis dataKey="month" className="text-xs" />
-                                                <YAxis className="text-xs" />
+                                                <YAxis className="text-xs" tickFormatter={(v) => formatCurrency(v, trendCurrency)} />
                                                 <ChartTooltip content={<ChartTooltipContent />} />
                                                 <Line type="monotone" dataKey="income" stroke="#10b981" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
                                                 <Line type="monotone" dataKey="expense" stroke="#ef4444" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
@@ -356,7 +393,7 @@ export default function Dashboard({ accounts, balancesByCurrency, recentTransact
                                                 {account.balance >= 0 ? 'Active' : 'Overdrawn'}
                                             </p>
                                         </div>
-                                        <div className="text-sm font-semibold">{formatCurrency(account.balance)}</div>
+                                        <div className="text-sm font-semibold">{formatCurrency(account.balance, account.currency)}</div>
                                     </div>
                                 ))}
                             </div>
@@ -399,7 +436,7 @@ export default function Dashboard({ accounts, balancesByCurrency, recentTransact
                                         <div className={`text-sm font-semibold ${
                                             transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
                                         }`}>
-                                            {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                                            {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount, transaction.account.currency)}
                                         </div>
                                     </div>
                                 ))}
@@ -433,7 +470,7 @@ export default function Dashboard({ accounts, balancesByCurrency, recentTransact
                                                     </Badge>
                                                 </div>
                                                 <p className="text-xs text-muted-foreground mt-0.5">
-                                                    {formatCurrency(budget.spent)} of {formatCurrency(budget.amount)}
+                                                    {formatCurrency(budget.spent, budget.currency)} of {formatCurrency(budget.amount, budget.currency)}
                                                 </p>
                                             </div>
                                         </div>
@@ -488,7 +525,7 @@ export default function Dashboard({ accounts, balancesByCurrency, recentTransact
                                                 </div>
                                                 {reminder.amount && (
                                                     <div className="text-sm font-semibold">
-                                                        {formatCurrency(reminder.amount)}
+                                                        {formatCurrency(reminder.amount, primaryCurrency)}
                                                     </div>
                                                 )}
                                             </div>
