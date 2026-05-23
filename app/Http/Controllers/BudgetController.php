@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Budget;
 use App\Models\Category;
+use Carbon\Carbon;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -97,7 +98,9 @@ class BudgetController extends Controller
             ]);
         }
 
-        auth()->user()->budgets()->create($validated);
+        $category = Category::query()->find($validated['category_id']);
+
+        auth()->user()->budgets()->create($this->normalizeBudgetPayload($validated, $category));
 
         return redirect()->route('budgets.index');
     }
@@ -128,8 +131,23 @@ class BudgetController extends Controller
             'period_month' => 'required_if:period_type,monthly|nullable|integer|min:1|max:12',
         ]);
 
-        // Don't multiply here - the mutator handles it
-        $budget->update($validated);
+        $exists = auth()->user()->budgets()
+            ->whereKeyNot($budget->id)
+            ->where('category_id', $validated['category_id'])
+            ->where('period_type', $validated['period_type'])
+            ->where('period_year', $validated['period_year'])
+            ->where('period_month', $validated['period_month'] ?? null)
+            ->exists();
+
+        if ($exists) {
+            return back()->withErrors([
+                'category_id' => 'A budget already exists for this category and period.',
+            ]);
+        }
+
+        $category = Category::query()->find($validated['category_id']);
+
+        $budget->update($this->normalizeBudgetPayload($validated, $category, $budget));
 
         return redirect()->route('budgets.index');
     }
@@ -141,5 +159,39 @@ class BudgetController extends Controller
         $budget->delete();
 
         return redirect()->route('budgets.index');
+    }
+
+    private function normalizeBudgetPayload(array $validated, ?Category $category, ?Budget $budget = null): array
+    {
+        $periodType = $validated['period_type'];
+        $startDate = Carbon::create(
+            $validated['period_year'],
+            $periodType === 'monthly' ? $validated['period_month'] : 1,
+            1
+        )->startOfDay();
+
+        return [
+            ...$validated,
+            'name' => $this->budgetName($category, $startDate, $periodType),
+            'currency' => $budget?->currency
+                ?? auth()->user()->accounts()->value('currency')
+                ?? 'CAD',
+            'period' => $periodType,
+            'start_date' => $startDate->toDateString(),
+            'end_date' => match ($periodType) {
+                'yearly' => $startDate->copy()->endOfYear()->toDateString(),
+                default => $startDate->copy()->endOfMonth()->toDateString(),
+            },
+        ];
+    }
+
+    private function budgetName(?Category $category, Carbon $startDate, string $periodType): string
+    {
+        $prefix = $category?->name ?? 'General';
+
+        return match ($periodType) {
+            'yearly' => sprintf('%s Budget - %s', $prefix, $startDate->format('Y')),
+            default => sprintf('%s Budget - %s', $prefix, $startDate->format('M Y')),
+        };
     }
 }

@@ -78,12 +78,32 @@ class BudgetRecommendationController extends Controller
             'amount' => 'required|numeric|min:0.01',
         ]);
 
-        auth()->user()->budgets()->create([
+        $user = auth()->user();
+        $category = Category::query()->find($validated['category_id']);
+        $startDate = now()->startOfMonth();
+
+        $exists = $user->budgets()
+            ->where('category_id', $validated['category_id'])
+            ->where('period_type', 'monthly')
+            ->where('period_year', $startDate->year)
+            ->where('period_month', $startDate->month)
+            ->exists();
+
+        if ($exists) {
+            return redirect()->back()->with('success', 'Budget already exists for this recommendation');
+        }
+
+        $user->budgets()->create([
             'category_id' => $validated['category_id'],
             'amount' => $validated['amount'],
+            'name' => sprintf('%s Budget - %s', $category?->name ?? 'General', $startDate->format('M Y')),
+            'currency' => $user->accounts()->value('currency') ?? 'CAD',
+            'period' => 'monthly',
             'period_type' => 'monthly',
-            'period_year' => now()->year,
-            'period_month' => now()->month,
+            'period_year' => $startDate->year,
+            'period_month' => $startDate->month,
+            'start_date' => $startDate->toDateString(),
+            'end_date' => $startDate->copy()->endOfMonth()->toDateString(),
         ]);
 
         return redirect()->back()->with('success', 'Budget created from recommendation');

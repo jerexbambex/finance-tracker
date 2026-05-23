@@ -237,8 +237,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('chat');
     })->name('chat');
 
-    // AI Chat API
-    Route::post('/api/chat', [App\Http\Controllers\Api\ChatController::class, 'chat'])->name('api.chat');
+    // AI Chat API (with rate limiting)
+    Route::post('/api/chat', [App\Http\Controllers\Api\ChatController::class, 'chat'])
+        ->middleware('throttle:ai-chat')
+        ->name('api.chat');
 });
 
 require __DIR__.'/settings.php';
