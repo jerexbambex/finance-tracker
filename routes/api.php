@@ -1,7 +1,11 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\BudgetController;
 use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\GoalController;
+use App\Http\Controllers\Api\InsightsController;
+use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\TransactionController;
 use Illuminate\Support\Facades\Route;
 
@@ -63,4 +67,38 @@ Route::middleware('auth:sanctum')->group(function () {
         ->name('api.transactions.update');
     Route::delete('/transactions/{id}', [TransactionController::class, 'destroy'])
         ->name('api.transactions.destroy');
+
+    // Budgets — order matters: bulk/analysis/alerts before {id}.
+    Route::post('/budgets/bulk', [BudgetController::class, 'bulk'])->name('api.budgets.bulk');
+    Route::get('/budgets/analysis', [BudgetController::class, 'analysis'])->name('api.budgets.analysis');
+    Route::get('/budgets/alerts', [BudgetController::class, 'alerts'])->name('api.budgets.alerts');
+    Route::get('/budgets', [BudgetController::class, 'index'])->name('api.budgets.index');
+    Route::post('/budgets', [BudgetController::class, 'store'])->name('api.budgets.store');
+    Route::delete('/budgets/{id}', [BudgetController::class, 'destroy'])->name('api.budgets.destroy');
+
+    // Savings goals.
+    Route::get('/savings-goals', [GoalController::class, 'index'])->name('api.goals.index');
+    Route::post('/savings-goals', [GoalController::class, 'store'])->name('api.goals.store');
+    Route::get('/savings-goals/{id}', [GoalController::class, 'show'])->name('api.goals.show');
+    Route::match(['put', 'patch'], '/savings-goals/{id}', [GoalController::class, 'update'])
+        ->name('api.goals.update');
+    Route::delete('/savings-goals/{id}', [GoalController::class, 'destroy'])->name('api.goals.destroy');
+    Route::post('/savings-goals/{id}/contribute', [GoalController::class, 'contribute'])
+        ->name('api.goals.contribute');
+    Route::get('/savings-goals/{id}/progress', [GoalController::class, 'progress'])
+        ->name('api.goals.progress');
+
+    // Insights.
+    Route::get('/insights/dashboard', [InsightsController::class, 'dashboard'])
+        ->name('api.insights.dashboard');
+    Route::get('/insights/spending-breakdown', [InsightsController::class, 'spendingBreakdown'])
+        ->name('api.insights.breakdown');
+    Route::get('/insights/trends', [InsightsController::class, 'trends'])->name('api.insights.trends');
+    Route::get('/insights/ai-summary', [InsightsController::class, 'aiSummary'])
+        ->name('api.insights.ai');
+
+    // Settings (per-user app preferences).
+    Route::get('/settings', [SettingsController::class, 'show'])->name('api.settings.show');
+    Route::match(['put', 'patch'], '/settings', [SettingsController::class, 'update'])
+        ->name('api.settings.update');
 });

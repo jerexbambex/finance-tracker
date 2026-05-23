@@ -77,6 +77,11 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasMany(RefreshToken::class);
     }
 
+    public function settings(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(UserSettings::class);
+    }
+
     /**
      * The account API-created transactions are attached to.
      *

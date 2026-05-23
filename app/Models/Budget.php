@@ -17,10 +17,12 @@ class Budget extends Model
         'period_year',
         'period_month',
         'is_active',
+        'is_recurrent',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'is_recurrent' => 'boolean',
         'period_year' => 'integer',
         'period_month' => 'integer',
     ];
