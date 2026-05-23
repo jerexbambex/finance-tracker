@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Currency;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -11,118 +12,143 @@ class ReportsController extends Controller
     {
         $user = auth()->user();
 
-        // Get date range from request or default to current month
         $startDate = $request->input('start_date', now()->startOfMonth()->toDateString());
         $endDate = $request->input('end_date', now()->endOfMonth()->toDateString());
 
-        // Get spending by category for date range
-        $categorySpending = $user->transactions()
+        // Load expense transactions once for reuse
+        $expenseTransactions = $user->transactions()
             ->where('type', 'expense')
             ->whereBetween('transaction_date', [$startDate, $endDate])
-            ->with('category')
-            ->get()
-            ->groupBy('category.name')
-            ->map(function ($transactions, $category) {
-                $total = $transactions->sum('amount');
+            ->with(['category', 'account'])
+            ->get();
 
-                return [
-                    'category' => $category ?? 'Uncategorized',
-                    'amount' => $total,
-                    'count' => $transactions->count(),
-                ];
-            })
-            ->values();
+        // Category spending grouped by currency then category
+        $categorySpending = collect();
+        foreach ($expenseTransactions->groupBy('account.currency') as $currency => $currencyTxns) {
+            $currencyTotal = $currencyTxns->sum('amount');
+            foreach ($currencyTxns->groupBy('category.name') as $catName => $catTxns) {
+                $amount = $catTxns->sum('amount');
+                $categorySpending->push([
+                    'category' => $catName ?: 'Uncategorized',
+                    'amount' => $amount,
+                    'count' => $catTxns->count(),
+                    'percentage' => $currencyTotal > 0 ? ($amount / $currencyTotal) * 100 : 0,
+                    'currency' => $currency,
+                ]);
+            }
+        }
+        $categorySpending = $categorySpending->sortByDesc('amount')->values();
 
-        $totalExpense = $categorySpending->sum('amount');
-
-        $categorySpending = $categorySpending->map(function ($item) use ($totalExpense) {
-            $item['percentage'] = $totalExpense > 0 ? ($item['amount'] / $totalExpense) * 100 : 0;
-
-            return $item;
-        })->sortByDesc('amount')->values();
-
-        // Monthly trends (last 12 months)
+        // Monthly trends (last 12 months) grouped by currency
         $monthlyTrends = collect();
         for ($i = 11; $i >= 0; $i--) {
             $date = now()->subMonths($i);
-            $startOfMonth = $date->copy()->startOfMonth();
-            $endOfMonth = $date->copy()->endOfMonth();
+            $rows = $user->transactions()
+                ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
+                ->whereBetween('transactions.transaction_date', [$date->copy()->startOfMonth(), $date->copy()->endOfMonth()])
+                ->whereIn('transactions.type', ['income', 'expense'])
+                ->selectRaw('transactions.type, accounts.currency, SUM(transactions.amount) as total')
+                ->groupBy('transactions.type', 'accounts.currency')
+                ->get();
 
-            $income = $user->transactions()
-                ->where('type', 'income')
-                ->whereBetween('transaction_date', [$startOfMonth, $endOfMonth])
-                ->sum(\DB::raw('amount')) / 100;
+            $income = [];
+            $expense = [];
+            foreach ($rows as $row) {
+                if ($row->type === 'income') {
+                    $income[$row->currency] = ($income[$row->currency] ?? 0) + $row->total / 100;
+                } else {
+                    $expense[$row->currency] = ($expense[$row->currency] ?? 0) + $row->total / 100;
+                }
+            }
 
-            $expense = $user->transactions()
-                ->where('type', 'expense')
-                ->whereBetween('transaction_date', [$startOfMonth, $endOfMonth])
-                ->sum(\DB::raw('amount')) / 100;
+            $net = [];
+            foreach (array_unique(array_merge(array_keys($income), array_keys($expense))) as $cur) {
+                $net[$cur] = ($income[$cur] ?? 0) - ($expense[$cur] ?? 0);
+            }
 
             $monthlyTrends->push([
                 'month' => $date->format('M Y'),
                 'income' => $income,
                 'expense' => $expense,
-                'net' => $income - $expense,
+                'net' => $net,
             ]);
         }
 
-        // Total income and expenses for date range
-        $totalIncome = $user->transactions()
+        // Totals by currency for the selected date range
+        $totalIncomeByCurrency = $user->transactions()
             ->where('type', 'income')
             ->whereBetween('transaction_date', [$startDate, $endDate])
-            ->sum(\DB::raw('amount')) / 100;
-
-        $totalExpense = $user->transactions()
-            ->where('type', 'expense')
-            ->whereBetween('transaction_date', [$startDate, $endDate])
-            ->sum(\DB::raw('amount')) / 100;
-
-        // Average daily spending
-        $days = now()->parse($startDate)->diffInDays(now()->parse($endDate)) + 1;
-        $avgDailySpending = $days > 0 ? $totalExpense / $days : 0;
-
-        // Spending by account
-        $accountSpending = $user->transactions()
-            ->where('type', 'expense')
-            ->whereBetween('transaction_date', [$startDate, $endDate])
-            ->with('account')
+            ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
+            ->selectRaw('accounts.currency, SUM(transactions.amount) as total')
+            ->groupBy('accounts.currency')
             ->get()
-            ->groupBy('account.name')
-            ->map(function ($transactions, $account) {
+            ->mapWithKeys(fn ($r) => [$r->currency => $r->total / 100]);
+
+        $totalExpenseByCurrency = $user->transactions()
+            ->where('type', 'expense')
+            ->whereBetween('transaction_date', [$startDate, $endDate])
+            ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
+            ->selectRaw('accounts.currency, SUM(transactions.amount) as total')
+            ->groupBy('accounts.currency')
+            ->get()
+            ->mapWithKeys(fn ($r) => [$r->currency => $r->total / 100]);
+
+        $days = max(1, now()->parse($startDate)->diffInDays(now()->parse($endDate)) + 1);
+        $avgDailySpendingByCurrency = $totalExpenseByCurrency->map(fn ($total) => $total / $days);
+
+        // Spending by account (each account has one currency)
+        $accountSpending = $expenseTransactions
+            ->groupBy('account_id')
+            ->map(function ($txns) {
+                $account = $txns->first()->account;
+
                 return [
-                    'account' => $account,
-                    'amount' => $transactions->sum('amount'),
+                    'account' => $account?->name ?? 'Unknown',
+                    'amount' => $txns->sum('amount'),
+                    'currency' => $account?->currency ?? 'USD',
                 ];
             })
             ->sortByDesc('amount')
             ->values();
 
-        // Year-over-year comparison (current year vs previous year, by month)
+        // Year-over-year comparison by currency
         $currentYear = now()->year;
         $previousYear = $currentYear - 1;
         $yoyComparison = collect();
 
         for ($month = 1; $month <= 12; $month++) {
-            $currentYearAmount = $user->transactions()
+            $currentAmounts = $user->transactions()
                 ->where('type', 'expense')
                 ->whereYear('transaction_date', $currentYear)
                 ->whereMonth('transaction_date', $month)
-                ->sum(\DB::raw('amount')) / 100;
+                ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
+                ->selectRaw('accounts.currency, SUM(transactions.amount) as total')
+                ->groupBy('accounts.currency')
+                ->get()
+                ->mapWithKeys(fn ($r) => [$r->currency => $r->total / 100]);
 
-            $previousYearAmount = $user->transactions()
+            $previousAmounts = $user->transactions()
                 ->where('type', 'expense')
                 ->whereYear('transaction_date', $previousYear)
                 ->whereMonth('transaction_date', $month)
-                ->sum(\DB::raw('amount')) / 100;
+                ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
+                ->selectRaw('accounts.currency, SUM(transactions.amount) as total')
+                ->groupBy('accounts.currency')
+                ->get()
+                ->mapWithKeys(fn ($r) => [$r->currency => $r->total / 100]);
 
-            $change = $previousYearAmount > 0
-                ? (($currentYearAmount - $previousYearAmount) / $previousYearAmount) * 100
-                : 0;
+            $change = collect($currentAmounts->keys())->merge($previousAmounts->keys())->unique()
+                ->mapWithKeys(function ($cur) use ($currentAmounts, $previousAmounts) {
+                    $curr = $currentAmounts[$cur] ?? 0;
+                    $prev = $previousAmounts[$cur] ?? 0;
+
+                    return [$cur => $prev > 0 ? (($curr - $prev) / $prev) * 100 : 0];
+                })->all();
 
             $yoyComparison->push([
                 'month' => date('M', mktime(0, 0, 0, $month, 1)),
-                'currentYear' => $currentYearAmount,
-                'previousYear' => $previousYearAmount,
+                'currentYear' => $currentAmounts->all(),
+                'previousYear' => $previousAmounts->all(),
                 'change' => $change,
             ]);
         }
@@ -130,14 +156,16 @@ class ReportsController extends Controller
         return Inertia::render('reports/Index', [
             'categorySpending' => $categorySpending,
             'monthlyTrends' => $monthlyTrends,
-            'totalIncome' => $totalIncome,
-            'totalExpense' => $totalExpense,
-            'topCategories' => $categorySpending->take(5),
-            'avgDailySpending' => $avgDailySpending,
+            'totalIncomeByCurrency' => $totalIncomeByCurrency,
+            'totalExpenseByCurrency' => $totalExpenseByCurrency,
+            'avgDailySpendingByCurrency' => $avgDailySpendingByCurrency,
             'accountSpending' => $accountSpending,
             'yoyComparison' => $yoyComparison,
             'startDate' => $startDate,
             'endDate' => $endDate,
+            'currencies' => collect(Currency::cases())->mapWithKeys(fn ($c) => [
+                $c->value => ['symbol' => $c->symbol(), 'label' => $c->label()],
+            ]),
         ]);
     }
 
