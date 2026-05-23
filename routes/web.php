@@ -75,18 +75,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->get()
             ->mapWithKeys(fn ($item) => [$item->currency => $item->total / 100]);
 
-        // Spending by category (current month) - use raw sum
+        // Spending by category (current month) - grouped by category and currency
         $categorySpending = $user->transactions()
-            ->selectRaw('category_id, SUM(amount) as total')
+            ->selectRaw('transactions.category_id, accounts.currency, SUM(transactions.amount) as total')
+            ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
             ->with('category')
-            ->where('type', 'expense')
-            ->where('transaction_date', '>=', $startOfMonth)
-            ->whereNotNull('category_id')
-            ->where('category_id', '!=', '')
+            ->where('transactions.type', 'expense')
+            ->where('transactions.transaction_date', '>=', $startOfMonth)
+            ->whereNotNull('transactions.category_id')
+            ->where('transactions.category_id', '!=', '')
             ->whereHas('category', function ($query) {
                 $query->where('type', 'expense');
             })
-            ->groupBy('category_id')
+            ->groupBy('transactions.category_id', 'accounts.currency')
             ->orderByDesc('total')
             ->take(5)
             ->get()
@@ -94,26 +95,33 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 return [
                     'name' => $transaction->category ? $transaction->category->name : 'Uncategorized',
                     'amount' => $transaction->total / 100,
+                    'currency' => $transaction->currency,
                     'color' => $transaction->category ? $transaction->category->color : '#6b7280',
                 ];
             });
 
-        // Last 6 months trend - use raw sum
+        // Last 6 months trend grouped by currency
         $monthlyTrend = collect();
         for ($i = 5; $i >= 0; $i--) {
             $date = now()->subMonths($i);
 
-            $income = $user->transactions()
-                ->where('type', 'income')
-                ->whereYear('transaction_date', $date->year)
-                ->whereMonth('transaction_date', $date->month)
-                ->sum(\DB::raw('amount')) / 100;
+            $rows = $user->transactions()
+                ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
+                ->whereYear('transactions.transaction_date', $date->year)
+                ->whereMonth('transactions.transaction_date', $date->month)
+                ->selectRaw('transactions.type, accounts.currency, SUM(transactions.amount) as total')
+                ->groupBy('transactions.type', 'accounts.currency')
+                ->get();
 
-            $expense = $user->transactions()
-                ->where('type', 'expense')
-                ->whereYear('transaction_date', $date->year)
-                ->whereMonth('transaction_date', $date->month)
-                ->sum(\DB::raw('amount')) / 100;
+            $income = [];
+            $expense = [];
+            foreach ($rows as $row) {
+                if ($row->type === 'income') {
+                    $income[$row->currency] = ($income[$row->currency] ?? 0) + $row->total / 100;
+                } else {
+                    $expense[$row->currency] = ($expense[$row->currency] ?? 0) + $row->total / 100;
+                }
+            }
 
             $monthlyTrend->push([
                 'month' => $date->format('M'),
@@ -146,6 +154,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                     'amount' => $budget->amount,
                     'spent' => $budget->getSpentAmount(),
                     'status' => $percentage >= 100 ? 'exceeded' : ($percentage >= 80 ? 'warning' : 'ok'),
+                    'currency' => $budget->currency,
                 ];
             });
 

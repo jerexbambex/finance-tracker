@@ -47,52 +47,74 @@ class TransactionController extends Controller
             $q->whereNull('user_id')->orWhere('user_id', auth()->id());
         })->where('is_active', true)->get();
 
-        // Calculate chart data for different periods
-        $dailyData = auth()->user()->transactions()
-            ->where('transaction_date', '>=', now()->subDays(30))
-            ->get()
-            ->groupBy(function ($transaction) {
-                return $transaction->transaction_date->format('Y-m-d');
-            })
-            ->map(function ($dayTransactions, $date) {
-                return [
-                    'period' => date('M d', strtotime($date)),
-                    'income' => $dayTransactions->where('type', 'income')->sum('amount'),
-                    'expense' => $dayTransactions->where('type', 'expense')->sum('amount'),
-                ];
-            })
-            ->sortKeys()
-            ->values();
+        // Calculate chart data for different periods grouped by currency
+        $dailyRows = auth()->user()->transactions()
+            ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
+            ->where('transactions.transaction_date', '>=', now()->subDays(30))
+            ->selectRaw('transactions.type, accounts.currency, DATE(transactions.transaction_date) as day, SUM(transactions.amount) as total')
+            ->groupBy('transactions.type', 'accounts.currency', 'day')
+            ->orderBy('day')
+            ->get();
+
+        $dailyData = $dailyRows->groupBy('day')->map(function ($rows, $day) {
+            $income = [];
+            $expense = [];
+            foreach ($rows as $row) {
+                if ($row->type === 'income') {
+                    $income[$row->currency] = ($income[$row->currency] ?? 0) + $row->total / 100;
+                } else {
+                    $expense[$row->currency] = ($expense[$row->currency] ?? 0) + $row->total / 100;
+                }
+            }
+
+            return ['period' => date('M d', strtotime($day)), 'income' => $income, 'expense' => $expense];
+        })->values();
 
         $monthlyData = collect();
         for ($i = 5; $i >= 0; $i--) {
             $date = now()->subMonths($i);
-            $monthKey = $date->format('Y-m');
-
-            $monthTransactions = auth()->user()->transactions()
-                ->whereYear('transaction_date', $date->year)
-                ->whereMonth('transaction_date', $date->month)
+            $rows = auth()->user()->transactions()
+                ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
+                ->whereYear('transactions.transaction_date', $date->year)
+                ->whereMonth('transactions.transaction_date', $date->month)
+                ->selectRaw('transactions.type, accounts.currency, SUM(transactions.amount) as total')
+                ->groupBy('transactions.type', 'accounts.currency')
                 ->get();
 
-            $monthlyData->push([
-                'period' => $date->format('M'),
-                'income' => $monthTransactions->where('type', 'income')->sum('amount'),
-                'expense' => $monthTransactions->where('type', 'expense')->sum('amount'),
-            ]);
+            $income = [];
+            $expense = [];
+            foreach ($rows as $row) {
+                if ($row->type === 'income') {
+                    $income[$row->currency] = ($income[$row->currency] ?? 0) + $row->total / 100;
+                } else {
+                    $expense[$row->currency] = ($expense[$row->currency] ?? 0) + $row->total / 100;
+                }
+            }
+
+            $monthlyData->push(['period' => $date->format('M'), 'income' => $income, 'expense' => $expense]);
         }
 
         $yearlyData = collect();
         for ($month = 1; $month <= 12; $month++) {
-            $monthTransactions = auth()->user()->transactions()
-                ->whereYear('transaction_date', now()->year)
-                ->whereMonth('transaction_date', $month)
+            $rows = auth()->user()->transactions()
+                ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
+                ->whereYear('transactions.transaction_date', now()->year)
+                ->whereMonth('transactions.transaction_date', $month)
+                ->selectRaw('transactions.type, accounts.currency, SUM(transactions.amount) as total')
+                ->groupBy('transactions.type', 'accounts.currency')
                 ->get();
 
-            $yearlyData->push([
-                'period' => date('M', mktime(0, 0, 0, $month, 1)),
-                'income' => $monthTransactions->where('type', 'income')->sum('amount'),
-                'expense' => $monthTransactions->where('type', 'expense')->sum('amount'),
-            ]);
+            $income = [];
+            $expense = [];
+            foreach ($rows as $row) {
+                if ($row->type === 'income') {
+                    $income[$row->currency] = ($income[$row->currency] ?? 0) + $row->total / 100;
+                } else {
+                    $expense[$row->currency] = ($expense[$row->currency] ?? 0) + $row->total / 100;
+                }
+            }
+
+            $yearlyData->push(['period' => date('M', mktime(0, 0, 0, $month, 1)), 'income' => $income, 'expense' => $expense]);
         }
 
         $savedFilters = auth()->user()->savedFilters()
