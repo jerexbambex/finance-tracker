@@ -26,13 +26,26 @@ class UserFactory extends Factory
         return [
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
+            'phone_number' => fake()->unique()->e164PhoneNumber(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
             'two_factor_secret' => null,
             'two_factor_recovery_codes' => null,
             'two_factor_confirmed_at' => null,
+            'subscription_tier' => 'free',
+            'premium_since' => null,
+            'subscription_expires_at' => null,
         ];
+    }
+
+    public function premium(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'subscription_tier' => 'premium',
+            'premium_since' => now(),
+            'subscription_expires_at' => now()->addYear(),
+        ]);
     }
 
     /**

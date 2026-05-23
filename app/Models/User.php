@@ -11,6 +11,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Lab404\Impersonate\Models\Impersonate;
 use Laravel\Fortify\TwoFactorAuthenticatable;
+use Laravel\Sanctum\HasApiTokens;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Permission\Traits\HasRoles;
@@ -18,7 +19,7 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, HasRoles, HasUuids, Impersonate, LogsActivity, Notifiable, TwoFactorAuthenticatable;
+    use HasApiTokens, HasFactory, HasRoles, HasUuids, Impersonate, LogsActivity, Notifiable, TwoFactorAuthenticatable;
 
     /**
      * The attributes that are mass assignable.
@@ -28,8 +29,12 @@ class User extends Authenticatable implements FilamentUser
     protected $fillable = [
         'name',
         'email',
+        'phone_number',
         'password',
         'email_verified_at',
+        'subscription_tier',
+        'premium_since',
+        'subscription_expires_at',
     ];
 
     /**
@@ -55,7 +60,19 @@ class User extends Authenticatable implements FilamentUser
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
+            'premium_since' => 'datetime',
+            'subscription_expires_at' => 'datetime',
         ];
+    }
+
+    public function isPremium(): bool
+    {
+        if ($this->subscription_tier !== 'premium') {
+            return false;
+        }
+
+        return $this->subscription_expires_at === null
+            || $this->subscription_expires_at->isFuture();
     }
 
     public function accounts()
