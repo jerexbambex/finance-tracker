@@ -38,7 +38,7 @@ interface Transaction {
   amount: number;
   description: string;
   transaction_date: string;
-  account: { id: string; name: string };
+  account: { id: string; name: string; currency: string };
   category?: { id: string; name: string; color?: string };
   splits?: Array<{ id: string; category: { name: string }; amount: number }>;
 }
@@ -58,9 +58,9 @@ interface Props {
   accounts: Account[];
   categories: Category[];
   chartData: {
-    daily: Array<{ period: string; income: number; expense: number }>;
-    monthly: Array<{ period: string; income: number; expense: number }>;
-    yearly: Array<{ period: string; income: number; expense: number }>;
+    daily: Array<{ period: string; income: Record<string, number>; expense: Record<string, number> }>;
+    monthly: Array<{ period: string; income: Record<string, number>; expense: Record<string, number> }>;
+    yearly: Array<{ period: string; income: Record<string, number>; expense: Record<string, number> }>;
   };
 }
 
@@ -71,6 +71,7 @@ export default function Index({ transactions, categories, chartData }: Props) {
   const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [chartPeriod, setChartPeriod] = useState<'daily' | 'monthly' | 'yearly'>('monthly');
+  const [chartCurrency, setChartCurrency] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
@@ -121,10 +122,10 @@ export default function Index({ transactions, categories, chartData }: Props) {
     });
   };
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number, currency = 'USD') => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency,
     }).format(amount);
   };
 
@@ -144,20 +145,32 @@ export default function Index({ transactions, categories, chartData }: Props) {
     });
   };
 
-  // Calculate totals
-  const totalIncome = transactions.data
+  // Calculate totals per currency
+  const incomeByCurrency = transactions.data
     .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + t.amount, 0);
-  
-  const totalExpense = transactions.data
+    .reduce<Record<string, number>>((acc, t) => ({
+      ...acc,
+      [t.account.currency]: (acc[t.account.currency] ?? 0) + t.amount,
+    }), {});
+
+  const expenseByCurrency = transactions.data
     .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + t.amount, 0);
-  
-  const netAmount = totalIncome - totalExpense;
+    .reduce<Record<string, number>>((acc, t) => ({
+      ...acc,
+      [t.account.currency]: (acc[t.account.currency] ?? 0) + t.amount,
+    }), {});
+
+  const netByCurrency = Object.keys({ ...incomeByCurrency, ...expenseByCurrency }).reduce<Record<string, number>>(
+    (acc, currency) => ({
+      ...acc,
+      [currency]: (incomeByCurrency[currency] ?? 0) - (expenseByCurrency[currency] ?? 0),
+    }),
+    {},
+  );
 
   // Get current chart data based on selected period and date filters
-  let currentChartData = chartData?.[chartPeriod] || [];
-  
+  let rawChartData = chartData?.[chartPeriod] || [];
+
   // If date filters are applied, recalculate chart data from filtered transactions
   if (dateFrom || dateTo) {
     const filteredForChart = transactions.data.filter(t => {
@@ -165,12 +178,11 @@ export default function Index({ transactions, categories, chartData }: Props) {
       if (dateTo && new Date(t.transaction_date) > new Date(dateTo)) return false;
       return true;
     });
-    
-    // Group by period
-    const grouped = filteredForChart.reduce((acc: Record<string, { period: string; income: number; expense: number }>, t) => {
+
+    const grouped = filteredForChart.reduce((acc: Record<string, { period: string; income: Record<string, number>; expense: Record<string, number> }>, t) => {
       const date = new Date(t.transaction_date);
       let key = '';
-      
+
       if (chartPeriod === 'daily') {
         key = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
       } else if (chartPeriod === 'monthly') {
@@ -178,23 +190,37 @@ export default function Index({ transactions, categories, chartData }: Props) {
       } else {
         key = date.toLocaleDateString('en-US', { month: 'short' });
       }
-      
+
       if (!acc[key]) {
-        acc[key] = { period: key, income: 0, expense: 0 };
+        acc[key] = { period: key, income: {}, expense: {} };
       }
-      
+
+      const currency = t.account.currency;
       if (t.type === 'income') {
-        acc[key].income += t.amount;
+        acc[key].income[currency] = (acc[key].income[currency] ?? 0) + t.amount;
       } else {
-        acc[key].expense += t.amount;
+        acc[key].expense[currency] = (acc[key].expense[currency] ?? 0) + t.amount;
       }
-      
+
       return acc;
     }, {});
-    
-    currentChartData = Object.values(grouped);
+
+    rawChartData = Object.values(grouped);
   }
-  
+
+  const chartCurrencies = [...new Set(
+    rawChartData.flatMap((d) => [...Object.keys(d.income), ...Object.keys(d.expense)]),
+  )];
+  const activeCurrency = chartCurrency && chartCurrencies.includes(chartCurrency)
+    ? chartCurrency
+    : (chartCurrencies[0] ?? '');
+
+  const currentChartData = rawChartData.map((d) => ({
+    period: d.period,
+    income: d.income[activeCurrency] ?? 0,
+    expense: d.expense[activeCurrency] ?? 0,
+  }));
+
   const chartLabel = chartPeriod === 'daily' ? 'Last 30 days' : chartPeriod === 'monthly' ? 'Last 6 months' : 'This year (12 months)';
 
   const chartConfig = {
@@ -355,7 +381,12 @@ export default function Index({ transactions, categories, chartData }: Props) {
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="text-sm font-medium text-muted-foreground">Total Income</div>
-                        <div className="text-2xl font-bold text-green-600 mt-2">{formatCurrency(totalIncome)}</div>
+                        <div className="mt-2 space-y-0.5">
+                          {Object.entries(incomeByCurrency).map(([currency, amount]) => (
+                            <div key={currency} className="text-2xl font-bold text-green-600">{formatCurrency(amount, currency)}</div>
+                          ))}
+                          {Object.keys(incomeByCurrency).length === 0 && <div className="text-2xl font-bold text-green-600">—</div>}
+                        </div>
                       </div>
                       <div className="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
                         <TrendingUp className="h-6 w-6 text-green-600" />
@@ -368,7 +399,12 @@ export default function Index({ transactions, categories, chartData }: Props) {
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="text-sm font-medium text-muted-foreground">Total Expenses</div>
-                        <div className="text-2xl font-bold text-red-600 mt-2">{formatCurrency(totalExpense)}</div>
+                        <div className="mt-2 space-y-0.5">
+                          {Object.entries(expenseByCurrency).map(([currency, amount]) => (
+                            <div key={currency} className="text-2xl font-bold text-red-600">{formatCurrency(amount, currency)}</div>
+                          ))}
+                          {Object.keys(expenseByCurrency).length === 0 && <div className="text-2xl font-bold text-red-600">—</div>}
+                        </div>
                       </div>
                       <div className="h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
                         <TrendingDown className="h-6 w-6 text-red-600" />
@@ -381,12 +417,17 @@ export default function Index({ transactions, categories, chartData }: Props) {
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="text-sm font-medium text-muted-foreground">Net</div>
-                        <div className={`text-2xl font-bold mt-2 ${netAmount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {formatCurrency(netAmount)}
+                        <div className="mt-2 space-y-0.5">
+                          {Object.entries(netByCurrency).map(([currency, amount]) => (
+                            <div key={currency} className={`text-2xl font-bold ${amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {formatCurrency(amount, currency)}
+                            </div>
+                          ))}
+                          {Object.keys(netByCurrency).length === 0 && <div className="text-2xl font-bold">—</div>}
                         </div>
                       </div>
-                      <div className={`h-12 w-12 rounded-full flex items-center justify-center ${netAmount >= 0 ? 'bg-green-100 dark:bg-green-900/20' : 'bg-red-100 dark:bg-red-900/20'}`}>
-                        <Wallet className={`h-6 w-6 ${netAmount >= 0 ? 'text-green-600' : 'text-red-600'}`} />
+                      <div className={`h-12 w-12 rounded-full flex items-center justify-center ${Object.values(netByCurrency).every(v => v >= 0) ? 'bg-green-100 dark:bg-green-900/20' : 'bg-red-100 dark:bg-red-900/20'}`}>
+                        <Wallet className={`h-6 w-6 ${Object.values(netByCurrency).every(v => v >= 0) ? 'text-green-600' : 'text-red-600'}`} />
                       </div>
                     </div>
                   </CardContent>
@@ -400,16 +441,30 @@ export default function Index({ transactions, categories, chartData }: Props) {
                       <CardTitle>Income vs Expenses</CardTitle>
                       <p className="text-sm text-muted-foreground mt-1">{chartLabel}</p>
                     </div>
-                    <Select value={chartPeriod} onValueChange={(value) => setChartPeriod(value as 'daily' | 'monthly' | 'yearly')}>
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="daily">Daily</SelectItem>
-                        <SelectItem value="monthly">Monthly</SelectItem>
-                        <SelectItem value="yearly">Yearly</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="flex gap-2">
+                      {chartCurrencies.length > 1 && (
+                        <Select value={activeCurrency} onValueChange={setChartCurrency}>
+                          <SelectTrigger className="w-24">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {chartCurrencies.map((c) => (
+                              <SelectItem key={c} value={c}>{c}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                      <Select value={chartPeriod} onValueChange={(value) => setChartPeriod(value as 'daily' | 'monthly' | 'yearly')}>
+                        <SelectTrigger className="w-32">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="daily">Daily</SelectItem>
+                          <SelectItem value="monthly">Monthly</SelectItem>
+                          <SelectItem value="yearly">Yearly</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -426,7 +481,7 @@ export default function Index({ transactions, categories, chartData }: Props) {
                         <YAxis 
                           tickLine={false}
                           axisLine={false}
-                          tickFormatter={(value) => `$${value}`}
+                          tickFormatter={(value) => formatCurrency(value, activeCurrency)}
                         />
                         <ChartTooltip content={<ChartTooltipContent />} />
                         <Line 
@@ -610,7 +665,7 @@ export default function Index({ transactions, categories, chartData }: Props) {
                             }`}
                           >
                             {transaction.type === 'income' ? '+' : '-'}
-                            {formatCurrency(transaction.amount)}
+                            {formatCurrency(transaction.amount, transaction.account.currency)}
                           </span>
                         </TableCell>
                         <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
