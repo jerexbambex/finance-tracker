@@ -111,7 +111,10 @@ export default function Index({ accounts, currencies = [] }: Props) {
     return type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
   };
 
-  const totalBalance = accounts.reduce((sum, acc) => sum + acc.balance, 0);
+  const balancesByCurrency = accounts.reduce<Record<string, number>>((acc, account) => ({
+    ...acc,
+    [account.currency]: (acc[account.currency] ?? 0) + account.balance,
+  }), {});
   const activeAccounts = accounts.filter(acc => acc.is_active).length;
   const accountsByType = accounts.reduce((acc: Record<string, number>, account) => {
     acc[account.type] = (acc[account.type] || 0) + 1;
@@ -230,7 +233,11 @@ export default function Index({ accounts, currencies = [] }: Props) {
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="text-sm font-medium text-muted-foreground">Total Balance</div>
-                      <div className="text-2xl font-bold mt-2">{formatCurrency(totalBalance)}</div>
+                      <div className="mt-2 space-y-0.5">
+                        {Object.entries(balancesByCurrency).map(([currency, amount]) => (
+                          <div key={currency} className="text-2xl font-bold">{formatCurrency(amount, currency)}</div>
+                        ))}
+                      </div>
                     </div>
                     <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
                       <Wallet className="h-6 w-6 text-blue-600" />
