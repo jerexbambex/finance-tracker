@@ -77,6 +77,31 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasMany(RefreshToken::class);
     }
 
+    /**
+     * The account API-created transactions are attached to.
+     *
+     * Web users create accounts explicitly; mobile users don't model
+     * accounts at all (see Flutter Transaction model). This returns the
+     * user's first active account, creating a default "Personal" cash
+     * account on first use so account_id remains NOT NULL.
+     */
+    public function defaultAccount(): Account
+    {
+        $existing = $this->accounts()->where('is_active', true)->orderBy('created_at')->first();
+
+        if ($existing !== null) {
+            return $existing;
+        }
+
+        return $this->accounts()->create([
+            'name' => 'Personal',
+            'type' => 'cash',
+            'balance' => 0,
+            'currency' => 'USD',
+            'is_active' => true,
+        ]);
+    }
+
     public function isPremium(): bool
     {
         if ($this->subscription_tier !== 'premium') {
