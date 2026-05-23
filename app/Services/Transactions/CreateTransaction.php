@@ -2,6 +2,7 @@
 
 namespace App\Services\Transactions;
 
+use App\Models\Category;
 use App\Models\Transaction;
 use App\Models\User;
 use Carbon\Carbon;
@@ -14,15 +15,16 @@ class CreateTransaction
     {
         $validated = $this->validate($data);
 
-        $this->validateOwnership($user, $validated);
+        $account = $this->resolveOwnedAccount($user, $validated['account_id']);
+        $category = $this->resolveCategory($user, $validated);
 
-        $transaction = Transaction::create([
+        $transaction = $user->transactions()->create([
             'user_id' => $user->id,
-            'account_id' => $validated['account_id'],
-            'category_id' => $validated['category_id'] ?? null,
+            'account_id' => $account->id,
+            'category_id' => $category?->id,
             'type' => $validated['type'],
             'amount' => $validated['amount'],
-            'currency' => $validated['currency'] ?? 'CAD',
+            'currency' => strtoupper($validated['currency'] ?? $account->currency ?? 'CAD'),
             'description' => $validated['description'] ?? null,
             'transaction_date' => $this->normalizeDate($validated['date'] ?? now()),
             'notes' => $validated['notes'] ?? null,
@@ -36,7 +38,9 @@ class CreateTransaction
             'description' => $transaction->description,
             'date' => $transaction->transaction_date->format('Y-m-d'),
             'category_id' => $transaction->category_id,
+            'category' => $category?->name,
             'account_id' => $transaction->account_id,
+            'account' => $account->name,
         ];
     }
 
@@ -49,6 +53,7 @@ class CreateTransaction
             'description' => 'nullable|string|max:255',
             'date' => 'nullable|date',
             'category_id' => 'nullable|uuid|exists:categories,id',
+            'category' => 'nullable|string|max:255',
             'account_id' => 'required|uuid|exists:accounts,id',
             'notes' => 'nullable|string',
         ]);
@@ -60,25 +65,61 @@ class CreateTransaction
         return $validator->validated();
     }
 
-    private function validateOwnership(User $user, array $validated): void
+    private function resolveOwnedAccount(User $user, string $accountId)
     {
-        if (isset($validated['account_id'])) {
-            $account = $user->accounts()->find($validated['account_id']);
-            if (!$account) {
-                throw ValidationException::withMessages(['account_id' => 'Account not found or does not belong to user.']);
-            }
+        $account = $user->accounts()->find($accountId);
+
+        if (! $account) {
+            throw ValidationException::withMessages([
+                'account_id' => 'Account not found or does not belong to user.',
+            ]);
         }
 
-        if (isset($validated['category_id'])) {
-            $category = $user->categories()->find($validated['category_id']);
-            if (!$category) {
-                throw ValidationException::withMessages(['category_id' => 'Category not found or does not belong to user.']);
-            }
+        return $account;
+    }
+
+    private function resolveCategory(User $user, array $validated): ?Category
+    {
+        $categoryId = $validated['category_id'] ?? null;
+        $categoryName = $validated['category'] ?? null;
+
+        if (! $categoryId && ! $categoryName) {
+            return null;
         }
+
+        $query = Category::query()
+            ->where(function ($query) use ($user) {
+                $query->where('user_id', $user->id)
+                    ->orWhereNull('user_id');
+            });
+
+        if ($categoryId) {
+            $category = $query->whereKey($categoryId)->first();
+
+            if (! $category) {
+                throw ValidationException::withMessages([
+                    'category_id' => 'Category not found or does not belong to user.',
+                ]);
+            }
+
+            return $category;
+        }
+
+        $category = $query
+            ->whereRaw('LOWER(name) = ?', [mb_strtolower($categoryName)])
+            ->first();
+
+        if (! $category) {
+            throw ValidationException::withMessages([
+                'category' => 'Category not found or does not belong to user.',
+            ]);
+        }
+
+        return $category;
     }
 
     private function normalizeDate($date): Carbon
     {
-        return $date instanceof Carbon ? $date : Carbon::parse($date);
+        return ($date instanceof Carbon ? $date : Carbon::parse($date))->startOfDay();
     }
 }

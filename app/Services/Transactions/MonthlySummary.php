@@ -4,6 +4,7 @@ namespace App\Services\Transactions;
 
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 
 class MonthlySummary
 {
@@ -14,6 +15,7 @@ class MonthlySummary
         $endDate = $date->copy()->endOfMonth();
 
         $transactions = $user->transactions()
+            ->with('category')
             ->whereBetween('transaction_date', [$startDate, $endDate])
             ->get();
 
@@ -22,14 +24,19 @@ class MonthlySummary
 
         $categoryBreakdown = $transactions->where('type', 'expense')
             ->groupBy('category_id')
-            ->map(function ($items) {
+            ->map(function (Collection $items) {
                 $category = $items->first()->category;
+
                 return [
+                    'category_id' => $items->first()->category_id,
                     'category' => $category?->name ?? 'Uncategorized',
                     'amount' => $items->sum('amount'),
                     'count' => $items->count(),
                 ];
-            })->values()->toArray();
+            })
+            ->sortByDesc('amount')
+            ->values()
+            ->toArray();
 
         return [
             'period' => $date->format('Y-m'),
