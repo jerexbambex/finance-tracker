@@ -37,7 +37,13 @@ return [
     |
     */
 
-    'guard' => ['web'],
+    /*
+    | Margin's API is bearer-only for the mobile client. Leave this empty
+    | so Sanctum never falls back to session auth on stateful domains —
+    | that fallback would keep a user "authenticated" after their bearer
+    | token was deleted (e.g. via /auth/logout).
+    */
+    'guard' => [],
 
     /*
     |--------------------------------------------------------------------------
@@ -50,7 +56,20 @@ return [
     |
     */
 
-    'expiration' => null,
+    'expiration' => env('SANCTUM_ACCESS_TTL_MINUTES', 15),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Refresh Token TTL (days)
+    |--------------------------------------------------------------------------
+    |
+    | Margin's mobile auth flow uses a separate refresh-token table on top of
+    | Sanctum. This value controls how long a freshly-issued refresh token
+    | remains valid.
+    |
+    */
+
+    'refresh_ttl_days' => env('SANCTUM_REFRESH_TTL_DAYS', 30),
 
     /*
     |--------------------------------------------------------------------------

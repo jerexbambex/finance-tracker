@@ -28,10 +28,15 @@ class User extends Authenticatable implements FilamentUser
      */
     protected $fillable = [
         'name',
+        'first_name',
+        'last_name',
         'email',
         'phone_number',
         'password',
         'email_verified_at',
+        'goal',
+        'biometric_enabled',
+        'biometric_token_hash',
         'subscription_tier',
         'premium_since',
         'subscription_expires_at',
@@ -47,6 +52,7 @@ class User extends Authenticatable implements FilamentUser
         'two_factor_secret',
         'two_factor_recovery_codes',
         'remember_token',
+        'biometric_token_hash',
     ];
 
     /**
@@ -62,7 +68,13 @@ class User extends Authenticatable implements FilamentUser
             'two_factor_confirmed_at' => 'datetime',
             'premium_since' => 'datetime',
             'subscription_expires_at' => 'datetime',
+            'biometric_enabled' => 'boolean',
         ];
+    }
+
+    public function refreshTokens(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(RefreshToken::class);
     }
 
     public function isPremium(): bool
