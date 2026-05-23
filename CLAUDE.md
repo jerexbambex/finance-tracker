@@ -1,3 +1,66 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Commands
+
+```bash
+composer run dev          # starts PHP server, queue worker, pail log viewer, and Vite dev server together
+php artisan test --compact                          # run all tests
+php artisan test --compact --filter=TestName        # run single test or filter
+vendor/bin/pint --dirty --format agent              # fix PHP code style (run before finalizing changes)
+npm run lint                                        # ESLint fix
+npm run types                                       # TypeScript type-check (no emit)
+npm run format                                      # Prettier write
+php artisan migrate --seed                          # fresh DB with seeders
+php artisan db:seed --class=RolesAndPermissionsSeeder && php artisan db:seed --class=AdminUserSeeder  # create admin
+```
+
+## Architecture
+
+**Stack:** Laravel 12 · React 19 · Inertia v2 · Filament 4 · TailwindCSS 4 · Pest 4 · Laravel AI SDK
+
+### Layer breakdown
+
+| Layer | Location | Purpose |
+|-------|----------|---------|
+| Pages | `resources/js/pages/` | Inertia React pages, one file per route |
+| Components | `resources/js/components/` | Shared UI; `Chat/`, `Landing/`, `ui/` sub-dirs |
+| Controllers | `app/Http/Controllers/` | Thin — validate, call Service, return Inertia/JSON |
+| Services | `app/Services/{Domain}/` | Business logic with a single `execute(User, array): array` method |
+| Models | `app/Models/` | All use UUIDs (`HasUuids`). Monetary models have accessor/mutator |
+| Filament | `app/Filament/Resources/` | Admin panel at `/admin` — Resources, Pages, Widgets |
+| AI Agent | `app/Ai/Agents/FinanceAssistant.php` | `laravel/ai` Agent; wraps MCP tools via `McpToolAdapter` |
+| MCP Tools | `app/Mcp/Tools/` | Extend `LoggedTool`; each tool delegates to a Service class |
+| Policies | `app/Policies/` | Gate all resource access |
+| Routes | `routes/web.php`, `routes/settings.php`, `routes/console.php` | No `api.php` — chat endpoint is in `web.php` under `api/` prefix |
+
+### Money / amount convention — critical
+
+All monetary amounts are **stored as integer cents** in the database. Models (`Transaction`, `Budget`, `Account`, `Goal`, `RecurringTransaction`) carry accessor/mutator pairs that convert automatically.
+
+- **Never** multiply or divide by 100 in controllers or services — the mutator does it.
+- When using aggregate SQL (`sum()`, `avg()`), bypass the accessor: `Transaction::sum(DB::raw('amount')) / 100`.
+- See `AMOUNT_HANDLING.md` for full details.
+
+### AI chat pipeline
+
+1. `POST /api/chat` → `ChatController@chat` (streamed SSE via `laravel/ai`)
+2. Agent: `FinanceAssistant` — `laravel/ai` `Agent` + `HasTools`, provider/model from DB
+3. Tools: MCP tool classes in `app/Mcp/Tools/` wrapped by `McpToolAdapter` (converts `McpRequest` ↔ `AiToolRequest`)
+4. Persistence: `AiConversation` → `AiMessage` (role: user/assistant/tool_call/tool_result)
+5. Idempotency: `client_message_id` UUID prevents duplicate messages on retry
+6. Rate limiting: `ai-chat` limiter in `AppServiceProvider`, configurable per-minute via `AiSettings` singleton (reads from `ai_settings` table)
+7. Admin controls: `AiSetting` model editable via Filament `ProviderSettingsPage`
+
+### Wayfinder routes
+
+Backend routes are typed as TypeScript functions via `laravel/wayfinder`. Import from `@/actions/` (controllers) or `@/routes/` (named routes). Run `php artisan wayfinder:generate` after adding/changing routes.
+
+### Auth
+
+Fortify handles authentication (headless). Features configured in `config/fortify.php`. Fortify actions live in `app/Actions/Fortify/`. Views registered in `FortifyServiceProvider`.
+
 <laravel-boost-guidelines>
 === foundation rules ===
 
