@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 
-
 interface Insight {
     category?: string;
     current?: number;
@@ -28,6 +27,7 @@ interface Insight {
     spent?: number;
     overspend?: number;
     count?: number;
+    currency?: string;
 }
 
 interface Insights {
@@ -40,9 +40,10 @@ interface Insights {
 
 interface Props {
     insights: Insights;
+    primaryCurrency: string;
 }
 
-export default function Index({ insights }: Props) {
+export default function Index({ insights, primaryCurrency }: Props) {
     const [aiInsights, setAiInsights] = useState<string | null>(null);
     const [loadingAi, setLoadingAi] = useState(false);
 
@@ -58,14 +59,10 @@ export default function Index({ insights }: Props) {
         }
     };
 
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'USD',
-        }).format(amount);
-    };
+    const formatCurrency = (amount: number, currency = primaryCurrency) =>
+        new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
 
-    const hasAnyInsights = 
+    const hasAnyInsights =
         insights.unusual_spending.length > 0 ||
         insights.category_trends.length > 0 ||
         insights.recurring_expenses.length > 0 ||
@@ -158,11 +155,11 @@ export default function Index({ insights }: Props) {
                                                             <ArrowUpRight className="h-3 w-3 mr-1" />
                                                             +{item.increase_percent}%
                                                         </Badge>
-                                                        <span className="text-xs text-muted-foreground">vs avg {formatCurrency(item.average!)}</span>
+                                                        <span className="text-xs text-muted-foreground">vs avg {formatCurrency(item.average!, item.currency)}</span>
                                                     </div>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="text-2xl font-bold">{formatCurrency(item.current!)}</p>
+                                                    <p className="text-2xl font-bold">{formatCurrency(item.current!, item.currency)}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -199,16 +196,16 @@ export default function Index({ insights }: Props) {
                                                     <div className="space-y-2">
                                                         <div className="flex justify-between text-sm">
                                                             <span className="text-muted-foreground">Budgeted</span>
-                                                            <span className="font-medium">{formatCurrency(item.budgeted!)}</span>
+                                                            <span className="font-medium">{formatCurrency(item.budgeted!, item.currency)}</span>
                                                         </div>
                                                         <div className="flex justify-between text-sm">
                                                             <span className="text-muted-foreground">Spent</span>
-                                                            <span className="font-medium text-orange-600">{formatCurrency(item.spent!)}</span>
+                                                            <span className="font-medium text-orange-600">{formatCurrency(item.spent!, item.currency)}</span>
                                                         </div>
                                                         <div className="pt-2 border-t">
                                                             <div className="flex items-center justify-between">
                                                                 <span className="text-sm font-medium">Reduce by</span>
-                                                                <span className="text-lg font-bold text-yellow-600">{formatCurrency(item.overspend!)}</span>
+                                                                <span className="text-lg font-bold text-yellow-600">{formatCurrency(item.overspend!, item.currency)}</span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -218,8 +215,8 @@ export default function Index({ insights }: Props) {
                                                 <>
                                                     <p className="font-semibold mb-2">Small Purchases</p>
                                                     <div className="flex items-center justify-between">
-                                                        <span className="text-sm text-muted-foreground">{item.count} purchases under $20</span>
-                                                        <span className="text-xl font-bold">{formatCurrency(item.total!)}</span>
+                                                        <span className="text-sm text-muted-foreground">{item.count} low-value purchases</span>
+                                                        <span className="text-xl font-bold">{formatCurrency(item.total!, item.currency)}</span>
                                                     </div>
                                                 </>
                                             )}
@@ -263,9 +260,9 @@ export default function Index({ insights }: Props) {
                                                     </div>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="text-xl font-bold">{formatCurrency(item.total!)}</p>
+                                                    <p className="text-xl font-bold">{formatCurrency(item.total!, item.currency)}</p>
                                                     <p className="text-xs text-muted-foreground font-mono">
-                                                        {item.months?.map(m => formatCurrency(m).replace('$', '')).join(' → ')}
+                                                        {item.months?.map((m) => formatCurrency(m, item.currency)).join(' → ')}
                                                     </p>
                                                 </div>
                                             </div>
@@ -304,7 +301,7 @@ export default function Index({ insights }: Props) {
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <p className="text-xl font-bold ml-4">{formatCurrency(item.amount!)}</p>
+                                                <p className="text-xl font-bold ml-4">{formatCurrency(item.amount!, item.currency)}</p>
                                             </div>
                                         </div>
                                     ))}
@@ -335,15 +332,16 @@ export default function Index({ insights }: Props) {
                                                         <p className="font-semibold mb-4 flex items-center gap-2">
                                                             <Calendar className="h-4 w-4" />
                                                             Weekend vs Weekday
+                                                            {item.currency && <span className="text-xs font-normal text-muted-foreground ml-1">({item.currency})</span>}
                                                         </p>
                                                         <div className="grid grid-cols-2 gap-4">
                                                             <div className="space-y-1">
                                                                 <p className="text-sm text-muted-foreground">Weekend</p>
-                                                                <p className="text-2xl font-bold">{formatCurrency(item.weekend!)}</p>
+                                                                <p className="text-2xl font-bold">{formatCurrency(item.weekend!, item.currency)}</p>
                                                             </div>
                                                             <div className="space-y-1">
                                                                 <p className="text-sm text-muted-foreground">Weekday</p>
-                                                                <p className="text-2xl font-bold">{formatCurrency(item.weekday!)}</p>
+                                                                <p className="text-2xl font-bold">{formatCurrency(item.weekday!, item.currency)}</p>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -353,8 +351,9 @@ export default function Index({ insights }: Props) {
                                                         <p className="font-semibold mb-4 flex items-center gap-2">
                                                             <DollarSign className="h-4 w-4" />
                                                             Average Transaction
+                                                            {item.currency && <span className="text-xs font-normal text-muted-foreground ml-1">({item.currency})</span>}
                                                         </p>
-                                                        <p className="text-4xl font-bold">{formatCurrency(item.amount!)}</p>
+                                                        <p className="text-4xl font-bold">{formatCurrency(item.amount!, item.currency)}</p>
                                                         <p className="text-sm text-muted-foreground mt-1">per transaction</p>
                                                     </div>
                                                 )}

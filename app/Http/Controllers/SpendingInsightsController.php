@@ -18,8 +18,11 @@ class SpendingInsightsController extends Controller
         $insights['spending_patterns'] = $this->analyzeSpendingPatterns($user);
         $insights['savings_opportunities'] = $this->findSavingsOpportunities($user);
 
+        $primaryCurrency = $user->accounts()->where('is_active', true)->value('currency') ?? 'USD';
+
         return Inertia::render('insights/Index', [
             'insights' => $insights,
+            'primaryCurrency' => $primaryCurrency,
         ]);
     }
 
@@ -27,10 +30,7 @@ class SpendingInsightsController extends Controller
     {
         $user = $request->user();
 
-        // Prepare spending summary for AI
         $spendingSummary = $this->prepareSpendingSummary($user);
-
-        // Call AWS Bedrock for AI analysis
         $aiInsights = $this->callBedrockForAnalysis($spendingSummary);
 
         return response()->json(['insights' => $aiInsights]);
@@ -45,28 +45,42 @@ class SpendingInsightsController extends Controller
             $threeMonthsAgo = now()->subMonths(3);
             $lastMonth = now()->subMonth();
 
-            $avgSpending = $user->transactions()
-                ->where('category_id', $category->id)
-                ->where('type', 'expense')
-                ->whereBetween('transaction_date', [$threeMonthsAgo, $lastMonth])
-                ->avg(\DB::raw('amount'));
+            $avgRows = $user->transactions()
+                ->where('transactions.type', 'expense')
+                ->where('transactions.category_id', $category->id)
+                ->whereBetween('transactions.transaction_date', [$threeMonthsAgo, $lastMonth])
+                ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
+                ->selectRaw('accounts.currency, AVG(transactions.amount) as avg_amount')
+                ->groupBy('accounts.currency')
+                ->get();
 
-            $currentMonth = $user->transactions()
-                ->where('category_id', $category->id)
-                ->where('type', 'expense')
-                ->where('transaction_date', '>=', now()->startOfMonth())
-                ->sum(\DB::raw('amount'));
+            $currentRows = $user->transactions()
+                ->where('transactions.type', 'expense')
+                ->where('transactions.category_id', $category->id)
+                ->where('transactions.transaction_date', '>=', now()->startOfMonth())
+                ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
+                ->selectRaw('accounts.currency, SUM(transactions.amount) as total')
+                ->groupBy('accounts.currency')
+                ->get()
+                ->mapWithKeys(fn ($r) => [$r->currency => $r->total]);
 
-            if ($avgSpending > 0 && $currentMonth > ($avgSpending * 1.5)) {
-                $increase = (($currentMonth - $avgSpending) / $avgSpending) * 100;
-                $results[] = [
-                    'category' => $category->name,
-                    'current' => $currentMonth / 100,
-                    'average' => $avgSpending / 100,
-                    'increase_percent' => round($increase, 1),
-                    'type' => 'warning',
-                    'message' => "Your {$category->name} spending is ".round($increase, 0).'% higher than usual',
-                ];
+            foreach ($avgRows as $avgRow) {
+                $currency = $avgRow->currency;
+                $avgAmount = $avgRow->avg_amount;
+                $currentAmount = $currentRows[$currency] ?? 0;
+
+                if ($avgAmount > 0 && $currentAmount > ($avgAmount * 1.5)) {
+                    $increase = (($currentAmount - $avgAmount) / $avgAmount) * 100;
+                    $results[] = [
+                        'category' => $category->name,
+                        'current' => $currentAmount / 100,
+                        'average' => $avgAmount / 100,
+                        'increase_percent' => round($increase, 1),
+                        'type' => 'warning',
+                        'message' => "Your {$category->name} spending is ".round($increase, 0).'% higher than usual',
+                        'currency' => $currency,
+                    ];
+                }
             }
         }
 
@@ -79,32 +93,48 @@ class SpendingInsightsController extends Controller
         $categories = $user->categories()->where('type', 'expense')->get();
 
         foreach ($categories as $category) {
-            $months = [];
+            $currencyMonths = [];
             for ($i = 2; $i >= 0; $i--) {
                 $date = now()->subMonths($i);
-                $amount = $user->transactions()
-                    ->where('category_id', $category->id)
-                    ->where('type', 'expense')
-                    ->whereYear('transaction_date', $date->year)
-                    ->whereMonth('transaction_date', $date->month)
-                    ->sum(\DB::raw('amount'));
-                $months[] = $amount / 100;
+                $rows = $user->transactions()
+                    ->where('transactions.type', 'expense')
+                    ->where('transactions.category_id', $category->id)
+                    ->whereYear('transactions.transaction_date', $date->year)
+                    ->whereMonth('transactions.transaction_date', $date->month)
+                    ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
+                    ->selectRaw('accounts.currency, SUM(transactions.amount) as total')
+                    ->groupBy('accounts.currency')
+                    ->get();
+
+                foreach ($rows as $row) {
+                    $currencyMonths[$row->currency][$i] = $row->total / 100;
+                }
             }
 
-            if (array_sum($months) > 0) {
-                $trend = 'stable';
-                if ($months[2] > $months[1] && $months[1] > $months[0]) {
-                    $trend = 'increasing';
-                } elseif ($months[2] < $months[1] && $months[1] < $months[0]) {
-                    $trend = 'decreasing';
-                }
-
-                $results[] = [
-                    'category' => $category->name,
-                    'trend' => $trend,
-                    'months' => $months,
-                    'total' => array_sum($months),
+            foreach ($currencyMonths as $currency => $monthData) {
+                // months[0] = 2 months ago, months[1] = 1 month ago, months[2] = current
+                $months = [
+                    $monthData[2] ?? 0,
+                    $monthData[1] ?? 0,
+                    $monthData[0] ?? 0,
                 ];
+
+                if (array_sum($months) > 0) {
+                    $trend = 'stable';
+                    if ($months[2] > $months[1] && $months[1] > $months[0]) {
+                        $trend = 'increasing';
+                    } elseif ($months[2] < $months[1] && $months[1] < $months[0]) {
+                        $trend = 'decreasing';
+                    }
+
+                    $results[] = [
+                        'category' => $category->name,
+                        'trend' => $trend,
+                        'months' => $months,
+                        'total' => array_sum($months),
+                        'currency' => $currency,
+                    ];
+                }
             }
         }
 
@@ -121,9 +151,10 @@ class SpendingInsightsController extends Controller
             ->where('transaction_date', '>=', $threeMonthsAgo)
             ->whereNotNull('category_id')
             ->where('category_id', '!=', '')
+            ->with(['category', 'account'])
             ->get()
             ->groupBy(function ($transaction) {
-                return round($transaction->amount / 100).'-'.substr($transaction->description, 0, 10);
+                return ($transaction->account?->currency ?? 'USD').'-'.round($transaction->amount).'-'.substr($transaction->description, 0, 10);
             });
 
         foreach ($transactions as $group) {
@@ -131,9 +162,10 @@ class SpendingInsightsController extends Controller
                 $first = $group->first();
                 $results[] = [
                     'description' => $first->description,
-                    'amount' => $first->amount / 100,
-                    'category' => $first->category->name ?? 'Uncategorized',
+                    'amount' => $first->amount,
+                    'category' => $first->category?->name ?? 'Uncategorized',
                     'frequency' => $group->count(),
+                    'currency' => $first->account?->currency ?? 'USD',
                 ];
             }
         }
@@ -145,38 +177,42 @@ class SpendingInsightsController extends Controller
     {
         $results = [];
 
-        $weekendSpending = $user->transactions()
+        $recentTransactions = $user->transactions()
             ->where('type', 'expense')
             ->where('transaction_date', '>=', now()->subMonth())
-            ->get()
-            ->filter(fn ($t) => in_array($t->transaction_date->dayOfWeek, [0, 6]))
-            ->sum('amount') / 100;
+            ->with('account')
+            ->get();
 
-        $weekdaySpending = $user->transactions()
-            ->where('type', 'expense')
-            ->where('transaction_date', '>=', now()->subMonth())
-            ->get()
-            ->filter(fn ($t) => ! in_array($t->transaction_date->dayOfWeek, [0, 6]))
-            ->sum('amount') / 100;
+        $currencies = $recentTransactions->pluck('account.currency')->unique()->filter();
 
-        if ($weekendSpending > 0 || $weekdaySpending > 0) {
-            $results[] = [
-                'type' => 'weekend_vs_weekday',
-                'weekend' => $weekendSpending,
-                'weekday' => $weekdaySpending,
-            ];
-        }
+        foreach ($currencies as $currency) {
+            $currencyTxns = $recentTransactions->filter(fn ($t) => $t->account?->currency === $currency);
 
-        $avgTransaction = $user->transactions()
-            ->where('type', 'expense')
-            ->where('transaction_date', '>=', now()->subMonth())
-            ->avg(\DB::raw('amount')) / 100;
+            $weekendSpending = $currencyTxns
+                ->filter(fn ($t) => in_array($t->transaction_date->dayOfWeek, [0, 6]))
+                ->sum('amount');
 
-        if ($avgTransaction > 0) {
-            $results[] = [
-                'type' => 'average_transaction',
-                'amount' => round($avgTransaction, 2),
-            ];
+            $weekdaySpending = $currencyTxns
+                ->filter(fn ($t) => ! in_array($t->transaction_date->dayOfWeek, [0, 6]))
+                ->sum('amount');
+
+            if ($weekendSpending > 0 || $weekdaySpending > 0) {
+                $results[] = [
+                    'type' => 'weekend_vs_weekday',
+                    'weekend' => $weekendSpending,
+                    'weekday' => $weekdaySpending,
+                    'currency' => $currency,
+                ];
+            }
+
+            $avgTransaction = $currencyTxns->avg('amount');
+            if ($avgTransaction > 0) {
+                $results[] = [
+                    'type' => 'average_transaction',
+                    'amount' => round($avgTransaction, 2),
+                    'currency' => $currency,
+                ];
+            }
         }
 
         return $results;
@@ -200,12 +236,12 @@ class SpendingInsightsController extends Controller
                 ->sum(\DB::raw('amount')) / 100;
 
             if ($spent > $budget->amount) {
-                $overspend = $spent - $budget->amount;
                 $results[] = [
                     'category' => $budget->category->name,
                     'budgeted' => $budget->amount,
                     'spent' => $spent,
-                    'overspend' => $overspend,
+                    'overspend' => $spent - $budget->amount,
+                    'currency' => $budget->currency,
                 ];
             }
         }
@@ -213,15 +249,19 @@ class SpendingInsightsController extends Controller
         $smallPurchases = $user->transactions()
             ->where('type', 'expense')
             ->where('transaction_date', '>=', now()->subMonth())
+            ->with('account')
             ->get()
-            ->filter(fn ($t) => ($t->amount / 100) < 20);
+            ->filter(fn ($t) => $t->amount < 20);
 
-        if ($smallPurchases->count() > 10) {
-            $results[] = [
-                'type' => 'small_purchases',
-                'count' => $smallPurchases->count(),
-                'total' => $smallPurchases->sum('amount') / 100,
-            ];
+        foreach ($smallPurchases->groupBy('account.currency') as $currency => $currencyTxns) {
+            if ($currencyTxns->count() > 10) {
+                $results[] = [
+                    'type' => 'small_purchases',
+                    'count' => $currencyTxns->count(),
+                    'total' => $currencyTxns->sum('amount'),
+                    'currency' => $currency,
+                ];
+            }
         }
 
         return $results;
