@@ -76,8 +76,8 @@ class ReportsController extends Controller
 
         // Totals by currency for the selected date range
         $totalIncomeByCurrency = $user->transactions()
-            ->where('type', 'income')
-            ->whereBetween('transaction_date', [$startDate, $endDate])
+            ->where('transactions.type', 'income')
+            ->whereBetween('transactions.transaction_date', [$startDate, $endDate])
             ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
             ->selectRaw('accounts.currency, SUM(transactions.amount) as total')
             ->groupBy('accounts.currency')
@@ -85,8 +85,8 @@ class ReportsController extends Controller
             ->mapWithKeys(fn ($r) => [$r->currency => $r->total / 100]);
 
         $totalExpenseByCurrency = $user->transactions()
-            ->where('type', 'expense')
-            ->whereBetween('transaction_date', [$startDate, $endDate])
+            ->where('transactions.type', 'expense')
+            ->whereBetween('transactions.transaction_date', [$startDate, $endDate])
             ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
             ->selectRaw('accounts.currency, SUM(transactions.amount) as total')
             ->groupBy('accounts.currency')
@@ -118,9 +118,9 @@ class ReportsController extends Controller
 
         for ($month = 1; $month <= 12; $month++) {
             $currentAmounts = $user->transactions()
-                ->where('type', 'expense')
-                ->whereYear('transaction_date', $currentYear)
-                ->whereMonth('transaction_date', $month)
+                ->where('transactions.type', 'expense')
+                ->whereYear('transactions.transaction_date', $currentYear)
+                ->whereMonth('transactions.transaction_date', $month)
                 ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
                 ->selectRaw('accounts.currency, SUM(transactions.amount) as total')
                 ->groupBy('accounts.currency')
@@ -128,9 +128,9 @@ class ReportsController extends Controller
                 ->mapWithKeys(fn ($r) => [$r->currency => $r->total / 100]);
 
             $previousAmounts = $user->transactions()
-                ->where('type', 'expense')
-                ->whereYear('transaction_date', $previousYear)
-                ->whereMonth('transaction_date', $month)
+                ->where('transactions.type', 'expense')
+                ->whereYear('transactions.transaction_date', $previousYear)
+                ->whereMonth('transactions.transaction_date', $month)
                 ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
                 ->selectRaw('accounts.currency, SUM(transactions.amount) as total')
                 ->groupBy('accounts.currency')
