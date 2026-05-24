@@ -27,6 +27,9 @@ class BudgetResource extends JsonResource
             'id' => $this->id,
             'clientId' => $this->client_id,
             'categoryId' => $this->category_id,
+            'categoryClientId' => $this->category_id === null
+                ? null
+                : \App\Models\Category::query()->whereKey($this->category_id)->value('client_id'),
             'year' => $this->period_year,
             'month' => $this->period_month,
             'amount' => (float) $this->amount,

@@ -25,6 +25,9 @@ class RecurringTransactionResource extends JsonResource
             'nextDueDate' => optional($this->next_due_date)->toIso8601String(),
             'isActive' => (bool) $this->is_active,
             'categoryId' => $this->category_id,
+            'categoryClientId' => $this->category_id === null
+                ? null
+                : \App\Models\Category::query()->whereKey($this->category_id)->value('client_id'),
             'accountId' => $this->account_id,
             'createdAt' => optional($this->created_at)->toIso8601String(),
             'updatedAt' => optional($this->updated_at)->toIso8601String(),
