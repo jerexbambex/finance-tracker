@@ -271,23 +271,28 @@ class SyncController extends Controller
             return;
         }
 
-        $categoryId = $this->resolveCategoryServerId($user, $row['categoryClientId'] ?? null);
-        if ($categoryId === null && $existing === null) {
-            // Can't insert a brand new budget without a server-resolvable
-            // category. Skip — the device will re-push after categories sync.
+        $clientCategory = $row['categoryClientId'] ?? null;
+        $isEnvelope = $clientCategory === null;
+        $categoryId = $isEnvelope ? null : $this->resolveCategoryServerId($user, $clientCategory);
+
+        if (! $isEnvelope && $categoryId === null && $existing === null) {
+            // Per-category budget referencing a category the server hasn't
+            // seen yet. Skip — the device will re-push after categories sync.
             return;
         }
 
         $attrs = array_filter([
             'user_id' => $user->id,
             'client_id' => $row['clientId'],
-            'category_id' => $categoryId,
             'amount' => $row['amount'] ?? null,
             'period_type' => 'monthly',
             'period_year' => $row['year'] ?? null,
             'period_month' => $row['month'] ?? null,
             'is_recurrent' => $row['isRecurrent'] ?? null,
         ], fn ($v) => $v !== null);
+
+        // Set category_id explicitly so envelopes (null) aren't filtered out.
+        $attrs['category_id'] = $categoryId;
 
         $budget = $existing ?? new Budget;
         $budget->fill($attrs);

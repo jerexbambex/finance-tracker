@@ -69,10 +69,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/transactions/{id}', [TransactionController::class, 'destroy'])
         ->name('api.transactions.destroy');
 
-    // Budgets — order matters: bulk/analysis/alerts before {id}.
+    // Budgets — order matters: bulk/analysis/alerts/envelope before {id}.
     Route::post('/budgets/bulk', [BudgetController::class, 'bulk'])->name('api.budgets.bulk');
     Route::get('/budgets/analysis', [BudgetController::class, 'analysis'])->name('api.budgets.analysis');
     Route::get('/budgets/alerts', [BudgetController::class, 'alerts'])->name('api.budgets.alerts');
+    Route::get('/budgets/envelope', [BudgetController::class, 'envelopeShow'])->name('api.budgets.envelope.show');
+    Route::match(['put', 'post'], '/budgets/envelope', [BudgetController::class, 'envelopeUpsert'])
+        ->name('api.budgets.envelope.upsert');
     Route::get('/budgets', [BudgetController::class, 'index'])->name('api.budgets.index');
     Route::post('/budgets', [BudgetController::class, 'store'])->name('api.budgets.store');
     Route::delete('/budgets/{id}', [BudgetController::class, 'destroy'])->name('api.budgets.destroy');

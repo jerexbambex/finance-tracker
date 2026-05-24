@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\Budgets\BulkBudgetRequest;
 use App\Http\Requests\Api\Budgets\MonthlyPeriodRequest;
 use App\Http\Requests\Api\Budgets\StoreBudgetRequest;
+use App\Http\Requests\Api\Budgets\UpsertEnvelopeRequest;
 use App\Http\Resources\Api\BudgetResource;
 use App\Models\Budget;
 use App\Models\Category;
@@ -178,6 +179,59 @@ class BudgetController extends Controller
         })->filter(fn (array $row) => $row['status'] !== 'ok')->values();
 
         return response()->apiSuccess(data: $alerts->all());
+    }
+
+    /**
+     * Returns the user's monthly envelope (total spending cap) for a given
+     * year × month, or `null` if not set. Envelopes are stored as a `Budget`
+     * row with `category_id = NULL`.
+     */
+    public function envelopeShow(MonthlyPeriodRequest $request): JsonResponse
+    {
+        $envelope = $this->envelopeQuery($request->user(), $request->year(), $request->month())->first();
+
+        return response()->apiSuccess(
+            data: $envelope === null ? null : (new BudgetResource($envelope))->toArray($request),
+        );
+    }
+
+    /**
+     * Upserts the monthly envelope for (user, year, month).
+     */
+    public function envelopeUpsert(UpsertEnvelopeRequest $request): JsonResponse
+    {
+        $data = $request->validated();
+        $user = $request->user();
+
+        $envelope = Budget::updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'category_id' => null,
+                'period_type' => 'monthly',
+                'period_year' => $data['year'],
+                'period_month' => $data['month'],
+            ],
+            [
+                'amount' => $data['amount'],
+                'is_recurrent' => false,
+                'is_active' => true,
+            ],
+        );
+
+        return response()->apiSuccess(
+            data: (new BudgetResource($envelope->refresh()))->toArray($request),
+            status: $envelope->wasRecentlyCreated ? 201 : 200,
+        );
+    }
+
+    private function envelopeQuery(User $user, int $year, int $month): \Illuminate\Database\Eloquent\Builder
+    {
+        return Budget::query()
+            ->where('user_id', $user->id)
+            ->whereNull('category_id')
+            ->where('period_type', 'monthly')
+            ->where('period_year', $year)
+            ->where('period_month', $month);
     }
 
     private function scopedMonthlyQuery(User $user, int $year, int $month): \Illuminate\Database\Eloquent\Builder
