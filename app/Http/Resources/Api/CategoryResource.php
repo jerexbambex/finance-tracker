@@ -26,6 +26,7 @@ class CategoryResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'clientId' => $this->client_id,
             'name' => $this->name,
             'type' => $this->type,
             'budgetCategory' => $this->budget_category,
@@ -35,6 +36,8 @@ class CategoryResource extends JsonResource
             'order' => (int) $this->display_order,
             'isArchived' => ! $this->is_active,
             'parentId' => $this->parent_id,
+            'updatedAt' => optional($this->updated_at)->toIso8601String(),
+            'deletedAt' => optional($this->deleted_at)->toIso8601String(),
         ];
     }
 

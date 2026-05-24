@@ -17,6 +17,7 @@ class RecurringTransactionResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'clientId' => $this->client_id,
             'type' => $this->type,
             'amount' => (float) $this->amount,
             'description' => $this->description,
@@ -27,6 +28,7 @@ class RecurringTransactionResource extends JsonResource
             'accountId' => $this->account_id,
             'createdAt' => optional($this->created_at)->toIso8601String(),
             'updatedAt' => optional($this->updated_at)->toIso8601String(),
+            'deletedAt' => optional($this->deleted_at)->toIso8601String(),
         ];
     }
 }

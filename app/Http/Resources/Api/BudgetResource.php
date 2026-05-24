@@ -25,6 +25,7 @@ class BudgetResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'clientId' => $this->client_id,
             'categoryId' => $this->category_id,
             'year' => $this->period_year,
             'month' => $this->period_month,
@@ -34,6 +35,8 @@ class BudgetResource extends JsonResource
             'periodType' => $this->period_type,
             'spent' => (float) $this->getSpentAmount(),
             'percentageUsed' => (float) $this->getPercentageUsed(),
+            'updatedAt' => optional($this->updated_at)->toIso8601String(),
+            'deletedAt' => optional($this->deleted_at)->toIso8601String(),
         ];
     }
 }

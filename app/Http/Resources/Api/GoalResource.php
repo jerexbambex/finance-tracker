@@ -23,6 +23,7 @@ class GoalResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'clientId' => $this->client_id,
             'name' => $this->name,
             'description' => $this->description,
             'targetAmount' => (float) $this->target_amount,
@@ -35,6 +36,8 @@ class GoalResource extends JsonResource
             'isCompleted' => (bool) $this->is_completed,
             'isActive' => (bool) $this->is_active,
             'createdAt' => optional($this->created_at)->toIso8601String(),
+            'updatedAt' => optional($this->updated_at)->toIso8601String(),
+            'deletedAt' => optional($this->deleted_at)->toIso8601String(),
         ];
     }
 }
