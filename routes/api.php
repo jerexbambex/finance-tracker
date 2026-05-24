@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\BudgetController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\GoalController;
 use App\Http\Controllers\Api\InsightsController;
+use App\Http\Controllers\Api\RecurringTransactionController;
 use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\SyncController;
 use App\Http\Controllers\Api\TransactionController;
@@ -91,6 +92,20 @@ Route::middleware('auth:sanctum')->group(function () {
         ->name('api.goals.contribute');
     Route::get('/savings-goals/{id}/progress', [GoalController::class, 'progress'])
         ->name('api.goals.progress');
+
+    // Recurring transactions.
+    Route::post('/recurring-transactions/{id}/skip-next', [RecurringTransactionController::class, 'skipNext'])
+        ->name('api.recurring.skip');
+    Route::get('/recurring-transactions', [RecurringTransactionController::class, 'index'])
+        ->name('api.recurring.index');
+    Route::post('/recurring-transactions', [RecurringTransactionController::class, 'store'])
+        ->name('api.recurring.store');
+    Route::get('/recurring-transactions/{id}', [RecurringTransactionController::class, 'show'])
+        ->name('api.recurring.show');
+    Route::match(['put', 'patch'], '/recurring-transactions/{id}', [RecurringTransactionController::class, 'update'])
+        ->name('api.recurring.update');
+    Route::delete('/recurring-transactions/{id}', [RecurringTransactionController::class, 'destroy'])
+        ->name('api.recurring.destroy');
 
     // Insights.
     Route::get('/insights/dashboard', [InsightsController::class, 'dashboard'])

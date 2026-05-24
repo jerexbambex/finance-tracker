@@ -62,6 +62,18 @@ class PushRequest extends FormRequest
             'budgets.*.amount' => ['nullable', 'numeric', 'min:0'],
             'budgets.*.isRecurrent' => ['nullable', 'boolean'],
 
+            'recurringTransactions' => ['nullable', 'array'],
+            'recurringTransactions.*.clientId' => ['required', 'uuid'],
+            'recurringTransactions.*.updatedAt' => ['required', 'date'],
+            'recurringTransactions.*.deletedAt' => ['nullable', 'date'],
+            'recurringTransactions.*.type' => ['nullable', Rule::in(['income', 'expense'])],
+            'recurringTransactions.*.amount' => ['nullable', 'numeric', 'min:0'],
+            'recurringTransactions.*.description' => ['nullable', 'string', 'max:500'],
+            'recurringTransactions.*.frequency' => ['nullable', Rule::in(['daily', 'weekly', 'biweekly', 'monthly', 'quarterly', 'yearly'])],
+            'recurringTransactions.*.nextDueDate' => ['nullable', 'date'],
+            'recurringTransactions.*.categoryClientId' => ['nullable', 'uuid'],
+            'recurringTransactions.*.isActive' => ['nullable', 'boolean'],
+
             'savingsGoals' => ['nullable', 'array'],
             'savingsGoals.*.clientId' => ['required', 'uuid'],
             'savingsGoals.*.updatedAt' => ['required', 'date'],

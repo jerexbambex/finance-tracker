@@ -8,11 +8,13 @@ use App\Http\Requests\Api\Sync\PushRequest;
 use App\Http\Resources\Api\BudgetResource;
 use App\Http\Resources\Api\CategoryResource;
 use App\Http\Resources\Api\GoalResource;
+use App\Http\Resources\Api\RecurringTransactionResource;
 use App\Http\Resources\Api\SettingsResource;
 use App\Http\Resources\Api\TransactionResource;
 use App\Models\Budget;
 use App\Models\Category;
 use App\Models\Goal;
+use App\Models\RecurringTransaction;
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -54,17 +56,20 @@ class SyncController extends Controller
             'categories' => [],
             'budgets' => [],
             'savingsGoals' => [],
+            'recurringTransactions' => [],
         ];
         $conflicts = [
             'transactions' => [],
             'categories' => [],
             'budgets' => [],
             'savingsGoals' => [],
+            'recurringTransactions' => [],
         ];
 
         DB::transaction(function () use ($user, $data, &$applied, &$conflicts) {
-            // Order matters: categories first so transactions/budgets can
-            // resolve `categoryClientId` against newly-created rows.
+            // Order matters: categories first so transactions/budgets/
+            // recurringTransactions can resolve `categoryClientId` against
+            // newly-created rows.
             foreach (($data['categories'] ?? []) as $row) {
                 $this->upsertCategory($user, $row, $applied, $conflicts);
             }
@@ -75,6 +80,10 @@ class SyncController extends Controller
 
             foreach (($data['transactions'] ?? []) as $row) {
                 $this->upsertTransaction($user, $row, $applied, $conflicts);
+            }
+
+            foreach (($data['recurringTransactions'] ?? []) as $row) {
+                $this->upsertRecurringTransaction($user, $row, $applied, $conflicts);
             }
 
             foreach (($data['savingsGoals'] ?? []) as $row) {
@@ -107,12 +116,14 @@ class SyncController extends Controller
             'categories' => $this->pullModel(Category::query()->where('user_id', $user->id), $since, fn ($m) => new CategoryResource($m)),
             'budgets' => $this->pullModel(Budget::query()->where('user_id', $user->id), $since, fn ($m) => new BudgetResource($m)),
             'savingsGoals' => $this->pullModel(Goal::query()->where('user_id', $user->id), $since, fn ($m) => new GoalResource($m)),
+            'recurringTransactions' => $this->pullModel(RecurringTransaction::query()->where('user_id', $user->id), $since, fn ($m) => new RecurringTransactionResource($m)),
             'settings' => $this->pullSettings($user, $since),
             'deletedIds' => [
                 'transactions' => $this->pullDeleted(Transaction::query()->where('user_id', $user->id), $since),
                 'categories' => $this->pullDeleted(Category::query()->where('user_id', $user->id), $since),
                 'budgets' => $this->pullDeleted(Budget::query()->where('user_id', $user->id), $since),
                 'savingsGoals' => $this->pullDeleted(Goal::query()->where('user_id', $user->id), $since),
+                'recurringTransactions' => $this->pullDeleted(RecurringTransaction::query()->where('user_id', $user->id), $since),
             ],
             'serverTime' => now()->toIso8601String(),
         ];
@@ -131,6 +142,7 @@ class SyncController extends Controller
             'categories' => Category::query()->where('user_id', $user->id)->count(),
             'budgets' => Budget::query()->where('user_id', $user->id)->count(),
             'savingsGoals' => Goal::query()->where('user_id', $user->id)->count(),
+            'recurringTransactions' => RecurringTransaction::query()->where('user_id', $user->id)->count(),
         ];
 
         return response()->apiSuccess([
@@ -207,6 +219,55 @@ class SyncController extends Controller
         }
 
         $applied['transactions'][] = (new TransactionResource($existing->fresh()))->toArray(request());
+    }
+
+    /**
+     * @param  array<string, mixed>  $row
+     * @param  array<string, list<array<string, mixed>>>  $applied
+     * @param  array<string, list<array<string, mixed>>>  $conflicts
+     */
+    private function upsertRecurringTransaction(User $user, array $row, array &$applied, array &$conflicts): void
+    {
+        $existing = RecurringTransaction::withTrashed()
+            ->where('user_id', $user->id)
+            ->where('client_id', $row['clientId'])
+            ->first();
+
+        if ($this->isStale($existing, $row, $conflicts['recurringTransactions'], fn ($m) => new RecurringTransactionResource($m))) {
+            return;
+        }
+
+        $categoryId = $this->resolveCategoryServerId($user, $row['categoryClientId'] ?? null);
+        $accountId = $user->defaultAccount()->id;
+
+        $attrs = array_filter([
+            'user_id' => $user->id,
+            'client_id' => $row['clientId'],
+            'account_id' => $accountId,
+            'category_id' => $categoryId,
+            'type' => $row['type'] ?? null,
+            'amount' => $row['amount'] ?? null,
+            'description' => $row['description'] ?? null,
+            'frequency' => $row['frequency'] ?? null,
+            'next_due_date' => isset($row['nextDueDate']) ? Carbon::parse($row['nextDueDate'])->toDateString() : null,
+            'is_active' => $row['isActive'] ?? null,
+        ], fn ($v) => $v !== null);
+
+        $rt = $existing ?? new RecurringTransaction;
+        $rt->fill($attrs);
+        $rt->updated_at = Carbon::parse($row['updatedAt']);
+
+        if (! empty($row['deletedAt'])) {
+            $rt->save();
+            $rt->delete();
+        } else {
+            $rt->save();
+            if ($rt->trashed()) {
+                $rt->restore();
+            }
+        }
+
+        $applied['recurringTransactions'][] = (new RecurringTransactionResource($rt->fresh()))->toArray(request());
     }
 
     /**
