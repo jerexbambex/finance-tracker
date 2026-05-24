@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Personal finance / budget tracker. Laravel 12 (PHP 8.4) backend + Inertia v2 + React 19 + TypeScript frontend, with a Filament v4 admin panel mounted at `/admin`. Auth via Laravel Fortify. Tailwind v4 (CSS-first, no `tailwind.config.js`). DB defaults to SQLite locally; Sail compose uses MySQL 8.4.
+Personal finance / budget tracker. Laravel 12 (PHP 8.4) backend + Inertia v2 + React 19 + TypeScript frontend, with a Filament v4 admin panel mounted at `/admin`. Auth via Laravel Fortify for the web; **Laravel Sanctum bearer tokens** for the mobile API. Tailwind v4 (CSS-first, no `tailwind.config.js`). DB defaults to SQLite locally; Sail compose uses MySQL 8.4.
+
+The companion Flutter app lives at `../margin_app`. It runs offline-first on local SQLite by default; premium users sync to this backend via `/api/v1/sync/*`.
 
 ## Common commands
 
@@ -41,11 +43,57 @@ php artisan schedule:work       # local
 
 ## Architecture
 
-### Dual UI surface
-- **User app**: Inertia + React. Routes in `routes/web.php` return `Inertia::render('page-name', [...])`. Pages live in `resources/js/pages/`. Layouts in `resources/js/layouts/`. Shared UI primitives in `resources/js/components/ui` (shadcn-style, Radix-based).
+### Triple UI surface
+- **User web app**: Inertia + React. Routes in `routes/web.php` return `Inertia::render('page-name', [...])`. Pages live in `resources/js/pages/`. Layouts in `resources/js/layouts/`. Shared UI primitives in `resources/js/components/ui` (shadcn-style, Radix-based).
 - **Admin panel**: Filament v4 at `/admin`. Resources in `app/Filament/Resources/<Model>/` with `Schemas/<Model>Form.php` and `Tables/<Model>Table.php`. Widgets in `app/Filament/Widgets/`. Configured in `app/Providers/Filament/AdminPanelProvider.php`.
+- **Mobile API**: JSON under `/api/v1` (`routes/api.php`). Bearer auth via Sanctum personal access tokens (15-min expiry) + a custom rotating refresh-token table. Every response uses the envelope `{ success, data, message?, pagination?, errors? }`. Helpers: `response()->apiSuccess(...)` and `response()->apiError(...)`.
 
-Same Eloquent models back both surfaces — keep behavior consistent across them.
+Same Eloquent models back all three surfaces — keep behavior consistent across them.
+
+### API surface (v1)
+
+All routes live in `routes/api.php`. Controllers in `app/Http/Controllers/Api/`, resources in `app/Http/Resources/Api/`, form requests in `app/Http/Requests/Api/<Module>/`.
+
+```
+POST /auth/register, /auth/login, /auth/refresh, /auth/biometric/verify
+POST /auth/logout                                              (auth)
+GET  /auth/me                                                  (auth)
+POST /auth/biometric/enroll                                    (auth)
+
+GET/POST/PATCH/DELETE /categories[/{id}]                       (auth)
+POST /categories/seed-defaults                                 (auth)
+
+GET/POST/PATCH/DELETE /transactions[/{id}]                     (auth)
+POST /transactions/bulk
+GET  /transactions/summary?startDate&endDate
+GET  /transactions/recent?limit
+
+GET/POST/DELETE /budgets[/{id}]                                (auth)
+POST /budgets/bulk
+GET  /budgets/analysis?year&month                              # 50/30/20
+GET  /budgets/alerts?year&month
+
+GET/POST/PATCH/DELETE /savings-goals[/{id}]                    (auth)
+POST /savings-goals/{id}/contribute
+GET  /savings-goals/{id}/progress
+
+GET  /insights/{dashboard,spending-breakdown,trends,ai-summary} (auth)
+GET/PATCH /settings                                            (auth)
+
+POST /sync/push, GET /sync/pull, GET /sync/status        (auth + premium)
+```
+
+The sync endpoints are gated by `ensure.premium` middleware (returns 402 + `{subscriptionTier, subscriptionExpiresAt}` for free users so the mobile client can prompt for upgrade). Free accounts can still register / log in / call any other endpoint — they just can't push or pull bulk changes.
+
+#### API conventions to follow
+- `Response::apiSuccess(data, message?, status, pagination?)` and `Response::apiError(message, status, errors?, data?)` (registered in `AppServiceProvider`). Don't return raw arrays from API controllers.
+- camelCase keys on the wire (matches the Flutter client). Resources translate between snake_case columns and camelCase JSON.
+- Money is emitted as floats (the model accessor divides by 100). PHP `json_encode` collapses `500.0` to `500`; the Flutter client parses with `(x as num).toDouble()`. Tests should use `(float) $x` when asserting.
+- Validation errors → 422 in the standard envelope with `errors: { field: [messages] }` (handled by `bootstrap/app.php`).
+- Sanctum is bearer-only: `config('sanctum.guard') = []` so there's no session fallback. Don't reintroduce session-based API auth without thinking through what that means for the mobile flow.
+
+### Sync mechanics
+Every syncable model (`Transaction`, `Category`, `Budget`, `Goal`) uses `SoftDeletes` and carries a `client_id` UUID assigned by the device. Last-write-wins reconciliation: look up by `(user_id, client_id)`, compare `updated_at`, server-wins-on-tie. See `SyncController::isStale`. `users.last_synced_at` is the cursor for `/sync/status`. **Heads-up**: `$model->delete()` bumps `updated_at` to now, so any test that needs to backdate a soft-deleted row must do so via `DB::table(...)->update(...)` after the delete.
 
 ### Wayfinder bridges routes to TS
 `@laravel/vite-plugin-wayfinder` auto-generates typed callers for controllers in `resources/js/actions/` and named routes in `resources/js/routes/`. Use named imports (`import { show } from '@/actions/.../FooController'`) for tree-shaking. Don't import default controller objects. If the Vite plugin isn't running, run `php artisan wayfinder:generate` after route changes.
