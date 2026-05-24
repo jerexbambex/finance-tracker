@@ -11,7 +11,7 @@ export default function PricingTeaser() {
                         No credit card required.
                     </h2>
                     <p className="text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-                        Budget App is free to use with all features included. Start managing your money smarter today.
+                        Margin is free to use with all features included. Start managing your money smarter today.
                     </p>
 
                     <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 pt-8 max-w-4xl mx-auto">

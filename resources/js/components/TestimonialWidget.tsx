@@ -92,7 +92,7 @@ export default function TestimonialWidget({ testimonials }: Props) {
                                 id="content"
                                 value={data.content}
                                 onChange={(e) => setData('content', e.target.value)}
-                                placeholder="Share your experience with Budget App..."
+                                placeholder="Share your experience with Margin..."
                                 rows={4}
                                 maxLength={500}
                                 className={errors.content ? 'border-red-500' : ''}

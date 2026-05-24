@@ -40,7 +40,7 @@ export default function ProblemSolution() {
                     {/* The New Way */}
                     <div className="bg-card border border-primary/20 rounded-3xl p-8 md:p-10 relative overflow-hidden shadow-2xl shadow-primary/5 group hover:border-primary/40 transition-all">
                         <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-4 py-1 rounded-bl-xl text-xs font-bold uppercase tracking-wider">
-                            The Budget App Way
+                            The Margin Way
                         </div>
                         <h3 className="text-2xl font-bold mb-6 text-primary">Intelligent Control</h3>
                         <ul className="space-y-4">

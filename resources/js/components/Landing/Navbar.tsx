@@ -1,6 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Wallet, Menu, X, ArrowRight } from 'lucide-react';
+import { Menu, X, ArrowRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 import AppearanceToggleDropdown from '@/components/appearance-dropdown';
@@ -31,11 +31,15 @@ export default function Navbar() {
             <div className="container mx-auto flex max-w-7xl items-center justify-between px-6">
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2 group transition-transform hover:scale-105">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-blue-600 text-white shadow-lg shadow-blue-500/20">
-                        <Wallet className="h-5 w-5" strokeWidth={2} />
+                    <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl shadow-lg shadow-blue-500/20">
+                        <img
+                            src="/img/margin-logo.png"
+                            alt="Margin logo"
+                            className="h-full w-full object-cover"
+                        />
                     </div>
                     <span className="text-xl font-bold tracking-tight text-foreground">
-                        Budget App
+                        Margin
                     </span>
                 </Link>
 

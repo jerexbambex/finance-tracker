@@ -58,7 +58,7 @@ export default function PainPoints() {
                 <div className="mt-16 text-center">
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-medium text-sm">
                         <CheckCircle2 className="h-4 w-4" />
-                        <span>Budget App fixes this automatically</span>
+                        <span>Margin fixes this automatically</span>
                     </div>
                 </div>
             </div>

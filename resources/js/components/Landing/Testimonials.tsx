@@ -3,7 +3,7 @@ import { Star } from 'lucide-react';
 
 const testimonials = [
     {
-        quote: "I've tried Mint, YNAB, and Personal Capital. Budget App is the only one I actually stuck with.",
+        quote: "I've tried Mint, YNAB, and Personal Capital. Margin is the only one I actually stuck with.",
         author: "Alex Rivera",
         role: "Software Engineer",
         tag: "Saved 45hrs/yr"

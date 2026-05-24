@@ -25,10 +25,10 @@ class WelcomeNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Welcome to Budget App!')
+            ->subject('Welcome to Margin!')
             ->greeting("Hello {$notifiable->name}!")
-            ->line('Welcome to Budget App! We\'re excited to have you on board.')
-            ->line('Budget App helps you take control of your finances with powerful budgeting tools, expense tracking, and financial insights.')
+            ->line('Welcome to Margin! We\'re excited to have you on board.')
+            ->line('Margin helps you take control of your finances with powerful budgeting tools, expense tracking, and financial insights.')
             ->action('Get Started', url('/dashboard'))
             ->line('If you have any questions, feel free to reach out to our support team.')
             ->line('Happy budgeting!');
