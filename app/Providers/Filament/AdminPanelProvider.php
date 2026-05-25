@@ -26,6 +26,10 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            ->brandName('Margin')
+            ->brandLogo(asset('img/margin-logo.png'))
+            ->brandLogoHeight('2.25rem')
+            ->favicon(asset('img/margin-logo.png'))
             ->colors([
                 'primary' => Color::Emerald,
             ])
