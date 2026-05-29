@@ -11,6 +11,7 @@ use App\Models\TransactionSplit;
 use App\Notifications\BudgetExceededNotification;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class TransactionController extends Controller
@@ -179,34 +180,36 @@ class TransactionController extends Controller
         // Inherit currency from account
         $validated['currency'] = $account->currency;
 
-        $transaction = auth()->user()->transactions()->create($validated);
+        // Atomic: transaction insert + split rows + the observer's balance update
+        // either all commit or all roll back together.
+        $transaction = DB::transaction(function () use ($validated) {
+            $transaction = auth()->user()->transactions()->create($validated);
 
-        // Handle splits
-        if (! empty($validated['splits'])) {
-            foreach ($validated['splits'] as $split) {
-                $transaction->splits()->create($split);
-            }
-        }
-
-        // Handle tags
-        if (! empty($validated['tags'])) {
-            $tagNames = array_map('trim', explode(',', $validated['tags']));
-            $tagIds = [];
-
-            foreach ($tagNames as $tagName) {
-                if (! empty($tagName)) {
-                    $tag = \App\Models\Tag::firstOrCreate(
-                        ['user_id' => auth()->id(), 'name' => $tagName],
-                        ['color' => '#6b7280']
-                    );
-                    $tagIds[] = $tag->id;
+            if (! empty($validated['splits'])) {
+                foreach ($validated['splits'] as $split) {
+                    $transaction->splits()->create($split);
                 }
             }
 
-            $transaction->tags()->attach($tagIds);
-        }
+            if (! empty($validated['tags'])) {
+                $tagNames = array_map('trim', explode(',', $validated['tags']));
+                $tagIds = [];
+                foreach ($tagNames as $tagName) {
+                    if (! empty($tagName)) {
+                        $tag = \App\Models\Tag::firstOrCreate(
+                            ['user_id' => auth()->id(), 'name' => $tagName],
+                            ['color' => '#6b7280']
+                        );
+                        $tagIds[] = $tag->id;
+                    }
+                }
+                $transaction->tags()->attach($tagIds);
+            }
 
-        // Handle file upload
+            return $transaction;
+        });
+
+        // Handle file upload (outside the txn — external storage, not balance-critical)
         if ($request->hasFile('receipt')) {
             $transaction->addMediaFromRequest('receipt')->toMediaCollection('receipts');
         }
@@ -280,32 +283,35 @@ class TransactionController extends Controller
             ->firstOrFail();
         $validated['currency'] = $account->currency;
 
-        $transaction->update($validated);
+        // Atomic: the update (and its observer balance re-adjustment) + split/tag sync
+        DB::transaction(function () use ($transaction, $validated) {
+            $transaction->update($validated);
 
-        // Sync splits
-        if (! empty($validated['splits'])) {
-            $transaction->splits()->delete();
-            foreach ($validated['splits'] as $split) {
-                $transaction->splits()->create($split);
+            // Sync splits
+            if (! empty($validated['splits'])) {
+                $transaction->splits()->delete();
+                foreach ($validated['splits'] as $split) {
+                    $transaction->splits()->create($split);
+                }
+            } elseif (empty($validated['is_split'])) {
+                $transaction->splits()->delete();
             }
-        } elseif (empty($validated['is_split'])) {
-            $transaction->splits()->delete();
-        }
 
-        // Sync tags
-        $transaction->tags()->detach();
-        if (! empty($validated['tags'])) {
-            $tagNames = array_filter(array_map('trim', explode(',', $validated['tags'])));
-            $tagIds = [];
-            foreach ($tagNames as $tagName) {
-                $tag = \App\Models\Tag::firstOrCreate(
-                    ['user_id' => auth()->id(), 'name' => $tagName],
-                    ['color' => '#6b7280']
-                );
-                $tagIds[] = $tag->id;
+            // Sync tags
+            $transaction->tags()->detach();
+            if (! empty($validated['tags'])) {
+                $tagNames = array_filter(array_map('trim', explode(',', $validated['tags'])));
+                $tagIds = [];
+                foreach ($tagNames as $tagName) {
+                    $tag = \App\Models\Tag::firstOrCreate(
+                        ['user_id' => auth()->id(), 'name' => $tagName],
+                        ['color' => '#6b7280']
+                    );
+                    $tagIds[] = $tag->id;
+                }
+                $transaction->tags()->attach($tagIds);
             }
-            $transaction->tags()->attach($tagIds);
-        }
+        });
 
         // Handle file upload
         if ($request->hasFile('receipt')) {
@@ -320,7 +326,8 @@ class TransactionController extends Controller
     {
         $this->authorize('delete', $transaction);
 
-        $transaction->delete();
+        // Atomic: delete + the observer's balance reversal commit together
+        DB::transaction(fn () => $transaction->delete());
 
         return redirect()->route('transactions.index');
     }
@@ -398,9 +405,10 @@ class TransactionController extends Controller
             'ids.*' => 'required|exists:transactions,id',
         ]);
 
-        // Delete individually so TransactionObserver fires and balance updates per transaction
+        // Delete individually so TransactionObserver fires (balance updates per row),
+        // wrapped in one transaction so the whole batch is atomic.
         $transactions = auth()->user()->transactions()->whereIn('id', $validated['ids'])->get();
-        $transactions->each->delete();
+        DB::transaction(fn () => $transactions->each->delete());
 
         return redirect()->back()->with('success', "Deleted {$transactions->count()} transactions");
     }

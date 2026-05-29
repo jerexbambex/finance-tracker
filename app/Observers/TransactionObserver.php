@@ -5,6 +5,16 @@ namespace App\Observers;
 use App\Models\Account;
 use App\Models\Transaction;
 
+/**
+ * Keeps Account.balance in sync with its transactions.
+ *
+ * WARNING: This relies on Eloquent model events. Any writer that mutates a
+ * transaction's amount/type/account_id MUST go through model instances
+ * ($model->save()/update()/delete() or ->each->delete()). Mass query-builder
+ * writes (Transaction::where(...)->update()/delete()) bypass these events and
+ * will silently desync account balances. Wrap balance-affecting writes in a
+ * DB transaction so the row change and the balance update commit together.
+ */
 class TransactionObserver
 {
     public function created(Transaction $transaction): void
