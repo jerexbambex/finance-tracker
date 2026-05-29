@@ -13,7 +13,7 @@ class AccountController extends Controller
 
     public function index()
     {
-        $accounts = auth()->user()->accounts()->with('transactions')->get();
+        $accounts = auth()->user()->accounts()->withCount('transactions')->get();
 
         return Inertia::render('accounts/Index', [
             'accounts' => $accounts,

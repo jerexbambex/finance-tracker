@@ -39,17 +39,21 @@ class ReportsController extends Controller
         }
         $categorySpending = $categorySpending->sortByDesc('amount')->values();
 
-        // Monthly trends (last 12 months) grouped by currency
+        // Monthly trends (last 12 months) — one query instead of 12
+        $monthlyRaw = $user->transactions()
+            ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
+            ->where('transactions.transaction_date', '>=', now()->subMonths(11)->startOfMonth())
+            ->whereIn('transactions.type', ['income', 'expense'])
+            ->selectRaw('transactions.type, accounts.currency, YEAR(transactions.transaction_date) as yr, MONTH(transactions.transaction_date) as mo, SUM(transactions.amount) as total')
+            ->groupBy('transactions.type', 'accounts.currency', 'yr', 'mo')
+            ->get()
+            ->groupBy(fn ($r) => $r->yr.'-'.str_pad($r->mo, 2, '0', STR_PAD_LEFT));
+
         $monthlyTrends = collect();
         for ($i = 11; $i >= 0; $i--) {
             $date = now()->subMonths($i);
-            $rows = $user->transactions()
-                ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
-                ->whereBetween('transactions.transaction_date', [$date->copy()->startOfMonth(), $date->copy()->endOfMonth()])
-                ->whereIn('transactions.type', ['income', 'expense'])
-                ->selectRaw('transactions.type, accounts.currency, SUM(transactions.amount) as total')
-                ->groupBy('transactions.type', 'accounts.currency')
-                ->get();
+            $key = $date->year.'-'.str_pad($date->month, 2, '0', STR_PAD_LEFT);
+            $rows = $monthlyRaw->get($key, collect());
 
             $income = [];
             $expense = [];
@@ -111,30 +115,26 @@ class ReportsController extends Controller
             ->sortByDesc('amount')
             ->values();
 
-        // Year-over-year comparison by currency
+        // Year-over-year — one query instead of 24
         $currentYear = now()->year;
         $previousYear = $currentYear - 1;
-        $yoyComparison = collect();
 
+        $yoyRaw = $user->transactions()
+            ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
+            ->where('transactions.transaction_date', '>=', "{$previousYear}-01-01")
+            ->where('transactions.transaction_date', '<=', "{$currentYear}-12-31")
+            ->where('transactions.type', 'expense')
+            ->selectRaw('YEAR(transactions.transaction_date) as yr, MONTH(transactions.transaction_date) as mo, accounts.currency, SUM(transactions.amount) as total')
+            ->groupBy('yr', 'mo', 'accounts.currency')
+            ->get()
+            ->groupBy(fn ($r) => $r->yr.'-'.$r->mo);
+
+        $yoyComparison = collect();
         for ($month = 1; $month <= 12; $month++) {
-            $currentAmounts = $user->transactions()
-                ->where('transactions.type', 'expense')
-                ->whereYear('transactions.transaction_date', $currentYear)
-                ->whereMonth('transactions.transaction_date', $month)
-                ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
-                ->selectRaw('accounts.currency, SUM(transactions.amount) as total')
-                ->groupBy('accounts.currency')
-                ->get()
+            $currentAmounts = collect($yoyRaw->get("{$currentYear}-{$month}", collect()))
                 ->mapWithKeys(fn ($r) => [$r->currency => $r->total / 100]);
 
-            $previousAmounts = $user->transactions()
-                ->where('transactions.type', 'expense')
-                ->whereYear('transactions.transaction_date', $previousYear)
-                ->whereMonth('transactions.transaction_date', $month)
-                ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
-                ->selectRaw('accounts.currency, SUM(transactions.amount) as total')
-                ->groupBy('accounts.currency')
-                ->get()
+            $previousAmounts = collect($yoyRaw->get("{$previousYear}-{$month}", collect()))
                 ->mapWithKeys(fn ($r) => [$r->currency => $r->total / 100]);
 
             $change = collect($currentAmounts->keys())->merge($previousAmounts->keys())->unique()
@@ -167,35 +167,5 @@ class ReportsController extends Controller
                 $c->value => ['symbol' => $c->symbol(), 'label' => $c->label()],
             ]),
         ]);
-    }
-
-    public function create()
-    {
-        //
-    }
-
-    public function store(Request $request)
-    {
-        //
-    }
-
-    public function show(string $id)
-    {
-        //
-    }
-
-    public function edit(string $id)
-    {
-        //
-    }
-
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    public function destroy(string $id)
-    {
-        //
     }
 }
