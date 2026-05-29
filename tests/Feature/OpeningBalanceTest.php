@@ -67,3 +67,25 @@ it('zero opening balance creates no transaction', function () {
     expect(Transaction::where('account_id', $account->id)->count())->toBe(0)
         ->and($account->fresh()->balance)->toEqual(0);
 });
+
+it('editing an account does not change its ledger-derived balance', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->post('/accounts', [
+        'name' => 'Checking', 'type' => 'checking', 'balance' => '1500.00', 'currency' => 'USD',
+    ]);
+    $account = $user->accounts()->first();
+    expect($account->fresh()->balance)->toEqual(1500);
+
+    // Attempt to tamper with balance via the update endpoint
+    $this->actingAs($user)->put("/accounts/{$account->id}", [
+        'name' => 'Renamed Checking',
+        'type' => 'checking',
+        'currency' => 'USD',
+        'balance' => '999999.00', // should be ignored
+    ]);
+
+    $fresh = $account->fresh();
+    expect($fresh->name)->toBe('Renamed Checking')
+        ->and($fresh->balance)->toEqual(1500); // unchanged by the edit
+});

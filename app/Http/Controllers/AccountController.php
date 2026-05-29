@@ -101,10 +101,11 @@ class AccountController extends Controller
     {
         $this->authorize('update', $account);
 
+        // balance is intentionally NOT editable — it is derived from the transaction
+        // ledger by TransactionObserver. To correct it, add/adjust transactions.
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'type' => 'required|string|in:checking,savings,credit_card,investment,cash',
-            'balance' => 'required|numeric|min:0',
             'currency' => 'string|size:3',
             'description' => 'nullable|string',
             'is_active' => 'boolean',
