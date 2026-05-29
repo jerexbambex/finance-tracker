@@ -13,6 +13,7 @@ class Budget extends Model
         'user_id',
         'category_id',
         'amount',
+        'currency',
         'period_type',
         'period_year',
         'period_month',
@@ -50,6 +51,7 @@ class Budget extends Model
         $query = Transaction::where('user_id', $this->user_id)
             ->where('category_id', $this->category_id)
             ->where('type', 'expense')
+            ->where('currency', $this->currency)
             ->whereYear('transaction_date', $this->period_year);
 
         if ($this->period_type === 'monthly' && $this->period_month) {

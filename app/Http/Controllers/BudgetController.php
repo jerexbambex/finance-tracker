@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Currency;
 use App\Models\Budget;
 use App\Models\Category;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -32,7 +33,8 @@ class BudgetController extends Controller
                 return [
                     'id' => $budget->id,
                     'category' => $budget->category,
-                    'amount' => $budget->amount, // Accessor divides by 100
+                    'amount' => $budget->amount,
+                    'currency' => $budget->currency,
                     'period_type' => $budget->period_type,
                     'spent' => $budget->getSpentAmount(),
                     'percentage' => $budget->getPercentageUsed(),
@@ -50,6 +52,10 @@ class BudgetController extends Controller
                 'year' => $currentYear,
                 'month' => $currentMonth,
             ],
+            'currencies' => collect(Currency::cases())->map(fn ($c) => [
+                'value' => $c->value,
+                'label' => $c->label(),
+            ]),
         ]);
     }
 
@@ -61,6 +67,10 @@ class BudgetController extends Controller
 
         return Inertia::render('budgets/CreateSimple', [
             'categories' => $categories,
+            'currencies' => collect(Currency::cases())->map(fn ($c) => [
+                'value' => $c->value,
+                'label' => $c->label(),
+            ]),
         ]);
     }
 
@@ -69,6 +79,7 @@ class BudgetController extends Controller
         $validated = $request->validate([
             'category_id' => 'required|exists:categories,id',
             'amount' => 'required|numeric|min:0.01',
+            'currency' => 'required|string|size:3',
             'period_type' => 'required|string|in:monthly,yearly',
             'period_year' => 'nullable|integer|min:2020',
             'period_month' => 'nullable|integer|min:1|max:12',
@@ -113,6 +124,10 @@ class BudgetController extends Controller
         return Inertia::render('budgets/Edit', [
             'budget' => $budget,
             'categories' => $categories,
+            'currencies' => collect(Currency::cases())->map(fn ($c) => [
+                'value' => $c->value,
+                'label' => $c->label(),
+            ]),
         ]);
     }
 
@@ -123,6 +138,7 @@ class BudgetController extends Controller
         $validated = $request->validate([
             'category_id' => 'required|exists:categories,id',
             'amount' => 'required|numeric|min:0.01',
+            'currency' => 'required|string|size:3',
             'period_type' => 'required|string|in:monthly,yearly',
             'period_year' => 'required|integer|min:2020',
             'period_month' => 'required_if:period_type,monthly|nullable|integer|min:1|max:12',
