@@ -1,4 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
+import { formatCurrency as baseFmt } from '@/lib/formatCurrency';
 import axios from 'axios';
 import { TrendingUp, TrendingDown, Minus, AlertTriangle, Lightbulb, Sparkles, ArrowUpRight, Calendar, DollarSign, Repeat } from 'lucide-react';
 import { useState } from 'react';
@@ -49,18 +50,42 @@ export default function Index({ insights, primaryCurrency }: Props) {
 
     const generateAiInsights = async () => {
         setLoadingAi(true);
+        setAiInsights(null);
         try {
-            const response = await axios.post('/insights/ai');
-            setAiInsights(response.data.insights);
+            const start = await axios.post('/insights/ai');
+            if (start.data.status === 'rate_limited') {
+                setAiInsights(start.data.message);
+                setLoadingAi(false);
+                return;
+            }
+
+            // Poll the status endpoint until the queued job finishes
+            const poll = setInterval(async () => {
+                try {
+                    const res = await axios.get('/insights/ai/status');
+                    if (res.data.status === 'completed' || res.data.status === 'failed') {
+                        clearInterval(poll);
+                        setAiInsights(res.data.insights);
+                        setLoadingAi(false);
+                    }
+                } catch {
+                    clearInterval(poll);
+                    setLoadingAi(false);
+                }
+            }, 2000);
+
+            // Stop polling after 90s
+            setTimeout(() => {
+                clearInterval(poll);
+                setLoadingAi(false);
+            }, 90000);
         } catch (error) {
             console.error('Failed to generate AI insights:', error);
-        } finally {
             setLoadingAi(false);
         }
     };
 
-    const formatCurrency = (amount: number, currency = primaryCurrency) =>
-        new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
+    const formatCurrency = (amount: number, currency = primaryCurrency) => baseFmt(amount, currency);
 
     const hasAnyInsights =
         insights.unusual_spending.length > 0 ||
