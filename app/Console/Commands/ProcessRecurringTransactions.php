@@ -6,6 +6,7 @@ use App\Models\RecurringTransaction;
 use App\Models\Transaction;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 
 class ProcessRecurringTransactions extends Command
 {
@@ -23,24 +24,28 @@ class ProcessRecurringTransactions extends Command
         $processed = 0;
 
         foreach ($dueTransactions as $recurring) {
-            Transaction::create([
-                'user_id' => $recurring->user_id,
-                'account_id' => $recurring->account_id,
-                'category_id' => $recurring->category_id,
-                'type' => $recurring->type,
-                'amount' => $recurring->amount,
-                'currency' => $recurring->account->currency,
-                'description' => $recurring->description.' (Auto)',
-                'transaction_date' => now(),
-                'is_recurring' => true,
-            ]);
+            // Atomic: created transaction (+ observer balance update) and the
+            // next_due_date advance commit together, so a mid-loop failure can't
+            // create the transaction without advancing the schedule (or vice versa).
+            DB::transaction(function () use ($recurring) {
+                Transaction::create([
+                    'user_id' => $recurring->user_id,
+                    'account_id' => $recurring->account_id,
+                    'category_id' => $recurring->category_id,
+                    'type' => $recurring->type,
+                    'amount' => $recurring->amount,
+                    'currency' => $recurring->account->currency,
+                    'description' => $recurring->description.' (Auto)',
+                    'transaction_date' => now(),
+                    'is_recurring' => true,
+                ]);
 
-            // Update next due date
-            $recurring->next_due_date = $this->calculateNextDueDate(
-                $recurring->next_due_date,
-                $recurring->frequency
-            );
-            $recurring->save();
+                $recurring->next_due_date = $this->calculateNextDueDate(
+                    $recurring->next_due_date,
+                    $recurring->frequency
+                );
+                $recurring->save();
+            });
 
             $processed++;
         }
