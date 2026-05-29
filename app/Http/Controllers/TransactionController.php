@@ -326,8 +326,20 @@ class TransactionController extends Controller
     {
         $this->authorize('delete', $transaction);
 
-        // Atomic: delete + the observer's balance reversal commit together
-        DB::transaction(fn () => $transaction->delete());
+        // A transfer is one logical operation — deleting one leg deletes both, so
+        // balances on both accounts reverse and no orphaned half-transfer remains.
+        // Per-row delete (not mass delete) so the observer fires for each leg.
+        DB::transaction(function () use ($transaction) {
+            if ($transaction->type === 'transfer' && $transaction->transfer_group_id) {
+                auth()->user()->transactions()
+                    ->where('transfer_group_id', $transaction->transfer_group_id)
+                    ->get()
+                    ->each
+                    ->delete();
+            } else {
+                $transaction->delete();
+            }
+        });
 
         return redirect()->route('transactions.index');
     }

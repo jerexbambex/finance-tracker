@@ -71,6 +71,31 @@ it('same-currency transfer legs are stamped with the account currency', function
     expect(Transaction::where('user_id', $user->id)->where('currency', 'NGN')->count())->toBe(2);
 });
 
+it('deleting one transfer leg reverses both balances and removes both legs', function () {
+    $user = User::factory()->create();
+    $from = Account::create(['user_id' => $user->id, 'name' => 'A', 'type' => 'checking', 'balance' => 1000, 'currency' => 'USD', 'is_active' => true]);
+    $to   = Account::create(['user_id' => $user->id, 'name' => 'B', 'type' => 'savings',  'balance' => 0,    'currency' => 'USD', 'is_active' => true]);
+
+    $this->actingAs($user)->post('/transfers', [
+        'from_account_id' => $from->id,
+        'to_account_id'   => $to->id,
+        'amount'          => '300.00',
+        'transfer_date'   => now()->toDateString(),
+    ]);
+
+    expect($from->fresh()->balance)->toEqual(700)
+        ->and($to->fresh()->balance)->toEqual(300);
+
+    // Delete one leg via the transactions endpoint
+    $leg = Transaction::where('user_id', $user->id)->where('type', 'transfer')->first();
+    $this->actingAs($user)->delete("/transactions/{$leg->id}");
+
+    // Both legs gone, both balances restored
+    expect(Transaction::where('user_id', $user->id)->where('type', 'transfer')->count())->toBe(0)
+        ->and($from->fresh()->balance)->toEqual(1000)
+        ->and($to->fresh()->balance)->toEqual(0);
+});
+
 it('transfer transactions do not count as income or expense', function () {
     $user = User::factory()->create();
     $from = Account::create(['user_id' => $user->id, 'name' => 'A', 'type' => 'checking', 'balance' => 500, 'currency' => 'USD', 'is_active' => true]);

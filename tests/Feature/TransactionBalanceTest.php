@@ -63,12 +63,19 @@ it('deleting a transaction reverses its balance effect', function () {
     expect($account->fresh()->balance)->toEqual(500);
 });
 
-it('transfer type transactions do not affect balance via observer', function () {
+it('transfer legs affect balance by their direction via the observer', function () {
     $user = User::factory()->create();
     $account = Account::create(['user_id' => $user->id, 'name' => 'Checking', 'type' => 'checking', 'balance' => 1000, 'currency' => 'USD', 'is_active' => true]);
 
-    // Observer skips 'transfer' type
-    Transaction::create(['user_id' => $user->id, 'account_id' => $account->id, 'type' => 'transfer', 'amount' => 300, 'currency' => 'USD', 'description' => 'Transfer out', 'transaction_date' => now()]);
+    // 'out' leg decrements
+    $out = Transaction::create(['user_id' => $user->id, 'account_id' => $account->id, 'type' => 'transfer', 'transfer_direction' => 'out', 'amount' => 300, 'currency' => 'USD', 'description' => 'Transfer out', 'transaction_date' => now()]);
+    expect($account->fresh()->balance)->toEqual(700);
 
-    expect($account->fresh()->balance)->toEqual(1000);
+    // 'in' leg increments
+    Transaction::create(['user_id' => $user->id, 'account_id' => $account->id, 'type' => 'transfer', 'transfer_direction' => 'in', 'amount' => 100, 'currency' => 'USD', 'description' => 'Transfer in', 'transaction_date' => now()]);
+    expect($account->fresh()->balance)->toEqual(800);
+
+    // deleting the out leg restores it
+    $out->delete();
+    expect($account->fresh()->balance)->toEqual(1100);
 });

@@ -6,6 +6,7 @@ use App\Models\Account;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class TransferController extends Controller
@@ -47,12 +48,16 @@ class TransferController extends Controller
         }
 
         DB::transaction(function () use ($validated, $fromAccount, $toAccount) {
-            $amountInCents = (int) round($validated['amount'] * 100);
+            $groupId = (string) Str::uuid();
 
+            // Observer applies balance effects from transfer_direction:
+            // 'out' decrements the source, 'in' increments the destination.
             Transaction::create([
                 'user_id' => auth()->id(),
                 'account_id' => $fromAccount->id,
                 'type' => 'transfer',
+                'transfer_group_id' => $groupId,
+                'transfer_direction' => 'out',
                 'amount' => $validated['amount'],
                 'currency' => $fromAccount->currency,
                 'description' => $validated['description'] ?? "Transfer to {$toAccount->name}",
@@ -63,15 +68,13 @@ class TransferController extends Controller
                 'user_id' => auth()->id(),
                 'account_id' => $toAccount->id,
                 'type' => 'transfer',
+                'transfer_group_id' => $groupId,
+                'transfer_direction' => 'in',
                 'amount' => $validated['amount'],
                 'currency' => $toAccount->currency,
                 'description' => $validated['description'] ?? "Transfer from {$fromAccount->name}",
                 'transaction_date' => $validated['transfer_date'],
             ]);
-
-            // Observer skips 'transfer' type — update balances explicitly
-            $fromAccount->decrement('balance', $amountInCents);
-            $toAccount->increment('balance', $amountInCents);
         });
 
         return redirect()->route('accounts.index')->with('success', 'Transfer completed successfully');

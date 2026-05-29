@@ -18,6 +18,8 @@ class Transaction extends Model implements HasMedia
         'account_id',
         'category_id',
         'type',
+        'transfer_group_id',
+        'transfer_direction',
         'amount',
         'currency',
         'description',
