@@ -37,6 +37,15 @@ class TransferController extends Controller
             abort(403);
         }
 
+        // Cross-currency transfers need an FX rate, which we don't model yet.
+        // Moving equal nominal amounts between different currencies would corrupt
+        // both balances, so block it with a clear error.
+        if ($fromAccount->currency !== $toAccount->currency) {
+            return back()->withErrors([
+                'to_account_id' => "Both accounts must use the same currency ({$fromAccount->currency} → {$toAccount->currency} is not supported).",
+            ]);
+        }
+
         DB::transaction(function () use ($validated, $fromAccount, $toAccount) {
             $amountInCents = (int) round($validated['amount'] * 100);
 
@@ -45,6 +54,7 @@ class TransferController extends Controller
                 'account_id' => $fromAccount->id,
                 'type' => 'transfer',
                 'amount' => $validated['amount'],
+                'currency' => $fromAccount->currency,
                 'description' => $validated['description'] ?? "Transfer to {$toAccount->name}",
                 'transaction_date' => $validated['transfer_date'],
             ]);
@@ -54,6 +64,7 @@ class TransferController extends Controller
                 'account_id' => $toAccount->id,
                 'type' => 'transfer',
                 'amount' => $validated['amount'],
+                'currency' => $toAccount->currency,
                 'description' => $validated['description'] ?? "Transfer from {$fromAccount->name}",
                 'transaction_date' => $validated['transfer_date'],
             ]);
