@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\SavedFilter;
 use App\Models\Transaction;
 use App\Models\TransactionSplit;
+use App\Notifications\BudgetExceededNotification;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -51,6 +52,7 @@ class TransactionController extends Controller
         $dailyRows = auth()->user()->transactions()
             ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
             ->where('transactions.transaction_date', '>=', now()->subDays(30))
+            ->whereIn('transactions.type', ['income', 'expense'])
             ->selectRaw('transactions.type, accounts.currency, DATE(transactions.transaction_date) as day, SUM(transactions.amount) as total')
             ->groupBy('transactions.type', 'accounts.currency', 'day')
             ->orderBy('day')
@@ -77,6 +79,7 @@ class TransactionController extends Controller
                 ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
                 ->whereYear('transactions.transaction_date', $date->year)
                 ->whereMonth('transactions.transaction_date', $date->month)
+                ->whereIn('transactions.type', ['income', 'expense'])
                 ->selectRaw('transactions.type, accounts.currency, SUM(transactions.amount) as total')
                 ->groupBy('transactions.type', 'accounts.currency')
                 ->get();
@@ -100,6 +103,7 @@ class TransactionController extends Controller
                 ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
                 ->whereYear('transactions.transaction_date', now()->year)
                 ->whereMonth('transactions.transaction_date', $month)
+                ->whereIn('transactions.type', ['income', 'expense'])
                 ->selectRaw('transactions.type, accounts.currency, SUM(transactions.amount) as total')
                 ->groupBy('transactions.type', 'accounts.currency')
                 ->get();
@@ -243,7 +247,7 @@ class TransactionController extends Controller
         })->where('is_active', true)->get();
 
         return Inertia::render('transactions/Edit', [
-            'transaction' => $transaction->load(['media', 'splits.category']),
+            'transaction' => $transaction->load(['media', 'splits.category', 'tags']),
             'accounts' => $accounts,
             'categories' => $categories,
         ]);
@@ -262,9 +266,46 @@ class TransactionController extends Controller
             'transaction_date' => 'required|date',
             'notes' => 'nullable|string',
             'receipt' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+            'tags' => 'nullable|string',
+            'is_split' => 'nullable|boolean',
+            'splits' => 'nullable|array',
+            'splits.*.category_id' => 'required|exists:categories,id',
+            'splits.*.amount' => 'required|numeric|min:0.01',
+            'splits.*.description' => 'nullable|string',
         ]);
 
+        // Inherit currency from account
+        $account = Account::where('id', $validated['account_id'])
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
+        $validated['currency'] = $account->currency;
+
         $transaction->update($validated);
+
+        // Sync splits
+        if (! empty($validated['splits'])) {
+            $transaction->splits()->delete();
+            foreach ($validated['splits'] as $split) {
+                $transaction->splits()->create($split);
+            }
+        } elseif (empty($validated['is_split'])) {
+            $transaction->splits()->delete();
+        }
+
+        // Sync tags
+        $transaction->tags()->detach();
+        if (! empty($validated['tags'])) {
+            $tagNames = array_filter(array_map('trim', explode(',', $validated['tags'])));
+            $tagIds = [];
+            foreach ($tagNames as $tagName) {
+                $tag = \App\Models\Tag::firstOrCreate(
+                    ['user_id' => auth()->id(), 'name' => $tagName],
+                    ['color' => '#6b7280']
+                );
+                $tagIds[] = $tag->id;
+            }
+            $transaction->tags()->attach($tagIds);
+        }
 
         // Handle file upload
         if ($request->hasFile('receipt')) {
@@ -290,24 +331,26 @@ class TransactionController extends Controller
             ->where('category_id', $transaction->category_id)
             ->where('period_year', $transaction->transaction_date->year)
             ->where('period_month', $transaction->transaction_date->month)
+            ->with('category')
             ->first();
 
         if (! $budget) {
             return;
         }
 
-        $spent = auth()->user()->transactions()
+        $spentCents = auth()->user()->transactions()
             ->where('type', 'expense')
             ->where('category_id', $transaction->category_id)
+            ->where('currency', $budget->currency)
             ->whereYear('transaction_date', $transaction->transaction_date->year)
             ->whereMonth('transaction_date', $transaction->transaction_date->month)
             ->sum('amount');
 
-        $percentage = ($spent / $budget->amount) * 100;
+        $spentDollars = $spentCents / 100;
+        $percentage = $budget->amount > 0 ? ($spentDollars / $budget->amount) * 100 : 0;
 
-        // Notify when crossing thresholds
         if ($percentage >= 80) {
-            // Send notification
+            auth()->user()->notify(new BudgetExceededNotification($budget, $spentDollars, $percentage));
         }
     }
 
@@ -318,32 +361,33 @@ class TransactionController extends Controller
             ->where('category_id', $split->category_id)
             ->where('period_year', $transaction->transaction_date->year)
             ->where('period_month', $transaction->transaction_date->month)
+            ->with('category')
             ->first();
 
         if (! $budget) {
             return;
         }
 
-        $spent = auth()->user()->transactions()
+        $spentCents = auth()->user()->transactions()
             ->where('type', 'expense')
             ->where('category_id', $split->category_id)
+            ->where('currency', $budget->currency)
             ->whereYear('transaction_date', $transaction->transaction_date->year)
             ->whereMonth('transaction_date', $transaction->transaction_date->month)
             ->sum('amount');
 
-        // Add split amounts
-        $splitTotal = TransactionSplit::whereHas('transaction', function ($q) use ($transaction) {
+        $splitTotalCents = TransactionSplit::whereHas('transaction', function ($q) use ($transaction) {
             $q->where('user_id', auth()->id())
                 ->where('type', 'expense')
                 ->whereYear('transaction_date', $transaction->transaction_date->year)
                 ->whereMonth('transaction_date', $transaction->transaction_date->month);
         })->where('category_id', $split->category_id)->sum('amount');
 
-        $totalSpent = $spent + $splitTotal;
-        $percentage = ($totalSpent / $budget->amount) * 100;
+        $spentDollars = ($spentCents + $splitTotalCents) / 100;
+        $percentage = $budget->amount > 0 ? ($spentDollars / $budget->amount) * 100 : 0;
 
         if ($percentage >= 80) {
-            // Send notification
+            auth()->user()->notify(new BudgetExceededNotification($budget, $spentDollars, $percentage));
         }
     }
 
@@ -354,11 +398,11 @@ class TransactionController extends Controller
             'ids.*' => 'required|exists:transactions,id',
         ]);
 
-        $deleted = auth()->user()->transactions()
-            ->whereIn('id', $validated['ids'])
-            ->delete();
+        // Delete individually so TransactionObserver fires and balance updates per transaction
+        $transactions = auth()->user()->transactions()->whereIn('id', $validated['ids'])->get();
+        $transactions->each->delete();
 
-        return redirect()->back()->with('success', "Deleted {$deleted} transactions");
+        return redirect()->back()->with('success', "Deleted {$transactions->count()} transactions");
     }
 
     public function bulkCategorize(Request $request)

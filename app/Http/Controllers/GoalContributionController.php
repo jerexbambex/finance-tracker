@@ -28,14 +28,7 @@ class GoalContributionController extends Controller
             'note' => $validated['note'],
             'contribution_date' => $validated['contribution_date'],
         ]);
-
-        // Update goal current amount (convert to cents for raw increment)
-        $goal->increment('current_amount', $validated['amount'] * 100);
-
-        // Check if goal is completed
-        if ($goal->fresh()->current_amount >= $goal->target_amount) {
-            $goal->update(['is_completed' => true]);
-        }
+        // GoalContributionObserver::created() recomputes current_amount and is_completed
 
         return redirect()->route('goals.index')->with('success', 'Contribution added successfully');
     }

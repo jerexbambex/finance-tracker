@@ -17,6 +17,7 @@ class ProcessRecurringTransactions extends Command
     {
         $dueTransactions = RecurringTransaction::where('is_active', true)
             ->whereDate('next_due_date', '<=', now())
+            ->with('account')
             ->get();
 
         $processed = 0;
@@ -28,6 +29,7 @@ class ProcessRecurringTransactions extends Command
                 'category_id' => $recurring->category_id,
                 'type' => $recurring->type,
                 'amount' => $recurring->amount,
+                'currency' => $recurring->account->currency,
                 'description' => $recurring->description.' (Auto)',
                 'transaction_date' => now(),
                 'is_recurring' => true,

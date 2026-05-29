@@ -24,6 +24,7 @@ class GoalController extends Controller
                     'description' => $goal->description,
                     'target_amount' => $goal->target_amount,
                     'current_amount' => $goal->current_amount,
+                    'currency' => $goal->currency ?? 'USD',
                     'target_date' => $goal->target_date,
                     'category' => $goal->category,
                     'is_completed' => $goal->is_completed,
