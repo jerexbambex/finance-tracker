@@ -1,7 +1,18 @@
-import { Head, useForm, Link, usePage } from '@inertiajs/react';
+import { Head, useForm, Link, router, usePage } from '@inertiajs/react';
+import { formatCurrency } from '@/lib/formatCurrency';
 import { Wallet, CreditCard, TrendingUp, CheckCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,6 +31,7 @@ interface Account {
   currency: string;
   is_active: boolean;
   description?: string;
+  transactions_count: number;
 }
 
 interface Props {
@@ -31,6 +43,7 @@ export default function Index({ accounts, currencies = [] }: Props) {
   const { flash } = usePage().props as { flash?: { success?: string } };
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [deleteAccount, setDeleteAccount] = useState<Account | null>(null);
   const [showSuccess, setShowSuccess] = useState(!!flash?.success);
 
   useEffect(() => {
@@ -100,12 +113,6 @@ export default function Index({ accounts, currencies = [] }: Props) {
     setEditOpen(true);
   };
 
-  const formatCurrency = (amount: number, currency = 'USD') => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency,
-    }).format(amount);
-  };
 
   const getAccountTypeLabel = (type: string) => {
     return type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
@@ -300,6 +307,14 @@ export default function Index({ accounts, currencies = [] }: Props) {
                       <Button variant="outline" size="sm" onClick={() => openEditModal(account)}>
                         Edit
                       </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => setDeleteAccount(account)}
+                      >
+                        Delete
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
@@ -322,6 +337,36 @@ export default function Index({ accounts, currencies = [] }: Props) {
           )}
         </div>
       </div>
+
+      <AlertDialog open={!!deleteAccount} onOpenChange={(open) => !open && setDeleteAccount(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete &ldquo;{deleteAccount?.name}&rdquo;?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this account
+              {deleteAccount && deleteAccount.transactions_count > 0
+                ? ` and its ${deleteAccount.transactions_count} transaction${deleteAccount.transactions_count === 1 ? '' : 's'}`
+                : ''}.
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (deleteAccount) {
+                  router.delete(`/accounts/${deleteAccount.id}`, {
+                    onSuccess: () => setDeleteAccount(null),
+                  });
+                }
+              }}
+            >
+              Delete Account
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent>

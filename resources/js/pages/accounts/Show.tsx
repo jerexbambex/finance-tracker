@@ -1,4 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
+import { formatCurrency } from '@/lib/formatCurrency';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,12 +29,6 @@ interface Props {
 }
 
 export default function Show({ account }: Props) {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: account.currency || 'USD',
-    }).format(amount);
-  };
 
   return (
     <AppLayout>
@@ -64,7 +59,7 @@ export default function Show({ account }: Props) {
               </div>
               <div>
                 <span className="text-sm text-muted-foreground">Balance:</span>
-                <p className="text-2xl font-bold">{formatCurrency(account.balance)}</p>
+                <p className="text-2xl font-bold">{formatCurrency(account.balance, account.currency)}</p>
               </div>
               {account.description && (
                 <div>
@@ -91,7 +86,7 @@ export default function Show({ account }: Props) {
                         </p>
                       </div>
                       <span className={`font-bold ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
-                        {transaction.type === 'income' ? '+' : '-'}{formatCurrency(Math.abs(transaction.amount))}
+                        {transaction.type === 'income' ? '+' : '-'}{formatCurrency(Math.abs(transaction.amount), account.currency)}
                       </span>
                     </div>
                   ))}

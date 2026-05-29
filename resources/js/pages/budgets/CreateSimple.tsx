@@ -13,17 +13,24 @@ interface Category {
   name: string;
 }
 
-interface Props {
-  categories: Category[];
+interface CurrencyOption {
+  value: string;
+  label: string;
 }
 
-export default function CreateSimple({ categories }: Props) {
+interface Props {
+  categories: Category[];
+  currencies: CurrencyOption[];
+}
+
+export default function CreateSimple({ categories, currencies }: Props) {
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1;
 
   const [formData, setFormData] = useState({
     category_id: '',
     amount: '',
+    currency: currencies[0]?.value ?? 'USD',
     period_type: 'monthly',
     period_year: currentYear,
     period_month: currentMonth,
@@ -93,6 +100,21 @@ export default function CreateSimple({ categories }: Props) {
                     placeholder="0.00"
                   />
                   {errors.amount && <p className="text-red-500 text-sm mt-1">{errors.amount}</p>}
+                </div>
+
+                <div>
+                  <Label htmlFor="currency">Currency</Label>
+                  <select
+                    id="currency"
+                    value={formData.currency}
+                    onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                    className="w-full border rounded-md p-2"
+                  >
+                    {currencies.map((c) => (
+                      <option key={c.value} value={c.value}>{c.label}</option>
+                    ))}
+                  </select>
+                  {errors.currency && <p className="text-red-500 text-sm mt-1">{errors.currency}</p>}
                 </div>
 
                 <div>

@@ -1,4 +1,5 @@
 import { Head, Link, router } from "@inertiajs/react";
+import { formatCurrency } from '@/lib/formatCurrency';
 import { Calendar, Repeat, Pencil, Trash2 } from "lucide-react";
 
 import {
@@ -34,12 +35,6 @@ interface Props {
 }
 
 export default function Index({ recurringTransactions }: Props) {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(amount);
-  };
 
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString("en-US", {

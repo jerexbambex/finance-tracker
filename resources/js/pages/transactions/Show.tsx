@@ -1,4 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
+import { formatCurrency } from '@/lib/formatCurrency';
 import { ArrowLeft, Calendar, DollarSign, FileText, Tag, Wallet, Image as ImageIcon } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
@@ -37,12 +38,6 @@ interface Props {
 }
 
 export default function Show({ transaction }: Props) {
-  const formatCurrency = (amount: number, currency: string = 'USD') => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency,
-    }).format(amount);
-  };
 
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString('en-US', {

@@ -1,4 +1,5 @@
 import { Head, router } from '@inertiajs/react';
+import { formatCurrency } from '@/lib/formatCurrency';
 import { TrendingUp, Lightbulb } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ interface Recommendation {
   category_color?: string;
   avg_spending: number;
   recommended_amount: number;
+  currency: string;
   has_budget: boolean;
 }
 
@@ -20,17 +22,12 @@ interface Props {
 }
 
 export default function Recommendations({ recommendations }: Props) {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
-  };
 
-  const handleApply = (categoryId: string, amount: number) => {
+  const handleApply = (categoryId: string, amount: number, currency: string) => {
     router.post('/budgets/recommendations/apply', {
       category_id: categoryId,
       amount: amount,
+      currency: currency,
     });
   };
 
@@ -74,25 +71,25 @@ export default function Recommendations({ recommendations }: Props) {
                   <CardContent className="space-y-4">
                     <div>
                       <p className="text-sm text-muted-foreground">Average spending</p>
-                      <p className="text-2xl font-bold">{formatCurrency(rec.avg_spending)}</p>
+                      <p className="text-2xl font-bold">{formatCurrency(rec.avg_spending, rec.currency)}</p>
                     </div>
-                    
+
                     <div className="bg-muted rounded-lg p-3">
                       <div className="flex items-center gap-2 mb-1">
                         <TrendingUp className="h-4 w-4 text-green-600" />
                         <p className="text-sm font-medium">Recommended budget</p>
                       </div>
                       <p className="text-xl font-bold text-green-600">
-                        {formatCurrency(rec.recommended_amount)}
+                        {formatCurrency(rec.recommended_amount, rec.currency)}
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
                         +10% buffer above average
                       </p>
                     </div>
 
-                    <Button 
-                      className="w-full" 
-                      onClick={() => handleApply(rec.category_id, rec.recommended_amount)}
+                    <Button
+                      className="w-full"
+                      onClick={() => handleApply(rec.category_id, rec.recommended_amount, rec.currency)}
                     >
                       Apply Budget
                     </Button>

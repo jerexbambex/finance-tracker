@@ -1,4 +1,5 @@
 import { Head, useForm, router, Link } from '@inertiajs/react';
+import { formatCurrency } from '@/lib/formatCurrency';
 import { Wallet, TrendingDown, AlertCircle, ChevronLeft, ChevronRight, Lightbulb } from 'lucide-react';
 import { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell } from 'recharts';
@@ -20,6 +21,7 @@ interface Budget {
   spent: number;
   percentage: number;
   period_type: string;
+  currency: string;
 }
 
 interface Category {
@@ -27,26 +29,36 @@ interface Category {
   name: string;
 }
 
+interface CurrencyOption {
+  value: string;
+  label: string;
+}
+
 interface Props {
   budgets: Budget[];
   categories: Category[];
+  currencies: CurrencyOption[];
   currentPeriod: { year: number; month: number };
 }
 
-export default function Index({ budgets, categories, currentPeriod }: Props) {
+export default function Index({ budgets, categories, currencies, currentPeriod }: Props) {
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
 
+  const defaultCurrency = currencies[0]?.value ?? 'USD';
+
   const createForm = useForm({
     category_id: '',
     amount: '',
+    currency: defaultCurrency,
     period_type: 'monthly',
   });
 
   const editForm = useForm({
     category_id: '',
     amount: '',
+    currency: defaultCurrency,
     period_type: 'monthly',
   });
 
@@ -78,6 +90,7 @@ export default function Index({ budgets, categories, currentPeriod }: Props) {
     editForm.setData({
       category_id: budget.category.id,
       amount: budget.amount.toString(),
+      currency: budget.currency,
       period_type: budget.period_type,
     });
     setEditOpen(true);
@@ -104,12 +117,6 @@ export default function Index({ budgets, categories, currentPeriod }: Props) {
     router.get('/budgets', { year: newYear, month: newMonth });
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
-  };
 
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -267,8 +274,8 @@ export default function Index({ budgets, categories, currentPeriod }: Props) {
                   <CardContent className="space-y-4">
                     <div className="flex justify-between items-baseline">
                       <div>
-                        <p className="text-3xl font-bold">{formatCurrency(budget.spent)}</p>
-                        <p className="text-sm text-muted-foreground">of {formatCurrency(budget.amount)}</p>
+                        <p className="text-3xl font-bold">{formatCurrency(budget.spent, budget.currency)}</p>
+                        <p className="text-sm text-muted-foreground">of {formatCurrency(budget.amount, budget.currency)}</p>
                       </div>
                       <div className={`text-right ${budget.percentage >= 100 ? 'text-red-600' : budget.percentage >= 80 ? 'text-yellow-600' : 'text-green-600'}`}>
                         <p className="text-2xl font-bold">{budget.percentage.toFixed(0)}%</p>
@@ -284,9 +291,9 @@ export default function Index({ budgets, categories, currentPeriod }: Props) {
                       <div className="flex justify-between items-center text-sm">
                         <span className={budget.percentage >= 100 ? 'text-red-600 font-semibold' : 'text-muted-foreground'}>
                           {budget.percentage >= 100 ? (
-                            <>Over by {formatCurrency(budget.spent - budget.amount)}</>
+                            <>Over by {formatCurrency(budget.spent - budget.amount, budget.currency)}</>
                           ) : (
-                            <>{formatCurrency(budget.amount - budget.spent)} left</>
+                            <>{formatCurrency(budget.amount - budget.spent, budget.currency)} left</>
                           )}
                         </span>
                         {budget.percentage >= 80 && budget.percentage < 100 && (
@@ -348,6 +355,20 @@ export default function Index({ budgets, categories, currentPeriod }: Props) {
               {createForm.errors.amount && <p className="text-red-500 text-sm mt-1">{createForm.errors.amount}</p>}
             </div>
             <div>
+              <Label>Currency</Label>
+              <Select value={createForm.data.currency} onValueChange={(value) => createForm.setData('currency', value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {currencies.map((c) => (
+                    <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {createForm.errors.currency && <p className="text-red-500 text-sm mt-1">{createForm.errors.currency}</p>}
+            </div>
+            <div>
               <Label htmlFor="create-period">Period Type</Label>
               <Select value={createForm.data.period_type} onValueChange={(value) => createForm.setData('period_type', value)}>
                 <SelectTrigger>
@@ -403,6 +424,20 @@ export default function Index({ budgets, categories, currentPeriod }: Props) {
                 onChange={(e) => editForm.setData('amount', e.target.value)}
               />
               {editForm.errors.amount && <p className="text-red-500 text-sm mt-1">{editForm.errors.amount}</p>}
+            </div>
+            <div>
+              <Label>Currency</Label>
+              <Select value={editForm.data.currency} onValueChange={(value) => editForm.setData('currency', value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {currencies.map((c) => (
+                    <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {editForm.errors.currency && <p className="text-red-500 text-sm mt-1">{editForm.errors.currency}</p>}
             </div>
             <div>
               <Label htmlFor="edit-period">Period Type</Label>

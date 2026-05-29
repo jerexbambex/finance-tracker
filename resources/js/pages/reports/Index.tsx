@@ -1,4 +1,5 @@
 import { Head } from '@inertiajs/react';
+import { formatCurrency as baseFmt } from '@/lib/formatCurrency';
 import { Download, TrendingUp, TrendingDown, PieChart as PieChartIcon } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, PieChart, Pie, Legend, Label } from 'recharts';
@@ -73,8 +74,7 @@ export default function Index({
     Object.keys(totalExpenseByCurrency)[0] ??
     'USD';
 
-  const formatCurrency = (amount: number, currency = primaryCurrency) =>
-    new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
+  const formatCurrency = (amount: number, currency = primaryCurrency) => baseFmt(amount, currency);
 
   const categoryCurrencies = useMemo(
     () => [...new Set(categorySpending.map((c) => c.currency))],

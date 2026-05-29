@@ -1,10 +1,10 @@
 import { Head } from '@inertiajs/react';
+import { formatCurrency as baseFmt } from '@/lib/formatCurrency';
 import { ArrowUpRight, ArrowDownRight, TrendingUp, Wallet, Clock } from 'lucide-react';
 import { useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 import QuickAddTransaction from '@/components/QuickAddTransaction';
-import TestimonialWidget from '@/components/TestimonialWidget';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
@@ -82,14 +82,6 @@ interface Reminder {
     category?: { name: string; color?: string };
 }
 
-interface UserTestimonial {
-    id: string;
-    content: string;
-    rating: number;
-    is_approved: boolean;
-    created_at: string;
-}
-
 interface Props {
     accounts: Account[];
     balancesByCurrency: Record<string, number>;
@@ -103,11 +95,10 @@ interface Props {
     goals: Goal[];
     categories: Category[];
     upcomingReminders: Reminder[];
-    userTestimonials: UserTestimonial[];
     currencies: Record<string, { symbol: string; label: string }>;
 }
 
-export default function Dashboard({ accounts, balancesByCurrency, recentTransactions, incomeByCurrency, expensesByCurrency, categorySpending, monthlyTrend, budgets, budgetAlerts, goals, categories, upcomingReminders, userTestimonials, currencies }: Props) {
+export default function Dashboard({ accounts, balancesByCurrency, recentTransactions, incomeByCurrency, expensesByCurrency, categorySpending, monthlyTrend, budgets, budgetAlerts, goals, categories, upcomingReminders, currencies }: Props) {
     const primaryCurrency = Object.keys(balancesByCurrency)[0] ?? 'USD';
 
     const trendCurrencies = [...new Set(
@@ -120,14 +111,10 @@ export default function Dashboard({ accounts, balancesByCurrency, recentTransact
         expense: d.expense[trendCurrency] ?? 0,
     }));
 
-    const formatCurrency = (amount: number, currency: string = primaryCurrency) => {
-        const currencyInfo = currencies[currency];
-        return `${currencyInfo?.symbol || '$'}${amount.toFixed(2)}`;
-    };
+    const formatCurrency = (amount: number, currency: string = primaryCurrency) => baseFmt(amount, currency);
 
-    const formatCurrencyGroup = (amounts: Record<string, number>) => {
-        return Object.entries(amounts).map(([currency, amount]) => formatCurrency(amount, currency)).join(', ') || formatCurrency(0);
-    };
+    const formatCurrencyGroup = (amounts: Record<string, number>) =>
+        Object.entries(amounts).map(([currency, amount]) => formatCurrency(amount, currency)).join(', ') || formatCurrency(0);
 
     const netByCurrency = Object.keys({ ...incomeByCurrency, ...expensesByCurrency }).reduce<Record<string, number>>(
         (acc, currency) => ({
@@ -535,8 +522,6 @@ export default function Dashboard({ accounts, balancesByCurrency, recentTransact
                             </CardContent>
                         </Card>
                     )}
-
-                    <TestimonialWidget testimonials={userTestimonials} />
                 </div>
             </div>
             </div>

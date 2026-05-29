@@ -1,4 +1,5 @@
 import { Head, useForm } from '@inertiajs/react';
+import { formatCurrency } from '@/lib/formatCurrency';
 import { Target, TrendingUp, Calendar } from 'lucide-react';
 import { useState } from 'react';
 
@@ -17,6 +18,7 @@ interface Goal {
   description?: string;
   target_amount: number;
   current_amount: number;
+  currency: string;
   target_date?: string;
   category?: string;
   is_completed: boolean;
@@ -117,12 +119,6 @@ export default function Index({ goals }: Props) {
     setContributeOpen(true);
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
-  };
 
   const formatDate = (date?: string) => {
     if (!date) return null;
@@ -300,8 +296,8 @@ export default function Index({ goals }: Props) {
                       
                       <div>
                         <div className="flex justify-between items-baseline mb-2">
-                          <span className="text-2xl font-bold">{formatCurrency(goal.current_amount)}</span>
-                          <span className="text-sm text-muted-foreground">of {formatCurrency(goal.target_amount)}</span>
+                          <span className="text-2xl font-bold">{formatCurrency(goal.current_amount, goal.currency)}</span>
+                          <span className="text-sm text-muted-foreground">of {formatCurrency(goal.target_amount, goal.currency)}</span>
                         </div>
                         <Progress value={Math.min(goal.percentage, 100)} className="h-2" />
                         <p className="text-sm text-muted-foreground mt-1">
@@ -350,10 +346,10 @@ export default function Index({ goals }: Props) {
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold text-green-600">
-                        {formatCurrency(goal.current_amount)}
+                        {formatCurrency(goal.current_amount, goal.currency)}
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        Target: {formatCurrency(goal.target_amount)}
+                        Target: {formatCurrency(goal.target_amount, goal.currency)}
                       </p>
                     </CardContent>
                   </Card>

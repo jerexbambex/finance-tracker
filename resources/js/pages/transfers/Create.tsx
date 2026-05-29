@@ -1,4 +1,5 @@
 import { Head, useForm, Link } from '@inertiajs/react';
+import { formatCurrency } from '@/lib/formatCurrency';
 import { ArrowRight } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -37,12 +38,6 @@ export default function Create({ accounts }: Props) {
     });
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
-  };
 
   const fromAccount = accounts.find(a => a.id === data.from_account_id);
   const toAccount = accounts.find(a => a.id === data.to_account_id);

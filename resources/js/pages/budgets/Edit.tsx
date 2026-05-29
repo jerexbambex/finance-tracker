@@ -13,10 +13,16 @@ interface Category {
   name: string;
 }
 
+interface CurrencyOption {
+  value: string;
+  label: string;
+}
+
 interface Budget {
   id: string;
   category_id: string;
   amount: number;
+  currency: string;
   period_type: string;
   period_year: number;
   period_month: number | null;
@@ -25,14 +31,16 @@ interface Budget {
 interface Props {
   budget: Budget;
   categories: Category[];
+  currencies: CurrencyOption[];
 }
 
-export default function Edit({ budget, categories }: Props) {
+export default function Edit({ budget, categories, currencies }: Props) {
   const currentYear = new Date().getFullYear();
 
   const { data, setData, put, processing, errors } = useForm({
     category_id: budget.category_id,
     amount: budget.amount.toString(),
+    currency: budget.currency ?? 'USD',
     period_type: budget.period_type,
     period_year: budget.period_year.toString(),
     period_month: budget.period_month?.toString() || '',
@@ -121,6 +129,21 @@ export default function Edit({ budget, categories }: Props) {
                     className={errors.amount ? 'border-red-500' : ''}
                   />
                   {errors.amount && <p className="text-red-500 text-sm mt-1">{errors.amount}</p>}
+                </div>
+
+                <div>
+                  <Label htmlFor="currency">Currency</Label>
+                  <Select value={data.currency} onValueChange={(value) => setData('currency', value)}>
+                    <SelectTrigger className={errors.currency ? 'border-red-500' : ''}>
+                      <SelectValue placeholder="Select currency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {currencies.map((c) => (
+                        <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.currency && <p className="text-red-500 text-sm mt-1">{errors.currency}</p>}
                 </div>
 
                 <div>
