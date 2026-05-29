@@ -40,27 +40,25 @@ class TransferController extends Controller
         DB::transaction(function () use ($validated, $fromAccount, $toAccount) {
             $amountInCents = $validated['amount'] * 100;
 
-            // Create outgoing transaction
             Transaction::create([
                 'user_id' => auth()->id(),
                 'account_id' => $fromAccount->id,
-                'type' => 'expense',
+                'type' => 'transfer',
                 'amount' => $validated['amount'],
                 'description' => $validated['description'] ?? "Transfer to {$toAccount->name}",
                 'transaction_date' => $validated['transfer_date'],
             ]);
 
-            // Create incoming transaction
             Transaction::create([
                 'user_id' => auth()->id(),
                 'account_id' => $toAccount->id,
-                'type' => 'income',
+                'type' => 'transfer',
                 'amount' => $validated['amount'],
                 'description' => $validated['description'] ?? "Transfer from {$fromAccount->name}",
                 'transaction_date' => $validated['transfer_date'],
             ]);
 
-            // Update account balances (in cents)
+            // Observer skips 'transfer' type — update balances explicitly
             $fromAccount->decrement('balance', $amountInCents);
             $toAccount->increment('balance', $amountInCents);
         });
