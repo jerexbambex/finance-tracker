@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Account;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class AccountController extends Controller
@@ -46,7 +47,25 @@ class AccountController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        auth()->user()->accounts()->create($validated);
+        $openingBalance = (float) $validated['balance'];
+        // Start at zero; the opening-balance transaction (below) populates it via the
+        // observer, so the ledger reconstructs from transactions for account #1 onward.
+        $validated['balance'] = 0;
+
+        DB::transaction(function () use ($validated, $openingBalance) {
+            $account = auth()->user()->accounts()->create($validated);
+
+            if ($openingBalance > 0) {
+                $account->transactions()->create([
+                    'user_id' => auth()->id(),
+                    'type' => 'opening',
+                    'amount' => $openingBalance,
+                    'currency' => $account->currency,
+                    'description' => 'Opening balance',
+                    'transaction_date' => now(),
+                ]);
+            }
+        });
 
         return redirect()->route('accounts.index');
     }

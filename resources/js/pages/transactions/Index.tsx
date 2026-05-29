@@ -639,7 +639,7 @@ export default function Index({ transactions, categories, chartData }: Props) {
                                   backgroundColor: transaction.category?.color || '#6b7280',
                                 }}
                               >
-                                {transaction.type === 'income' ? '↑' : '↓'}
+                                {transaction.type === 'expense' ? '↓' : '↑'}
                             </div>
                             <div className="min-w-0">
                               <p className="font-medium truncate">{transaction.description}</p>
@@ -662,12 +662,12 @@ export default function Index({ transactions, categories, chartData }: Props) {
                         <TableCell className="text-right">
                           <span
                             className={`font-semibold text-sm sm:text-base ${
-                              transaction.type === 'income'
-                                ? 'text-green-600'
-                                : 'text-red-600'
+                              transaction.type === 'expense'
+                                ? 'text-red-600'
+                                : 'text-green-600'
                             }`}
                           >
-                            {transaction.type === 'income' ? '+' : '-'}
+                            {transaction.type === 'expense' ? '-' : '+'}
                             {formatCurrency(transaction.amount, transaction.account.currency)}
                           </span>
                         </TableCell>

@@ -404,9 +404,9 @@ export default function Dashboard({ accounts, balancesByCurrency, recentTransact
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2">
                                                 <p className="text-sm font-medium truncate">{transaction.description}</p>
-                                                <Badge 
-                                                    variant={transaction.type === 'income' ? 'default' : 'secondary'} 
-                                                    className={`text-[10px] px-1.5 py-0 ${transaction.type === 'income' ? 'bg-green-500/10 text-green-600 border-green-500/20' : 'bg-red-500/10 text-red-600 border-red-500/20'}`}
+                                                <Badge
+                                                    variant={transaction.type === 'expense' ? 'secondary' : 'default'}
+                                                    className={`text-[10px] px-1.5 py-0 ${transaction.type === 'expense' ? 'bg-red-500/10 text-red-600 border-red-500/20' : 'bg-green-500/10 text-green-600 border-green-500/20'}`}
                                                 >
                                                     {transaction.type}
                                                 </Badge>
@@ -421,9 +421,9 @@ export default function Dashboard({ accounts, balancesByCurrency, recentTransact
                                             </div>
                                         </div>
                                         <div className={`text-sm font-semibold ${
-                                            transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+                                            transaction.type === 'expense' ? 'text-red-600' : 'text-green-600'
                                         }`}>
-                                            {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount, transaction.account.currency)}
+                                            {transaction.type === 'expense' ? '-' : '+'}{formatCurrency(transaction.amount, transaction.account.currency)}
                                         </div>
                                     </div>
                                 ))}

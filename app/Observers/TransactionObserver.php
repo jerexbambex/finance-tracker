@@ -44,7 +44,9 @@ class TransactionObserver
 
     private function applyEffect(string $accountId, string $type, int $cents): void
     {
-        if ($type === 'income') {
+        // 'opening' is the materialized opening balance — adds to balance like income,
+        // but carries its own type so income/expense reports never count it.
+        if ($type === 'income' || $type === 'opening') {
             Account::where('id', $accountId)->increment('balance', $cents);
         } elseif ($type === 'expense') {
             Account::where('id', $accountId)->decrement('balance', $cents);
@@ -54,7 +56,7 @@ class TransactionObserver
 
     private function reverseEffect(string $accountId, string $type, int $cents): void
     {
-        if ($type === 'income') {
+        if ($type === 'income' || $type === 'opening') {
             Account::where('id', $accountId)->decrement('balance', $cents);
         } elseif ($type === 'expense') {
             Account::where('id', $accountId)->increment('balance', $cents);
