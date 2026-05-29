@@ -34,8 +34,8 @@ class SpendingInsightsController extends Controller
         $user = $request->user();
         $key = 'ai-insights:'.$user->id;
 
-        // Per-user daily cap to bound AWS cost
-        if (RateLimiter::tooManyAttempts($key, perMinute: 5)) {
+        // Per-user daily cap (max 5 attempts, counter decays after 24h) to bound AWS cost
+        if (RateLimiter::tooManyAttempts($key, maxAttempts: 5)) {
             return response()->json([
                 'status' => 'rate_limited',
                 'message' => 'Daily AI insight limit reached. Try again tomorrow.',
@@ -43,7 +43,7 @@ class SpendingInsightsController extends Controller
             ], 429);
         }
 
-        RateLimiter::increment($key, amount: 1, decaySeconds: 86400);
+        RateLimiter::increment($key, decaySeconds: 86400);
 
         Cache::put(GenerateAiInsights::cacheKey($user->id), [
             'status' => 'processing',

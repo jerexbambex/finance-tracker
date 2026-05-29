@@ -34,7 +34,7 @@ class Goal extends Model
 
     public function setTargetAmountAttribute($value)
     {
-        $this->attributes['target_amount'] = $value * 100;
+        $this->attributes['target_amount'] = (int) round($value * 100);
     }
 
     public function getCurrentAmountAttribute($value)
@@ -44,7 +44,7 @@ class Goal extends Model
 
     public function setCurrentAmountAttribute($value)
     {
-        $this->attributes['current_amount'] = $value * 100;
+        $this->attributes['current_amount'] = (int) round($value * 100);
     }
 
     public function user()

@@ -109,7 +109,7 @@ class ImportController extends Controller
             $message .= ", skipped {$skipped} duplicate".($skipped !== 1 ? 's' : '');
         }
         if (count($errors) > 0) {
-            $message .= ' with '.count($errors).' error'.($errors !== [1] ? 's' : '');
+            $message .= ' with '.count($errors).' error'.(count($errors) !== 1 ? 's' : '');
         }
 
         return back()->with('success', $message);

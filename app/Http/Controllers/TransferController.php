@@ -38,7 +38,7 @@ class TransferController extends Controller
         }
 
         DB::transaction(function () use ($validated, $fromAccount, $toAccount) {
-            $amountInCents = $validated['amount'] * 100;
+            $amountInCents = (int) round($validated['amount'] * 100);
 
             Transaction::create([
                 'user_id' => auth()->id(),

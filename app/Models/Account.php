@@ -31,10 +31,10 @@ class Account extends Model
         return $value / 100;
     }
 
-    // Convert dollars to cents for storage
+    // Convert dollars to cents for storage (round to avoid float drift)
     public function setBalanceAttribute($value)
     {
-        $this->attributes['balance'] = $value * 100;
+        $this->attributes['balance'] = (int) round($value * 100);
     }
 
     public function user()
