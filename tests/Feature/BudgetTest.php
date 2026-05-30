@@ -69,6 +69,29 @@ it('getSpentAmount excludes income transactions', function () {
     expect($budget->getSpentAmount())->toEqual(50);
 });
 
+it('getSpentAmount counts split portions and avoids double counting', function () {
+    $user = User::factory()->create();
+    $account = Account::create(['user_id' => $user->id, 'name' => 'Checking', 'type' => 'checking', 'balance' => 0, 'currency' => 'USD', 'is_active' => true]);
+    $food = Category::create(['name' => 'Food', 'type' => 'expense', 'is_active' => true, 'user_id' => $user->id]);
+    $home = Category::create(['name' => 'Home', 'type' => 'expense', 'is_active' => true, 'user_id' => $user->id]);
+
+    $budget = Budget::create([
+        'user_id' => $user->id, 'category_id' => $food->id, 'amount' => 500, 'currency' => 'USD',
+        'period_type' => 'monthly', 'period_year' => now()->year, 'period_month' => now()->month,
+    ]);
+
+    // Direct non-split expense in Food
+    Transaction::create(['user_id' => $user->id, 'account_id' => $account->id, 'category_id' => $food->id, 'type' => 'expense', 'amount' => 40, 'currency' => 'USD', 'description' => 'Lunch', 'transaction_date' => now()]);
+
+    // A split transaction (no own category) split across Food + Home
+    $split = Transaction::create(['user_id' => $user->id, 'account_id' => $account->id, 'category_id' => null, 'type' => 'expense', 'amount' => 100, 'currency' => 'USD', 'description' => 'Costco', 'transaction_date' => now()]);
+    $split->splits()->create(['category_id' => $food->id, 'amount' => 70, 'description' => 'groceries']);
+    $split->splits()->create(['category_id' => $home->id, 'amount' => 30, 'description' => 'supplies']);
+
+    // Food spend = 40 direct + 70 split = 110 (NOT 140, the parent total isn't double counted)
+    expect($budget->getSpentAmount())->toEqual(110);
+});
+
 it('getPercentageUsed uses dollar amounts not raw cents', function () {
     $user = User::factory()->create();
     $account = Account::create(['user_id' => $user->id, 'name' => 'Checking', 'type' => 'checking', 'balance' => 0, 'currency' => 'USD', 'is_active' => true]);

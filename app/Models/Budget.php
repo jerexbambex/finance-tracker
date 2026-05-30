@@ -48,17 +48,38 @@ class Budget extends Model
 
     public function getSpentAmount()
     {
-        $query = Transaction::where('user_id', $this->user_id)
-            ->where('category_id', $this->category_id)
-            ->where('type', 'expense')
-            ->where('currency', $this->currency)
-            ->whereYear('transaction_date', $this->period_year);
+        $applyPeriod = function ($query, string $dateColumn = 'transaction_date') {
+            $query->whereYear($dateColumn, $this->period_year);
+            if ($this->period_type === 'monthly' && $this->period_month) {
+                $query->whereMonth($dateColumn, $this->period_month);
+            }
 
-        if ($this->period_type === 'monthly' && $this->period_month) {
-            $query->whereMonth('transaction_date', $this->period_month);
-        }
+            return $query;
+        };
 
-        return $query->sum('amount') / 100;
+        // Direct spend: non-split expense transactions in this category.
+        // Split transactions are excluded here and counted via their split rows
+        // below, so a split is never double-counted under its parent category.
+        $direct = $applyPeriod(
+            Transaction::where('user_id', $this->user_id)
+                ->where('category_id', $this->category_id)
+                ->where('type', 'expense')
+                ->where('currency', $this->currency)
+                ->whereDoesntHave('splits')
+        )->sum('amount');
+
+        // Split spend: split rows assigned to this category, scoped through their
+        // parent transaction for user/type/currency/period.
+        $split = TransactionSplit::where('transaction_splits.category_id', $this->category_id)
+            ->whereHas('transaction', function ($q) use ($applyPeriod) {
+                $q->where('user_id', $this->user_id)
+                    ->where('type', 'expense')
+                    ->where('currency', $this->currency);
+                $applyPeriod($q);
+            })
+            ->sum('amount');
+
+        return ($direct + $split) / 100;
     }
 
     public function getPercentageUsed()

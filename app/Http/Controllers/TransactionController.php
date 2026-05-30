@@ -351,40 +351,28 @@ class TransactionController extends Controller
 
     private function checkBudgetAlert(Transaction $transaction): void
     {
-        $budget = Budget::where('user_id', auth()->id())
-            ->where('category_id', $transaction->category_id)
-            ->where('period_year', $transaction->transaction_date->year)
-            ->where('period_month', $transaction->transaction_date->month)
-            ->with('category')
-            ->first();
-
-        if (! $budget) {
-            return;
-        }
-
-        $spentCents = auth()->user()->transactions()
-            ->where('type', 'expense')
-            ->where('category_id', $transaction->category_id)
-            ->where('currency', $budget->currency)
-            ->whereYear('transaction_date', $transaction->transaction_date->year)
-            ->whereMonth('transaction_date', $transaction->transaction_date->month)
-            ->sum('amount');
-
-        $spentDollars = $spentCents / 100;
-        $percentage = $budget->amount > 0 ? ($spentDollars / $budget->amount) * 100 : 0;
-
-        if ($percentage >= 80) {
-            auth()->user()->notify(new BudgetExceededNotification($budget, $spentDollars, $percentage));
-        }
+        $this->alertForCategory($transaction->category_id, $transaction->transaction_date);
     }
 
     private function checkBudgetAlertForSplit(TransactionSplit $split): void
     {
-        $transaction = $split->transaction;
+        $this->alertForCategory($split->category_id, $split->transaction->transaction_date);
+    }
+
+    /**
+     * Notify when a category's budget crosses 80%. Spend is computed by the
+     * single split-aware source of truth, Budget::getSpentAmount().
+     */
+    private function alertForCategory(?string $categoryId, $date): void
+    {
+        if (! $categoryId) {
+            return;
+        }
+
         $budget = Budget::where('user_id', auth()->id())
-            ->where('category_id', $split->category_id)
-            ->where('period_year', $transaction->transaction_date->year)
-            ->where('period_month', $transaction->transaction_date->month)
+            ->where('category_id', $categoryId)
+            ->where('period_year', $date->year)
+            ->where('period_month', $date->month)
             ->with('category')
             ->first();
 
@@ -392,26 +380,10 @@ class TransactionController extends Controller
             return;
         }
 
-        $spentCents = auth()->user()->transactions()
-            ->where('type', 'expense')
-            ->where('category_id', $split->category_id)
-            ->where('currency', $budget->currency)
-            ->whereYear('transaction_date', $transaction->transaction_date->year)
-            ->whereMonth('transaction_date', $transaction->transaction_date->month)
-            ->sum('amount');
-
-        $splitTotalCents = TransactionSplit::whereHas('transaction', function ($q) use ($transaction) {
-            $q->where('user_id', auth()->id())
-                ->where('type', 'expense')
-                ->whereYear('transaction_date', $transaction->transaction_date->year)
-                ->whereMonth('transaction_date', $transaction->transaction_date->month);
-        })->where('category_id', $split->category_id)->sum('amount');
-
-        $spentDollars = ($spentCents + $splitTotalCents) / 100;
-        $percentage = $budget->amount > 0 ? ($spentDollars / $budget->amount) * 100 : 0;
+        $percentage = $budget->getPercentageUsed();
 
         if ($percentage >= 80) {
-            auth()->user()->notify(new BudgetExceededNotification($budget, $spentDollars, $percentage));
+            auth()->user()->notify(new BudgetExceededNotification($budget, $budget->getSpentAmount(), $percentage));
         }
     }
 
