@@ -1,5 +1,4 @@
 import { Head, useForm } from '@inertiajs/react';
-import { formatCurrency } from '@/lib/formatCurrency';
 import { Target, TrendingUp, Calendar } from 'lucide-react';
 import { useState } from 'react';
 
@@ -11,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
+import { formatCurrency } from '@/lib/formatCurrency';
 
 interface Goal {
   id: string;

@@ -1,9 +1,9 @@
 import { Head } from '@inertiajs/react';
 import { ShieldCheck, UserCircle, Database, Lock, Clock, Mail, Scale } from 'lucide-react';
 
+import CookieConsent from '@/components/Landing/CookieConsent';
 import Footer from '@/components/Landing/Footer';
 import Navbar from '@/components/Landing/Navbar';
-import CookieConsent from '@/components/Landing/CookieConsent';
 
 export default function PrivacyPolicy() {
     return (

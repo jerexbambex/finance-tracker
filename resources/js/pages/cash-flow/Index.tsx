@@ -3,11 +3,11 @@ import { TrendingUp, TrendingDown, Wallet, AlertTriangle } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ReferenceLine } from 'recharts';
 
-import { formatCurrency } from '@/lib/formatCurrency';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
+import { formatCurrency } from '@/lib/formatCurrency';
 
 interface Point {
   date: string;
@@ -37,7 +37,7 @@ export default function Index({ timelines, milestones }: Props) {
   const available = Object.keys(timelines);
   const [currency, setCurrency] = useState(available[0] ?? 'USD');
 
-  const points = timelines[currency] ?? [];
+  const points = useMemo(() => timelines[currency] ?? [], [timelines, currency]);
   const milestone = milestones[currency];
 
   const lowestPoint = useMemo(

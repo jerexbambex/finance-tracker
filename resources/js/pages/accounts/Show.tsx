@@ -1,9 +1,10 @@
 import { Head, Link } from '@inertiajs/react';
-import { formatCurrency } from '@/lib/formatCurrency';
+
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
+import { formatCurrency } from '@/lib/formatCurrency';
 
 interface Transaction {
   id: number;

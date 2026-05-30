@@ -1,5 +1,4 @@
 import { Head, useForm, Link, router, usePage } from '@inertiajs/react';
-import { formatCurrency } from '@/lib/formatCurrency';
 import { Wallet, CreditCard, TrendingUp, CheckCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
@@ -22,6 +21,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
+import { formatCurrency } from '@/lib/formatCurrency';
 
 interface Account {
   id: string;

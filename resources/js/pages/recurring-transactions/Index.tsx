@@ -1,5 +1,4 @@
 import { Head, Link, router } from "@inertiajs/react";
-import { formatCurrency } from '@/lib/formatCurrency';
 import { Calendar, Repeat, Pencil, Trash2 } from "lucide-react";
 
 import {
@@ -17,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import AppLayout from "@/layouts/app-layout";
+import { formatCurrency } from '@/lib/formatCurrency';
 
 interface RecurringTransaction {
   id: string;

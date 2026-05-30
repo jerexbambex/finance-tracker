@@ -1,5 +1,4 @@
 import { Head } from '@inertiajs/react';
-import { formatCurrency as baseFmt } from '@/lib/formatCurrency';
 import { Download, TrendingUp, TrendingDown, PieChart as PieChartIcon } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, PieChart, Pie, Legend, Label } from 'recharts';
@@ -11,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
+import { formatCurrency as baseFmt } from '@/lib/formatCurrency';
 
 interface CategorySpending {
   category: string;

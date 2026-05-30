@@ -1,10 +1,10 @@
 import { Head, router } from '@inertiajs/react';
-import { formatCurrency } from '@/lib/formatCurrency';
 import { TrendingUp, Lightbulb } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
+import { formatCurrency } from '@/lib/formatCurrency';
 
 
 interface Recommendation {
