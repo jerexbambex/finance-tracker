@@ -369,21 +369,24 @@ class TransactionController extends Controller
             return;
         }
 
-        $budget = Budget::where('user_id', auth()->id())
+        // Match a monthly budget for the transaction's month OR a yearly budget for its year.
+        $budgets = Budget::where('user_id', auth()->id())
             ->where('category_id', $categoryId)
             ->where('period_year', $date->year)
-            ->where('period_month', $date->month)
+            ->where(function ($q) use ($date) {
+                $q->where('period_type', 'yearly')
+                    ->orWhere(function ($q2) use ($date) {
+                        $q2->where('period_type', 'monthly')->where('period_month', $date->month);
+                    });
+            })
             ->with('category')
-            ->first();
+            ->get();
 
-        if (! $budget) {
-            return;
-        }
-
-        $percentage = $budget->getPercentageUsed();
-
-        if ($percentage >= 80) {
-            auth()->user()->notify(new BudgetExceededNotification($budget, $budget->getSpentAmount(), $percentage));
+        foreach ($budgets as $budget) {
+            $percentage = $budget->getPercentageUsed();
+            if ($percentage >= 80) {
+                auth()->user()->notify(new BudgetExceededNotification($budget, $budget->getSpentAmount(), $percentage));
+            }
         }
     }
 

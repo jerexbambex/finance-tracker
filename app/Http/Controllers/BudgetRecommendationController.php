@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\ScopesOwnership;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class BudgetRecommendationController extends Controller
 {
+    use ScopesOwnership;
+
     public function index()
     {
         $user = auth()->user();
@@ -83,7 +86,7 @@ class BudgetRecommendationController extends Controller
     public function apply(Request $request)
     {
         $validated = $request->validate([
-            'category_id' => 'required|exists:categories,id',
+            'category_id' => ['required', $this->ownedCategoryExists()],
             'amount' => 'required|numeric|min:0.01',
             'currency' => 'required|string|size:3',
         ]);

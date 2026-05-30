@@ -67,6 +67,20 @@ it('rejects creating a transfer through the generic transaction endpoint', funct
     ])->assertSessionHasErrors('type');
 });
 
+it('rejects another users category when applying a budget recommendation', function () {
+    $me = User::factory()->create();
+    $other = User::factory()->create();
+    $theirCategory = Category::create(['name' => 'Private', 'type' => 'expense', 'is_active' => true, 'user_id' => $other->id]);
+
+    $this->actingAs($me)->from('/budgets/recommendations')->post('/budgets/recommendations/apply', [
+        'category_id' => $theirCategory->id,
+        'amount' => '100.00',
+        'currency' => 'USD',
+    ])->assertSessionHasErrors('category_id');
+
+    expect($me->budgets()->count())->toBe(0);
+});
+
 it('rejects another users category in a recurring transaction', function () {
     $me = User::factory()->create();
     $other = User::factory()->create();
