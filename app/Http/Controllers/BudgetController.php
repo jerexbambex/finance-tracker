@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Currency;
+use App\Http\Controllers\Concerns\ScopesOwnership;
 use App\Models\Budget;
 use App\Models\Category;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -11,7 +12,7 @@ use Inertia\Inertia;
 
 class BudgetController extends Controller
 {
-    use AuthorizesRequests;
+    use AuthorizesRequests, ScopesOwnership;
 
     public function index(Request $request)
     {
@@ -77,7 +78,7 @@ class BudgetController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'category_id' => 'required|exists:categories,id',
+            'category_id' => ['required', $this->ownedCategoryExists()],
             'amount' => 'required|numeric|min:0.01',
             'currency' => 'required|string|size:3',
             'period_type' => 'required|string|in:monthly,yearly',
@@ -136,7 +137,7 @@ class BudgetController extends Controller
         $this->authorize('update', $budget);
 
         $validated = $request->validate([
-            'category_id' => 'required|exists:categories,id',
+            'category_id' => ['required', $this->ownedCategoryExists()],
             'amount' => 'required|numeric|min:0.01',
             'currency' => 'required|string|size:3',
             'period_type' => 'required|string|in:monthly,yearly',

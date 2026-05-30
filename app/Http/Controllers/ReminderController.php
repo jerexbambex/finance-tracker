@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\ScopesOwnership;
 use App\Models\Category;
 use App\Models\Reminder;
 use Illuminate\Http\Request;
@@ -9,6 +10,8 @@ use Inertia\Inertia;
 
 class ReminderController extends Controller
 {
+    use ScopesOwnership;
+
     public function index()
     {
         $reminders = auth()->user()->reminders()
@@ -53,7 +56,7 @@ class ReminderController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'category_id' => 'nullable|exists:categories,id',
+            'category_id' => ['nullable', $this->ownedCategoryExists()],
             'amount' => 'nullable|numeric|min:0',
             'due_date' => 'required|date',
             'is_recurring' => 'boolean',
@@ -72,7 +75,7 @@ class ReminderController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'category_id' => 'nullable|exists:categories,id',
+            'category_id' => ['nullable', $this->ownedCategoryExists()],
             'amount' => 'nullable|numeric|min:0',
             'due_date' => 'required|date',
             'is_recurring' => 'boolean',

@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\SavedFilter;
 use App\Models\Transaction;
 use App\Models\TransactionSplit;
+use App\Http\Controllers\Concerns\ScopesOwnership;
 use App\Notifications\BudgetExceededNotification;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
@@ -16,7 +17,7 @@ use Inertia\Inertia;
 
 class TransactionController extends Controller
 {
-    use AuthorizesRequests;
+    use AuthorizesRequests, ScopesOwnership;
 
     public function index(Request $request)
     {
@@ -156,9 +157,9 @@ class TransactionController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'account_id' => 'required|exists:accounts,id',
-            'category_id' => 'nullable|exists:categories,id',
-            'type' => 'required|string|in:income,expense,transfer',
+            'account_id' => ['required', $this->ownedAccountExists()],
+            'category_id' => ['nullable', $this->ownedCategoryExists()],
+            'type' => 'required|string|in:income,expense',
             'amount' => 'required|numeric|min:0.01',
             'description' => 'required|string|max:255',
             'transaction_date' => 'required|date',
@@ -167,7 +168,7 @@ class TransactionController extends Controller
             'tags' => 'nullable|string',
             'is_split' => 'nullable|boolean',
             'splits' => 'nullable|array',
-            'splits.*.category_id' => 'required|exists:categories,id',
+            'splits.*.category_id' => ['required', $this->ownedCategoryExists()],
             'splits.*.amount' => 'required|numeric|min:0.01',
             'splits.*.description' => 'nullable|string',
         ]);
@@ -260,10 +261,14 @@ class TransactionController extends Controller
     {
         $this->authorize('update', $transaction);
 
+        // Transfers are managed only through TransferController (paired legs);
+        // the generic path must not create or convert one-sided transfers.
+        abort_if($transaction->type === 'transfer', 403, 'Transfers cannot be edited here.');
+
         $validated = $request->validate([
-            'account_id' => 'required|exists:accounts,id',
-            'category_id' => 'nullable|exists:categories,id',
-            'type' => 'required|string|in:income,expense,transfer',
+            'account_id' => ['required', $this->ownedAccountExists()],
+            'category_id' => ['nullable', $this->ownedCategoryExists()],
+            'type' => 'required|string|in:income,expense',
             'amount' => 'required|numeric|min:0.01',
             'description' => 'required|string|max:255',
             'transaction_date' => 'required|date',
@@ -272,7 +277,7 @@ class TransactionController extends Controller
             'tags' => 'nullable|string',
             'is_split' => 'nullable|boolean',
             'splits' => 'nullable|array',
-            'splits.*.category_id' => 'required|exists:categories,id',
+            'splits.*.category_id' => ['required', $this->ownedCategoryExists()],
             'splits.*.amount' => 'required|numeric|min:0.01',
             'splits.*.description' => 'nullable|string',
         ]);
@@ -414,7 +419,7 @@ class TransactionController extends Controller
     {
         $validated = $request->validate([
             'ids' => 'required|array',
-            'ids.*' => 'required|exists:transactions,id',
+            'ids.*' => ['required', \Illuminate\Validation\Rule::exists('transactions', 'id')->where('user_id', auth()->id())],
         ]);
 
         // Delete individually so TransactionObserver fires (balance updates per row),
@@ -429,8 +434,8 @@ class TransactionController extends Controller
     {
         $validated = $request->validate([
             'ids' => 'required|array',
-            'ids.*' => 'required|exists:transactions,id',
-            'category_id' => 'required|exists:categories,id',
+            'ids.*' => ['required', \Illuminate\Validation\Rule::exists('transactions', 'id')->where('user_id', auth()->id())],
+            'category_id' => ['required', $this->ownedCategoryExists()],
         ]);
 
         // Only update transactions that don't have splits
