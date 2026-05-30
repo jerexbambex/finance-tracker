@@ -87,4 +87,57 @@ class Transaction extends Model implements HasMedia
             ->logOnly(['type', 'amount', 'currency', 'transaction_date', 'description'])
             ->logOnlyDirty();
     }
+
+    /**
+     * Split-aware expense spend per category, for a user over a date range.
+     * Non-split transactions count under their own category; split parents are
+     * excluded and counted via their split rows (so nothing double-counts).
+     *
+     * Returns a collection of objects:
+     *   { category_id, name, color, currency, amount (dollars), count }
+     * keyed by "{category_id}|{currency}".
+     */
+    public static function spendByCategory(string $userId, $start, $end): \Illuminate\Support\Collection
+    {
+        $direct = static::query()
+            ->where('transactions.user_id', $userId)
+            ->where('transactions.type', 'expense')
+            ->whereBetween('transactions.transaction_date', [$start, $end])
+            ->whereDoesntHave('splits')
+            ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
+            ->leftJoin('categories', 'transactions.category_id', '=', 'categories.id')
+            ->selectRaw('transactions.category_id, categories.name as cat_name, categories.color as cat_color, accounts.currency, SUM(transactions.amount) as total, COUNT(*) as cnt')
+            ->groupBy('transactions.category_id', 'categories.name', 'categories.color', 'accounts.currency')
+            ->get();
+
+        $split = TransactionSplit::query()
+            ->join('transactions', 'transaction_splits.transaction_id', '=', 'transactions.id')
+            ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
+            ->leftJoin('categories', 'transaction_splits.category_id', '=', 'categories.id')
+            ->where('transactions.user_id', $userId)
+            ->where('transactions.type', 'expense')
+            ->whereBetween('transactions.transaction_date', [$start, $end])
+            ->selectRaw('transaction_splits.category_id, categories.name as cat_name, categories.color as cat_color, accounts.currency, SUM(transaction_splits.amount) as total, COUNT(*) as cnt')
+            ->groupBy('transaction_splits.category_id', 'categories.name', 'categories.color', 'accounts.currency')
+            ->get();
+
+        $merged = [];
+        foreach ($direct->concat($split) as $row) {
+            $key = ($row->category_id ?? 'none').'|'.$row->currency;
+            if (! isset($merged[$key])) {
+                $merged[$key] = (object) [
+                    'category_id' => $row->category_id,
+                    'name' => $row->cat_name ?? 'Uncategorized',
+                    'color' => $row->cat_color ?? '#6b7280',
+                    'currency' => $row->currency,
+                    'amount' => 0.0,
+                    'count' => 0,
+                ];
+            }
+            $merged[$key]->amount += (int) $row->total / 100;
+            $merged[$key]->count += (int) $row->cnt;
+        }
+
+        return collect($merged)->values();
+    }
 }

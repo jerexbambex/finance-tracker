@@ -42,25 +42,18 @@ class DashboardController extends Controller
             ->get()
             ->mapWithKeys(fn ($item) => [$item->currency => $item->total / 100]);
 
-        $categorySpending = $user->transactions()
-            ->selectRaw('transactions.category_id, accounts.currency, SUM(transactions.amount) as total')
-            ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
-            ->with('category')
-            ->where('transactions.type', 'expense')
-            ->where('transactions.transaction_date', '>=', $startOfMonth)
-            ->whereNotNull('transactions.category_id')
-            ->where('transactions.category_id', '!=', '')
-            ->whereHas('category', fn ($q) => $q->where('type', 'expense'))
-            ->groupBy('transactions.category_id', 'accounts.currency')
-            ->orderByDesc('total')
+        // Split-aware category spending for the current month (top 5, excludes uncategorized)
+        $categorySpending = \App\Models\Transaction::spendByCategory($user->id, $startOfMonth, now())
+            ->filter(fn ($row) => $row->category_id !== null)
+            ->sortByDesc('amount')
             ->take(5)
-            ->get()
-            ->map(fn ($t) => [
-                'name' => $t->category?->name ?? 'Uncategorized',
-                'amount' => $t->total / 100,
-                'currency' => $t->currency,
-                'color' => $t->category?->color ?? '#6b7280',
-            ]);
+            ->map(fn ($row) => [
+                'name' => $row->name,
+                'amount' => $row->amount,
+                'currency' => $row->currency,
+                'color' => $row->color,
+            ])
+            ->values();
 
         $monthlyTrend = collect();
         for ($i = 5; $i >= 0; $i--) {

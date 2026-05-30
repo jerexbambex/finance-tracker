@@ -15,29 +15,28 @@ class ReportsController extends Controller
         $startDate = $request->input('start_date', now()->startOfMonth()->toDateString());
         $endDate = $request->input('end_date', now()->endOfMonth()->toDateString());
 
-        // Load expense transactions once for reuse
+        // Load expense transactions once for reuse (account spending below)
         $expenseTransactions = $user->transactions()
             ->where('type', 'expense')
             ->whereBetween('transaction_date', [$startDate, $endDate])
             ->with(['category', 'account'])
             ->get();
 
-        // Category spending grouped by currency then category
-        $categorySpending = collect();
-        foreach ($expenseTransactions->groupBy('account.currency') as $currency => $currencyTxns) {
-            $currencyTotal = $currencyTxns->sum('amount');
-            foreach ($currencyTxns->groupBy('category.name') as $catName => $catTxns) {
-                $amount = $catTxns->sum('amount');
-                $categorySpending->push([
-                    'category' => $catName ?: 'Uncategorized',
-                    'amount' => $amount,
-                    'count' => $catTxns->count(),
-                    'percentage' => $currencyTotal > 0 ? ($amount / $currencyTotal) * 100 : 0,
-                    'currency' => $currency,
-                ]);
-            }
-        }
-        $categorySpending = $categorySpending->sortByDesc('amount')->values();
+        // Category spending — split-aware (split parents expanded into their parts)
+        $spendRows = \App\Models\Transaction::spendByCategory($user->id, $startDate, $endDate);
+        $currencyTotals = $spendRows->groupBy('currency')->map(fn ($rows) => $rows->sum('amount'));
+
+        $categorySpending = $spendRows->map(function ($row) use ($currencyTotals) {
+            $currencyTotal = $currencyTotals[$row->currency] ?? 0;
+
+            return [
+                'category' => $row->name,
+                'amount' => $row->amount,
+                'count' => $row->count,
+                'percentage' => $currencyTotal > 0 ? ($row->amount / $currencyTotal) * 100 : 0,
+                'currency' => $row->currency,
+            ];
+        })->sortByDesc('amount')->values();
 
         // Monthly trends (last 12 months) — one query instead of 12
         $monthlyRaw = $user->transactions()
