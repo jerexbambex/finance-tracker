@@ -51,7 +51,7 @@ export default function Index({ reminders }: Props) {
     }
   };
 
-  const ReminderCard = ({ reminder }: { reminder: Reminder }) => (
+  const ReminderCard = ({ reminder }: { reminder: Reminder; variant?: string }) => (
     <div className="flex items-center justify-between p-4 border rounded-lg">
       <div className="flex-1">
         <div className="flex items-center gap-2">

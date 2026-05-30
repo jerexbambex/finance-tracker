@@ -6,7 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import AppLayout from "@/layouts/app-layout";
-import { Account } from "@/types";
+
+interface Account {
+  id: string;
+  name: string;
+  currency?: string;
+}
 
 interface Props {
   accounts: Account[];

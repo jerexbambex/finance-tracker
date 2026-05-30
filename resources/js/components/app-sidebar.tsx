@@ -59,7 +59,7 @@ export function AppSidebar() {
             title: 'Notifications',
             href: '/notifications',
             icon: Bell,
-            badge: unreadNotifications > 0 ? unreadNotifications : undefined,
+            badge: (unreadNotifications ?? 0) > 0 ? unreadNotifications : undefined,
         },
     ];
 

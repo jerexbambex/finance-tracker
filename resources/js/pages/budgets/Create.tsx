@@ -21,7 +21,7 @@ export default function Create({ categories }: Props) {
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1;
 
-  const { data, setData, post, processing, errors } = useForm({
+  const { data, setData, transform, post, processing, errors } = useForm({
     category_id: '',
     amount: '',
     period_type: 'monthly',
@@ -31,17 +31,17 @@ export default function Create({ categories }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Map to correct field names for backend
-    post('/budgets', {
-      transform: (data) => ({
-        category_id: data.category_id,
-        amount: data.amount,
-        period_type: data.period_type,
-        period_year: data.year,
-        period_month: data.month,
-      }),
-    });
+
+    // Map to the backend field names before submitting
+    transform((data) => ({
+      category_id: data.category_id,
+      amount: data.amount,
+      period_type: data.period_type,
+      period_year: data.year,
+      period_month: data.month,
+    }));
+
+    post('/budgets');
   };
 
   const months = [
