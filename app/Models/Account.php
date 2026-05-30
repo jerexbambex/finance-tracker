@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 class Account extends Model
 {
-    use HasUuids, LogsActivity;
+    use HasFactory, HasUuids, LogsActivity;
 
     protected $fillable = [
         'user_id',

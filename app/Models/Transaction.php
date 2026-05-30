@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -11,7 +12,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Transaction extends Model implements HasMedia
 {
-    use HasUuids, InteractsWithMedia, LogsActivity;
+    use HasFactory, HasUuids, InteractsWithMedia, LogsActivity;
 
     protected $fillable = [
         'user_id',
