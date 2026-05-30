@@ -1,7 +1,17 @@
-import { Head, useForm, Link, usePage } from '@inertiajs/react';
+import { Head, useForm, Link, router, usePage } from '@inertiajs/react';
 import { Wallet, CreditCard, TrendingUp, CheckCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +21,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
+import { formatCurrency } from '@/lib/formatCurrency';
 
 interface Account {
   id: string;
@@ -20,6 +31,7 @@ interface Account {
   currency: string;
   is_active: boolean;
   description?: string;
+  transactions_count: number;
 }
 
 interface Props {
@@ -31,6 +43,7 @@ export default function Index({ accounts, currencies = [] }: Props) {
   const { flash } = usePage().props as { flash?: { success?: string } };
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [deleteAccount, setDeleteAccount] = useState<Account | null>(null);
   const [showSuccess, setShowSuccess] = useState(!!flash?.success);
 
   useEffect(() => {
@@ -52,7 +65,6 @@ export default function Index({ accounts, currencies = [] }: Props) {
   const editForm = useForm({
     name: '',
     type: '',
-    balance: '',
     currency: 'USD',
     description: '',
   });
@@ -93,19 +105,12 @@ export default function Index({ accounts, currencies = [] }: Props) {
     editForm.setData({
       name: account.name,
       type: account.type,
-      balance: account.balance.toString(),
       currency: account.currency,
       description: account.description || '',
     });
     setEditOpen(true);
   };
 
-  const formatCurrency = (amount: number, currency = 'USD') => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency,
-    }).format(amount);
-  };
 
   const getAccountTypeLabel = (type: string) => {
     return type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
@@ -128,9 +133,9 @@ export default function Index({ accounts, currencies = [] }: Props) {
       <div className="py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {showSuccess && (
-            <div className="mb-4 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-2">
+            <div className="mb-4 bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-900/30 rounded-lg p-4 flex items-center gap-2">
               <CheckCircle className="h-5 w-5 text-green-600" />
-              <p className="text-green-800">{flash.success}</p>
+              <p className="text-green-800 dark:text-green-300">{flash?.success}</p>
             </div>
           )}
           
@@ -300,6 +305,14 @@ export default function Index({ accounts, currencies = [] }: Props) {
                       <Button variant="outline" size="sm" onClick={() => openEditModal(account)}>
                         Edit
                       </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => setDeleteAccount(account)}
+                      >
+                        Delete
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
@@ -322,6 +335,36 @@ export default function Index({ accounts, currencies = [] }: Props) {
           )}
         </div>
       </div>
+
+      <AlertDialog open={!!deleteAccount} onOpenChange={(open) => !open && setDeleteAccount(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete &ldquo;{deleteAccount?.name}&rdquo;?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this account
+              {deleteAccount && deleteAccount.transactions_count > 0
+                ? ` and its ${deleteAccount.transactions_count} transaction${deleteAccount.transactions_count === 1 ? '' : 's'}`
+                : ''}.
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (deleteAccount) {
+                  router.delete(`/accounts/${deleteAccount.id}`, {
+                    onSuccess: () => setDeleteAccount(null),
+                  });
+                }
+              }}
+            >
+              Delete Account
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent>
@@ -353,17 +396,6 @@ export default function Index({ accounts, currencies = [] }: Props) {
                 </SelectContent>
               </Select>
               {editForm.errors.type && <p className="text-red-500 text-sm mt-1">{editForm.errors.type}</p>}
-            </div>
-            <div>
-              <Label htmlFor="edit-balance">Balance</Label>
-              <Input
-                id="edit-balance"
-                type="number"
-                step="0.01"
-                value={editForm.data.balance}
-                onChange={(e) => editForm.setData('balance', e.target.value)}
-              />
-              {editForm.errors.balance && <p className="text-red-500 text-sm mt-1">{editForm.errors.balance}</p>}
             </div>
             <div>
               <Label htmlFor="edit-currency">Currency</Label>

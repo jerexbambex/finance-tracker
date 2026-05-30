@@ -6,6 +6,7 @@ use App\Models\Goal;
 use App\Models\GoalContribution;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class GoalContributionController extends Controller
 {
@@ -21,21 +22,14 @@ class GoalContributionController extends Controller
             'contribution_date' => 'required|date',
         ]);
 
-        GoalContribution::create([
+        // Atomic: contribution insert + the observer's current_amount/is_completed recompute
+        DB::transaction(fn () => GoalContribution::create([
             'goal_id' => $goal->id,
             'user_id' => auth()->id(),
             'amount' => $validated['amount'],
             'note' => $validated['note'],
             'contribution_date' => $validated['contribution_date'],
-        ]);
-
-        // Update goal current amount (convert to cents for raw increment)
-        $goal->increment('current_amount', $validated['amount'] * 100);
-
-        // Check if goal is completed
-        if ($goal->fresh()->current_amount >= $goal->target_amount) {
-            $goal->update(['is_completed' => true]);
-        }
+        ]));
 
         return redirect()->route('goals.index')->with('success', 'Contribution added successfully');
     }

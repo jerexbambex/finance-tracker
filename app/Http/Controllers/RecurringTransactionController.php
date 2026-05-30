@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\ScopesOwnership;
 use App\Models\Category;
 use App\Models\RecurringTransaction;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -10,7 +11,7 @@ use Inertia\Inertia;
 
 class RecurringTransactionController extends Controller
 {
-    use AuthorizesRequests;
+    use AuthorizesRequests, ScopesOwnership;
 
     public function index()
     {
@@ -41,8 +42,8 @@ class RecurringTransactionController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'account_id' => 'required|exists:accounts,id',
-            'category_id' => 'nullable|exists:categories,id',
+            'account_id' => ['required', $this->ownedAccountExists()],
+            'category_id' => ['nullable', $this->ownedCategoryExists()],
             'type' => 'required|in:income,expense',
             'amount' => 'required|numeric|min:0.01',
             'description' => 'required|string|max:255',
@@ -77,8 +78,8 @@ class RecurringTransactionController extends Controller
         $this->authorize('update', $recurringTransaction);
 
         $validated = $request->validate([
-            'account_id' => 'required|exists:accounts,id',
-            'category_id' => 'nullable|exists:categories,id',
+            'account_id' => ['required', $this->ownedAccountExists()],
+            'category_id' => ['nullable', $this->ownedCategoryExists()],
             'type' => 'required|in:income,expense',
             'amount' => 'required|numeric|min:0.01',
             'description' => 'required|string|max:255',

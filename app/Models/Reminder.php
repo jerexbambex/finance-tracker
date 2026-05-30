@@ -36,7 +36,7 @@ class Reminder extends Model
 
     public function setAmountAttribute($value)
     {
-        $this->attributes['amount'] = $value ? $value * 100 : null;
+        $this->attributes['amount'] = $value ? (int) round($value * 100) : null;
     }
 
     public function user()

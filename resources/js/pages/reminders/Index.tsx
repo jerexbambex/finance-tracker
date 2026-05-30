@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
+import { formatCurrency } from '@/lib/formatCurrency';
 
 
 interface Reminder {
@@ -12,6 +13,7 @@ interface Reminder {
   title: string;
   description?: string;
   amount?: number;
+  currency?: string;
   due_date: string;
   is_recurring: boolean;
   frequency?: string;
@@ -30,12 +32,6 @@ interface Props {
 }
 
 export default function Index({ reminders }: Props) {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
-  };
 
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString('en-US', {
@@ -55,7 +51,7 @@ export default function Index({ reminders }: Props) {
     }
   };
 
-  const ReminderCard = ({ reminder }: { reminder: Reminder }) => (
+  const ReminderCard = ({ reminder }: { reminder: Reminder; variant?: string }) => (
     <div className="flex items-center justify-between p-4 border rounded-lg">
       <div className="flex-1">
         <div className="flex items-center gap-2">
@@ -77,7 +73,7 @@ export default function Index({ reminders }: Props) {
         <div className="flex items-center gap-4 mt-2 text-sm">
           <span className="text-muted-foreground">{formatDate(reminder.due_date)}</span>
           {reminder.amount && (
-            <span className="font-medium">{formatCurrency(reminder.amount)}</span>
+            <span className="font-medium">{formatCurrency(reminder.amount, reminder.currency)}</span>
           )}
         </div>
       </div>

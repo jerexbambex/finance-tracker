@@ -13,7 +13,6 @@ class ExportController extends Controller
             ->with(['account', 'category'])
             ->latest('transaction_date');
 
-        // Apply same filters as index
         $query->when($request->account_id, fn ($q) => $q->where('account_id', $request->account_id))
             ->when($request->category_id, fn ($q) => $q->where('category_id', $request->category_id))
             ->when($request->type, fn ($q) => $q->where('type', $request->type))
@@ -21,24 +20,14 @@ class ExportController extends Controller
             ->when($request->date_to, fn ($q) => $q->whereDate('transaction_date', '<=', $request->date_to))
             ->when($request->search, fn ($q) => $q->where('description', 'like', '%'.$request->search.'%'));
 
-        $transactions = $query->get();
-
-        // Generate CSV
         $filename = 'transactions_'.now()->format('Y-m-d_His').'.csv';
 
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => "attachment; filename=\"$filename\"",
-        ];
-
-        $callback = function () use ($transactions) {
+        $callback = function () use ($query) {
             $file = fopen('php://output', 'w');
-
-            // Add CSV headers
             fputcsv($file, ['Date', 'Type', 'Account', 'Category', 'Description', 'Amount']);
 
-            // Add data rows
-            foreach ($transactions as $transaction) {
+            // lazy() chunks in batches of 1000 — never loads full dataset into memory
+            foreach ($query->lazy() as $transaction) {
                 fputcsv($file, [
                     $transaction->transaction_date->format('Y-m-d'),
                     ucfirst($transaction->type),
@@ -52,34 +41,49 @@ class ExportController extends Controller
             fclose($file);
         };
 
-        return Response::stream($callback, 200, $headers);
+        return Response::stream($callback, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ]);
     }
 
     public function allData()
     {
         $user = auth()->user();
-
-        // Gather all user data
-        $data = [
-            'exported_at' => now()->toIso8601String(),
-            'user' => [
-                'name' => $user->name,
-                'email' => $user->email,
-            ],
-            'accounts' => $user->accounts()->get()->toArray(),
-            'categories' => $user->categories()->get()->toArray(),
-            'transactions' => $user->transactions()->with(['account', 'category'])->get()->toArray(),
-            'budgets' => $user->budgets()->with('category')->get()->toArray(),
-            'goals' => $user->goals()->get()->toArray(),
-            'recurring_transactions' => $user->recurringTransactions()->with(['account', 'category'])->get()->toArray(),
-            'reminders' => $user->reminders()->with('category')->get()->toArray(),
-        ];
-
         $filename = 'budget_app_backup_'.now()->format('Y-m-d_His').'.json';
 
-        return response()->json($data, 200, [
+        $callback = function () use ($user) {
+            $out = fopen('php://output', 'w');
+
+            // Write JSON incrementally — small tables loaded at once, transactions streamed
+            fwrite($out, '{');
+            fwrite($out, '"exported_at":'.json_encode(now()->toIso8601String()).',');
+            fwrite($out, '"user":'.json_encode(['name' => $user->name, 'email' => $user->email]).',');
+            fwrite($out, '"accounts":'.json_encode($user->accounts()->get()->toArray()).',');
+            fwrite($out, '"categories":'.json_encode($user->categories()->get()->toArray()).',');
+            fwrite($out, '"budgets":'.json_encode($user->budgets()->with('category')->get()->toArray()).',');
+            fwrite($out, '"goals":'.json_encode($user->goals()->get()->toArray()).',');
+            fwrite($out, '"recurring_transactions":'.json_encode($user->recurringTransactions()->with(['account', 'category'])->get()->toArray()).',');
+            fwrite($out, '"reminders":'.json_encode($user->reminders()->with('category')->get()->toArray()).',');
+
+            // Transactions streamed in chunks of 1000 to avoid memory exhaustion
+            fwrite($out, '"transactions":[');
+            $first = true;
+            $user->transactions()->with(['account', 'category'])->lazy()->each(function ($t) use ($out, &$first) {
+                if (! $first) {
+                    fwrite($out, ',');
+                }
+                fwrite($out, json_encode($t->toArray()));
+                $first = false;
+            });
+            fwrite($out, ']}');
+
+            fclose($out);
+        };
+
+        return Response::stream($callback, 200, [
             'Content-Type' => 'application/json',
-            'Content-Disposition' => "attachment; filename=\"$filename\"",
-        ], JSON_PRETTY_PRINT);
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ]);
     }
 }

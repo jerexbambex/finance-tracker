@@ -1,5 +1,6 @@
 import { Head } from '@inertiajs/react';
 
+import CookieConsent from '@/components/Landing/CookieConsent';
 import CTA from '@/components/Landing/CTA';
 import Features from '@/components/Landing/Features';
 import Footer from '@/components/Landing/Footer';
@@ -12,7 +13,6 @@ import Security from '@/components/Landing/Security';
 import Testimonials from '@/components/Landing/Testimonials';
 import UnifiedWorkspace from '@/components/Landing/UnifiedWorkspace';
 import UseCaseTabs from '@/components/Landing/UseCaseTabs';
-import CookieConsent from '@/components/Landing/CookieConsent';
 
 
 

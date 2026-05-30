@@ -47,7 +47,7 @@ const features = [
     {
         icon: Shield,
         title: "Secure & Private",
-        desc: "Bank-level AES-256 encryption keeps your data safe.",
+        desc: "Encrypted (HTTPS) connections, your own private account, and full data export.",
         color: "text-slate-600 dark:text-slate-400",
         bg: "bg-slate-100 dark:bg-slate-900/50"
     }

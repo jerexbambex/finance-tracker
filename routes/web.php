@@ -3,6 +3,7 @@
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GoalController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\NotificationController;
@@ -36,175 +37,9 @@ Route::get('/privacy-policy', function () {
     return Inertia::render('PrivacyPolicy');
 })->name('privacy-policy');
 
-Route::get('/test-export', function () {
-    return 'Export route works!';
-});
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('dashboard', function () {
-        $user = auth()->user();
-
-        // Get account summaries grouped by currency
-        $accounts = $user->accounts()->where('is_active', true)->get();
-        $balancesByCurrency = $accounts->groupBy('currency')->map(fn ($accts) => $accts->sum('balance'));
-
-        // Get recent transactions
-        $recentTransactions = $user->transactions()
-            ->with(['account', 'category'])
-            ->latest('transaction_date')
-            ->take(10)
-            ->get();
-
-        // Calculate monthly income and expenses by currency
-        $startOfMonth = now()->startOfMonth();
-        $incomeByCurrency = $user->transactions()
-            ->where('transactions.type', 'income')
-            ->where('transaction_date', '>=', $startOfMonth)
-            ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
-            ->selectRaw('accounts.currency, SUM(transactions.amount) as total')
-            ->groupBy('accounts.currency')
-            ->get()
-            ->mapWithKeys(fn ($item) => [$item->currency => $item->total / 100]);
-
-        $expensesByCurrency = $user->transactions()
-            ->where('transactions.type', 'expense')
-            ->where('transaction_date', '>=', $startOfMonth)
-            ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
-            ->selectRaw('accounts.currency, SUM(transactions.amount) as total')
-            ->groupBy('accounts.currency')
-            ->get()
-            ->mapWithKeys(fn ($item) => [$item->currency => $item->total / 100]);
-
-        // Spending by category (current month) - grouped by category and currency
-        $categorySpending = $user->transactions()
-            ->selectRaw('transactions.category_id, accounts.currency, SUM(transactions.amount) as total')
-            ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
-            ->with('category')
-            ->where('transactions.type', 'expense')
-            ->where('transactions.transaction_date', '>=', $startOfMonth)
-            ->whereNotNull('transactions.category_id')
-            ->where('transactions.category_id', '!=', '')
-            ->whereHas('category', function ($query) {
-                $query->where('type', 'expense');
-            })
-            ->groupBy('transactions.category_id', 'accounts.currency')
-            ->orderByDesc('total')
-            ->take(5)
-            ->get()
-            ->map(function ($transaction) {
-                return [
-                    'name' => $transaction->category ? $transaction->category->name : 'Uncategorized',
-                    'amount' => $transaction->total / 100,
-                    'currency' => $transaction->currency,
-                    'color' => $transaction->category ? $transaction->category->color : '#6b7280',
-                ];
-            });
-
-        // Last 6 months trend grouped by currency
-        $monthlyTrend = collect();
-        for ($i = 5; $i >= 0; $i--) {
-            $date = now()->subMonths($i);
-
-            $rows = $user->transactions()
-                ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
-                ->whereYear('transactions.transaction_date', $date->year)
-                ->whereMonth('transactions.transaction_date', $date->month)
-                ->selectRaw('transactions.type, accounts.currency, SUM(transactions.amount) as total')
-                ->groupBy('transactions.type', 'accounts.currency')
-                ->get();
-
-            $income = [];
-            $expense = [];
-            foreach ($rows as $row) {
-                if ($row->type === 'income') {
-                    $income[$row->currency] = ($income[$row->currency] ?? 0) + $row->total / 100;
-                } else {
-                    $expense[$row->currency] = ($expense[$row->currency] ?? 0) + $row->total / 100;
-                }
-            }
-
-            $monthlyTrend->push([
-                'month' => $date->format('M'),
-                'income' => $income,
-                'expense' => $expense,
-            ]);
-        }
-
-        // Budget progress with alerts
-        $currentMonth = now()->month;
-        $currentYear = now()->year;
-        $budgets = $user->budgets()
-            ->with('category')
-            ->where('period_year', $currentYear)
-            ->where(function ($q) use ($currentMonth) {
-                $q->where('period_type', 'yearly')
-                    ->orWhere(function ($q2) use ($currentMonth) {
-                        $q2->where('period_type', 'monthly')
-                            ->where('period_month', $currentMonth);
-                    });
-            })
-            ->get()
-            ->map(function ($budget) {
-                $percentage = $budget->getPercentageUsed();
-
-                return [
-                    'id' => $budget->id,
-                    'category' => $budget->category->name,
-                    'percentage' => $percentage,
-                    'amount' => $budget->amount,
-                    'spent' => $budget->getSpentAmount(),
-                    'status' => $percentage >= 100 ? 'exceeded' : ($percentage >= 80 ? 'warning' : 'ok'),
-                    'currency' => $budget->currency,
-                ];
-            });
-
-        $budgetAlerts = $budgets->filter(fn ($b) => $b['status'] !== 'ok');
-
-        // Active goals
-        $goals = $user->goals()
-            ->where('is_active', true)
-            ->where('is_completed', false)
-            ->get()
-            ->map(function ($goal) {
-                return [
-                    'name' => $goal->name,
-                    'percentage' => $goal->getPercentageComplete(),
-                ];
-            });
-
-        // Upcoming reminders (next 7 days)
-        $upcomingReminders = $user->reminders()
-            ->with('category')
-            ->where('is_completed', false)
-            ->where('due_date', '<=', now()->addDays(7))
-            ->orderBy('due_date')
-            ->take(5)
-            ->get();
-
-        // User's testimonials
-        $userTestimonials = $user->testimonials()->latest()->get();
-
-        return Inertia::render('dashboard', [
-            'accounts' => $accounts,
-            'balancesByCurrency' => $balancesByCurrency,
-            'recentTransactions' => $recentTransactions,
-            'incomeByCurrency' => $incomeByCurrency,
-            'expensesByCurrency' => $expensesByCurrency,
-            'categorySpending' => $categorySpending,
-            'monthlyTrend' => $monthlyTrend,
-            'budgets' => $budgets,
-            'budgetAlerts' => $budgetAlerts,
-            'goals' => $goals,
-            'upcomingReminders' => $upcomingReminders,
-            'userTestimonials' => $userTestimonials,
-            'categories' => \App\Models\Category::where(function ($q) use ($user) {
-                $q->whereNull('user_id')->orWhere('user_id', $user->id);
-            })->where('is_active', true)->get(),
-            'currencies' => collect(\App\Currency::cases())->mapWithKeys(fn ($currency) => [
-                $currency->value => ['symbol' => $currency->symbol(), 'label' => $currency->label()],
-            ]),
-        ]);
-    })->name('dashboard');
+    Route::get('dashboard', DashboardController::class)->name('dashboard');
 
     Route::resource('accounts', AccountController::class);
     Route::resource('transactions', TransactionController::class);
@@ -220,8 +55,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('categories', CategoryController::class);
     Route::get('insights', [App\Http\Controllers\SpendingInsightsController::class, 'index'])->name('insights.index');
     Route::post('insights/ai', [App\Http\Controllers\SpendingInsightsController::class, 'generateAiInsights'])->name('insights.ai');
+    Route::get('insights/ai/status', [App\Http\Controllers\SpendingInsightsController::class, 'aiInsightsStatus'])->name('insights.ai.status');
+    Route::get('cash-flow', [App\Http\Controllers\CashFlowProjectionController::class, 'index'])->name('cash-flow.index');
     Route::resource('recurring-transactions', RecurringTransactionController::class);
-    Route::resource('reports', ReportsController::class)->only(['index']);
+    Route::get('reports', [ReportsController::class, 'index'])->name('reports.index');
     Route::resource('reminders', App\Http\Controllers\ReminderController::class);
     Route::post('/reminders/{reminder}/complete', [App\Http\Controllers\ReminderController::class, 'complete'])->name('reminders.complete');
 

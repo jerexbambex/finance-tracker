@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
+import { formatCurrency } from '@/lib/formatCurrency';
 
 interface Goal {
   id: string;
@@ -17,6 +18,7 @@ interface Goal {
   description?: string;
   target_amount: number;
   current_amount: number;
+  currency: string;
   target_date?: string;
   category?: string;
   is_completed: boolean;
@@ -47,7 +49,6 @@ export default function Index({ goals }: Props) {
     name: '',
     description: '',
     target_amount: '',
-    current_amount: '',
     target_date: '',
     category: '',
   });
@@ -100,7 +101,6 @@ export default function Index({ goals }: Props) {
       name: goal.name,
       description: goal.description || '',
       target_amount: goal.target_amount.toString(),
-      current_amount: goal.current_amount.toString(),
       target_date: goal.target_date || '',
       category: goal.category || '',
     });
@@ -117,12 +117,6 @@ export default function Index({ goals }: Props) {
     setContributeOpen(true);
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
-  };
 
   const formatDate = (date?: string) => {
     if (!date) return null;
@@ -179,7 +173,7 @@ export default function Index({ goals }: Props) {
                     {createForm.errors.target_amount && <p className="text-red-500 text-sm mt-1">{createForm.errors.target_amount}</p>}
                   </div>
                   <div>
-                    <Label htmlFor="create-current">Current Amount</Label>
+                    <Label htmlFor="create-current">Starting Amount (Optional)</Label>
                     <Input
                       id="create-current"
                       type="number"
@@ -188,6 +182,7 @@ export default function Index({ goals }: Props) {
                       onChange={(e) => createForm.setData('current_amount', e.target.value)}
                       placeholder="0.00"
                     />
+                    <p className="text-xs text-muted-foreground mt-1">Recorded as your first contribution.</p>
                   </div>
                   <div>
                     <Label htmlFor="create-date">Target Date (Optional)</Label>
@@ -300,8 +295,8 @@ export default function Index({ goals }: Props) {
                       
                       <div>
                         <div className="flex justify-between items-baseline mb-2">
-                          <span className="text-2xl font-bold">{formatCurrency(goal.current_amount)}</span>
-                          <span className="text-sm text-muted-foreground">of {formatCurrency(goal.target_amount)}</span>
+                          <span className="text-2xl font-bold">{formatCurrency(goal.current_amount, goal.currency)}</span>
+                          <span className="text-sm text-muted-foreground">of {formatCurrency(goal.target_amount, goal.currency)}</span>
                         </div>
                         <Progress value={Math.min(goal.percentage, 100)} className="h-2" />
                         <p className="text-sm text-muted-foreground mt-1">
@@ -350,10 +345,10 @@ export default function Index({ goals }: Props) {
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold text-green-600">
-                        {formatCurrency(goal.current_amount)}
+                        {formatCurrency(goal.current_amount, goal.currency)}
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        Target: {formatCurrency(goal.target_amount)}
+                        Target: {formatCurrency(goal.target_amount, goal.currency)}
                       </p>
                     </CardContent>
                   </Card>
@@ -404,16 +399,6 @@ export default function Index({ goals }: Props) {
                 onChange={(e) => editForm.setData('target_amount', e.target.value)}
               />
               {editForm.errors.target_amount && <p className="text-red-500 text-sm mt-1">{editForm.errors.target_amount}</p>}
-            </div>
-            <div>
-              <Label htmlFor="edit-current">Current Amount</Label>
-              <Input
-                id="edit-current"
-                type="number"
-                step="0.01"
-                value={editForm.data.current_amount}
-                onChange={(e) => editForm.setData('current_amount', e.target.value)}
-              />
             </div>
             <div>
               <Label htmlFor="edit-date">Target Date (Optional)</Label>

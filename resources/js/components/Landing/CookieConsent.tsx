@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from '@inertiajs/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Cookie, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 export default function CookieConsent() {
     const [isVisible, setIsVisible] = useState(false);

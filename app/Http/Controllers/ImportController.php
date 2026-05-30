@@ -36,6 +36,7 @@ class ImportController extends Controller
 
         $header = fgetcsv($handle);
         $imported = 0;
+        $skipped = 0;
         $errors = [];
 
         while (($row = fgetcsv($handle)) !== false) {
@@ -60,7 +61,22 @@ class ImportController extends Controller
 
             if ($validator->fails()) {
                 $errors[] = 'Row skipped: '.implode(', ', $validator->errors()->all());
+                continue;
+            }
 
+            $amountCents = (int) round(abs((float) $data['amount']) * 100);
+
+            // Deduplicate: skip if identical transaction already exists
+            $duplicate = Transaction::where('user_id', auth()->id())
+                ->where('account_id', $account->id)
+                ->where('type', $data['type'])
+                ->whereDate('transaction_date', $data['date'])
+                ->where('amount', $amountCents)
+                ->where('description', $data['description'])
+                ->exists();
+
+            if ($duplicate) {
+                $skipped++;
                 continue;
             }
 
@@ -77,9 +93,10 @@ class ImportController extends Controller
                 'account_id' => $account->id,
                 'category_id' => $category?->id,
                 'type' => $data['type'],
-                'amount' => abs($data['amount']),
+                'amount' => abs((float) $data['amount']),
                 'description' => $data['description'],
                 'transaction_date' => $data['date'],
+                'currency' => $account->currency,
             ]);
 
             $imported++;
@@ -87,7 +104,14 @@ class ImportController extends Controller
 
         fclose($handle);
 
-        return back()->with('success', "Imported {$imported} transactions".
-            (count($errors) > 0 ? ' with '.count($errors).' errors' : ''));
+        $message = "Imported {$imported} transaction".($imported !== 1 ? 's' : '');
+        if ($skipped > 0) {
+            $message .= ", skipped {$skipped} duplicate".($skipped !== 1 ? 's' : '');
+        }
+        if (count($errors) > 0) {
+            $message .= ' with '.count($errors).' error'.(count($errors) !== 1 ? 's' : '');
+        }
+
+        return back()->with('success', $message);
     }
 }

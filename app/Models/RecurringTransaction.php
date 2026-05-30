@@ -35,7 +35,7 @@ class RecurringTransaction extends Model
 
     public function setAmountAttribute($value)
     {
-        $this->attributes['amount'] = $value * 100;
+        $this->attributes['amount'] = (int) round($value * 100);
     }
 
     public function user(): BelongsTo
@@ -53,13 +53,5 @@ class RecurringTransaction extends Model
         return $this->belongsTo(Category::class);
     }
 
-    public function getAmountInDollarsAttribute(): float
-    {
-        return $this->amount / 100;
-    }
 
-    public function setAmountInDollarsAttribute(float $value): void
-    {
-        $this->attributes['amount'] = (int) ($value * 100);
-    }
 }

@@ -6,6 +6,7 @@ use App\Models\Account;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class TransferController extends Controller
@@ -37,32 +38,43 @@ class TransferController extends Controller
             abort(403);
         }
 
-        DB::transaction(function () use ($validated, $fromAccount, $toAccount) {
-            $amountInCents = $validated['amount'] * 100;
+        // Cross-currency transfers need an FX rate, which we don't model yet.
+        // Moving equal nominal amounts between different currencies would corrupt
+        // both balances, so block it with a clear error.
+        if ($fromAccount->currency !== $toAccount->currency) {
+            return back()->withErrors([
+                'to_account_id' => "Both accounts must use the same currency ({$fromAccount->currency} → {$toAccount->currency} is not supported).",
+            ]);
+        }
 
-            // Create outgoing transaction
+        DB::transaction(function () use ($validated, $fromAccount, $toAccount) {
+            $groupId = (string) Str::uuid();
+
+            // Observer applies balance effects from transfer_direction:
+            // 'out' decrements the source, 'in' increments the destination.
             Transaction::create([
                 'user_id' => auth()->id(),
                 'account_id' => $fromAccount->id,
-                'type' => 'expense',
+                'type' => 'transfer',
+                'transfer_group_id' => $groupId,
+                'transfer_direction' => 'out',
                 'amount' => $validated['amount'],
+                'currency' => $fromAccount->currency,
                 'description' => $validated['description'] ?? "Transfer to {$toAccount->name}",
                 'transaction_date' => $validated['transfer_date'],
             ]);
 
-            // Create incoming transaction
             Transaction::create([
                 'user_id' => auth()->id(),
                 'account_id' => $toAccount->id,
-                'type' => 'income',
+                'type' => 'transfer',
+                'transfer_group_id' => $groupId,
+                'transfer_direction' => 'in',
                 'amount' => $validated['amount'],
+                'currency' => $toAccount->currency,
                 'description' => $validated['description'] ?? "Transfer from {$fromAccount->name}",
                 'transaction_date' => $validated['transfer_date'],
             ]);
-
-            // Update account balances (in cents)
-            $fromAccount->decrement('balance', $amountInCents);
-            $toAccount->increment('balance', $amountInCents);
         });
 
         return redirect()->route('accounts.index')->with('success', 'Transfer completed successfully');

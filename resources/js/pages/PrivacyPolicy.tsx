@@ -1,9 +1,9 @@
 import { Head } from '@inertiajs/react';
 import { ShieldCheck, UserCircle, Database, Lock, Clock, Mail, Scale } from 'lucide-react';
 
+import CookieConsent from '@/components/Landing/CookieConsent';
 import Footer from '@/components/Landing/Footer';
 import Navbar from '@/components/Landing/Navbar';
-import CookieConsent from '@/components/Landing/CookieConsent';
 
 export default function PrivacyPolicy() {
     return (
@@ -118,7 +118,7 @@ export default function PrivacyPolicy() {
                                     </div>
                                     <div className="md:w-3/4 space-y-4 text-muted-foreground">
                                         <p>
-                                            Security is baked into our DNA. We use bank-level encryption protocols to protect your information in transit and at rest.
+                                            We take security seriously. Your connection is encrypted with HTTPS (TLS), access requires authentication, and optional two-factor authentication is available on your account.
                                         </p>
                                         <p>
                                             Access to your sensitive data is strictly limited to authenticated sessions. We employ rigorous internal access controls, regular security audits, and continuous monitoring to ensure your financial life remains entirely private.

@@ -8,13 +8,16 @@ use App\Models\Category;
 use App\Models\SavedFilter;
 use App\Models\Transaction;
 use App\Models\TransactionSplit;
+use App\Http\Controllers\Concerns\ScopesOwnership;
+use App\Notifications\BudgetExceededNotification;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class TransactionController extends Controller
 {
-    use AuthorizesRequests;
+    use AuthorizesRequests, ScopesOwnership;
 
     public function index(Request $request)
     {
@@ -51,6 +54,7 @@ class TransactionController extends Controller
         $dailyRows = auth()->user()->transactions()
             ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
             ->where('transactions.transaction_date', '>=', now()->subDays(30))
+            ->whereIn('transactions.type', ['income', 'expense'])
             ->selectRaw('transactions.type, accounts.currency, DATE(transactions.transaction_date) as day, SUM(transactions.amount) as total')
             ->groupBy('transactions.type', 'accounts.currency', 'day')
             ->orderBy('day')
@@ -77,6 +81,7 @@ class TransactionController extends Controller
                 ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
                 ->whereYear('transactions.transaction_date', $date->year)
                 ->whereMonth('transactions.transaction_date', $date->month)
+                ->whereIn('transactions.type', ['income', 'expense'])
                 ->selectRaw('transactions.type, accounts.currency, SUM(transactions.amount) as total')
                 ->groupBy('transactions.type', 'accounts.currency')
                 ->get();
@@ -100,6 +105,7 @@ class TransactionController extends Controller
                 ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
                 ->whereYear('transactions.transaction_date', now()->year)
                 ->whereMonth('transactions.transaction_date', $month)
+                ->whereIn('transactions.type', ['income', 'expense'])
                 ->selectRaw('transactions.type, accounts.currency, SUM(transactions.amount) as total')
                 ->groupBy('transactions.type', 'accounts.currency')
                 ->get();
@@ -151,9 +157,9 @@ class TransactionController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'account_id' => 'required|exists:accounts,id',
-            'category_id' => 'nullable|exists:categories,id',
-            'type' => 'required|string|in:income,expense,transfer',
+            'account_id' => ['required', $this->ownedAccountExists()],
+            'category_id' => ['nullable', $this->ownedCategoryExists()],
+            'type' => 'required|string|in:income,expense',
             'amount' => 'required|numeric|min:0.01',
             'description' => 'required|string|max:255',
             'transaction_date' => 'required|date',
@@ -162,7 +168,7 @@ class TransactionController extends Controller
             'tags' => 'nullable|string',
             'is_split' => 'nullable|boolean',
             'splits' => 'nullable|array',
-            'splits.*.category_id' => 'required|exists:categories,id',
+            'splits.*.category_id' => ['required', $this->ownedCategoryExists()],
             'splits.*.amount' => 'required|numeric|min:0.01',
             'splits.*.description' => 'nullable|string',
         ]);
@@ -175,34 +181,36 @@ class TransactionController extends Controller
         // Inherit currency from account
         $validated['currency'] = $account->currency;
 
-        $transaction = auth()->user()->transactions()->create($validated);
+        // Atomic: transaction insert + split rows + the observer's balance update
+        // either all commit or all roll back together.
+        $transaction = DB::transaction(function () use ($validated) {
+            $transaction = auth()->user()->transactions()->create($validated);
 
-        // Handle splits
-        if (! empty($validated['splits'])) {
-            foreach ($validated['splits'] as $split) {
-                $transaction->splits()->create($split);
-            }
-        }
-
-        // Handle tags
-        if (! empty($validated['tags'])) {
-            $tagNames = array_map('trim', explode(',', $validated['tags']));
-            $tagIds = [];
-
-            foreach ($tagNames as $tagName) {
-                if (! empty($tagName)) {
-                    $tag = \App\Models\Tag::firstOrCreate(
-                        ['user_id' => auth()->id(), 'name' => $tagName],
-                        ['color' => '#6b7280']
-                    );
-                    $tagIds[] = $tag->id;
+            if (! empty($validated['splits'])) {
+                foreach ($validated['splits'] as $split) {
+                    $transaction->splits()->create($split);
                 }
             }
 
-            $transaction->tags()->attach($tagIds);
-        }
+            if (! empty($validated['tags'])) {
+                $tagNames = array_map('trim', explode(',', $validated['tags']));
+                $tagIds = [];
+                foreach ($tagNames as $tagName) {
+                    if (! empty($tagName)) {
+                        $tag = \App\Models\Tag::firstOrCreate(
+                            ['user_id' => auth()->id(), 'name' => $tagName],
+                            ['color' => '#6b7280']
+                        );
+                        $tagIds[] = $tag->id;
+                    }
+                }
+                $transaction->tags()->attach($tagIds);
+            }
 
-        // Handle file upload
+            return $transaction;
+        });
+
+        // Handle file upload (outside the txn — external storage, not balance-critical)
         if ($request->hasFile('receipt')) {
             $transaction->addMediaFromRequest('receipt')->toMediaCollection('receipts');
         }
@@ -243,7 +251,7 @@ class TransactionController extends Controller
         })->where('is_active', true)->get();
 
         return Inertia::render('transactions/Edit', [
-            'transaction' => $transaction->load(['media', 'splits.category']),
+            'transaction' => $transaction->load(['media', 'splits.category', 'tags']),
             'accounts' => $accounts,
             'categories' => $categories,
         ]);
@@ -253,18 +261,62 @@ class TransactionController extends Controller
     {
         $this->authorize('update', $transaction);
 
+        // Transfers are managed only through TransferController (paired legs);
+        // the generic path must not create or convert one-sided transfers.
+        abort_if($transaction->type === 'transfer', 403, 'Transfers cannot be edited here.');
+
         $validated = $request->validate([
-            'account_id' => 'required|exists:accounts,id',
-            'category_id' => 'nullable|exists:categories,id',
-            'type' => 'required|string|in:income,expense,transfer',
+            'account_id' => ['required', $this->ownedAccountExists()],
+            'category_id' => ['nullable', $this->ownedCategoryExists()],
+            'type' => 'required|string|in:income,expense',
             'amount' => 'required|numeric|min:0.01',
             'description' => 'required|string|max:255',
             'transaction_date' => 'required|date',
             'notes' => 'nullable|string',
             'receipt' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+            'tags' => 'nullable|string',
+            'is_split' => 'nullable|boolean',
+            'splits' => 'nullable|array',
+            'splits.*.category_id' => ['required', $this->ownedCategoryExists()],
+            'splits.*.amount' => 'required|numeric|min:0.01',
+            'splits.*.description' => 'nullable|string',
         ]);
 
-        $transaction->update($validated);
+        // Inherit currency from account
+        $account = Account::where('id', $validated['account_id'])
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
+        $validated['currency'] = $account->currency;
+
+        // Atomic: the update (and its observer balance re-adjustment) + split/tag sync
+        DB::transaction(function () use ($transaction, $validated) {
+            $transaction->update($validated);
+
+            // Sync splits
+            if (! empty($validated['splits'])) {
+                $transaction->splits()->delete();
+                foreach ($validated['splits'] as $split) {
+                    $transaction->splits()->create($split);
+                }
+            } elseif (empty($validated['is_split'])) {
+                $transaction->splits()->delete();
+            }
+
+            // Sync tags
+            $transaction->tags()->detach();
+            if (! empty($validated['tags'])) {
+                $tagNames = array_filter(array_map('trim', explode(',', $validated['tags'])));
+                $tagIds = [];
+                foreach ($tagNames as $tagName) {
+                    $tag = \App\Models\Tag::firstOrCreate(
+                        ['user_id' => auth()->id(), 'name' => $tagName],
+                        ['color' => '#6b7280']
+                    );
+                    $tagIds[] = $tag->id;
+                }
+                $transaction->tags()->attach($tagIds);
+            }
+        });
 
         // Handle file upload
         if ($request->hasFile('receipt')) {
@@ -279,71 +331,62 @@ class TransactionController extends Controller
     {
         $this->authorize('delete', $transaction);
 
-        $transaction->delete();
+        // A transfer is one logical operation — deleting one leg deletes both, so
+        // balances on both accounts reverse and no orphaned half-transfer remains.
+        // Per-row delete (not mass delete) so the observer fires for each leg.
+        DB::transaction(function () use ($transaction) {
+            if ($transaction->type === 'transfer' && $transaction->transfer_group_id) {
+                auth()->user()->transactions()
+                    ->where('transfer_group_id', $transaction->transfer_group_id)
+                    ->get()
+                    ->each
+                    ->delete();
+            } else {
+                $transaction->delete();
+            }
+        });
 
         return redirect()->route('transactions.index');
     }
 
     private function checkBudgetAlert(Transaction $transaction): void
     {
-        $budget = Budget::where('user_id', auth()->id())
-            ->where('category_id', $transaction->category_id)
-            ->where('period_year', $transaction->transaction_date->year)
-            ->where('period_month', $transaction->transaction_date->month)
-            ->first();
-
-        if (! $budget) {
-            return;
-        }
-
-        $spent = auth()->user()->transactions()
-            ->where('type', 'expense')
-            ->where('category_id', $transaction->category_id)
-            ->whereYear('transaction_date', $transaction->transaction_date->year)
-            ->whereMonth('transaction_date', $transaction->transaction_date->month)
-            ->sum('amount');
-
-        $percentage = ($spent / $budget->amount) * 100;
-
-        // Notify when crossing thresholds
-        if ($percentage >= 80) {
-            // Send notification
-        }
+        $this->alertForCategory($transaction->category_id, $transaction->transaction_date);
     }
 
     private function checkBudgetAlertForSplit(TransactionSplit $split): void
     {
-        $transaction = $split->transaction;
-        $budget = Budget::where('user_id', auth()->id())
-            ->where('category_id', $split->category_id)
-            ->where('period_year', $transaction->transaction_date->year)
-            ->where('period_month', $transaction->transaction_date->month)
-            ->first();
+        $this->alertForCategory($split->category_id, $split->transaction->transaction_date);
+    }
 
-        if (! $budget) {
+    /**
+     * Notify when a category's budget crosses 80%. Spend is computed by the
+     * single split-aware source of truth, Budget::getSpentAmount().
+     */
+    private function alertForCategory(?string $categoryId, $date): void
+    {
+        if (! $categoryId) {
             return;
         }
 
-        $spent = auth()->user()->transactions()
-            ->where('type', 'expense')
-            ->where('category_id', $split->category_id)
-            ->whereYear('transaction_date', $transaction->transaction_date->year)
-            ->whereMonth('transaction_date', $transaction->transaction_date->month)
-            ->sum('amount');
+        // Match a monthly budget for the transaction's month OR a yearly budget for its year.
+        $budgets = Budget::where('user_id', auth()->id())
+            ->where('category_id', $categoryId)
+            ->where('period_year', $date->year)
+            ->where(function ($q) use ($date) {
+                $q->where('period_type', 'yearly')
+                    ->orWhere(function ($q2) use ($date) {
+                        $q2->where('period_type', 'monthly')->where('period_month', $date->month);
+                    });
+            })
+            ->with('category')
+            ->get();
 
-        // Add split amounts
-        $splitTotal = TransactionSplit::whereHas('transaction', function ($q) use ($transaction) {
-            $q->where('user_id', auth()->id())
-                ->where('type', 'expense')
-                ->whereYear('transaction_date', $transaction->transaction_date->year)
-                ->whereMonth('transaction_date', $transaction->transaction_date->month);
-        })->where('category_id', $split->category_id)->sum('amount');
-
-        $totalSpent = $spent + $splitTotal;
-        $percentage = ($totalSpent / $budget->amount) * 100;
-
-        if ($percentage >= 80) {
-            // Send notification
+        foreach ($budgets as $budget) {
+            $percentage = $budget->getPercentageUsed();
+            if ($percentage >= 80) {
+                auth()->user()->notify(new BudgetExceededNotification($budget, $budget->getSpentAmount(), $percentage));
+            }
         }
     }
 
@@ -351,22 +394,23 @@ class TransactionController extends Controller
     {
         $validated = $request->validate([
             'ids' => 'required|array',
-            'ids.*' => 'required|exists:transactions,id',
+            'ids.*' => ['required', \Illuminate\Validation\Rule::exists('transactions', 'id')->where('user_id', auth()->id())],
         ]);
 
-        $deleted = auth()->user()->transactions()
-            ->whereIn('id', $validated['ids'])
-            ->delete();
+        // Delete individually so TransactionObserver fires (balance updates per row),
+        // wrapped in one transaction so the whole batch is atomic.
+        $transactions = auth()->user()->transactions()->whereIn('id', $validated['ids'])->get();
+        DB::transaction(fn () => $transactions->each->delete());
 
-        return redirect()->back()->with('success', "Deleted {$deleted} transactions");
+        return redirect()->back()->with('success', "Deleted {$transactions->count()} transactions");
     }
 
     public function bulkCategorize(Request $request)
     {
         $validated = $request->validate([
             'ids' => 'required|array',
-            'ids.*' => 'required|exists:transactions,id',
-            'category_id' => 'required|exists:categories,id',
+            'ids.*' => ['required', \Illuminate\Validation\Rule::exists('transactions', 'id')->where('user_id', auth()->id())],
+            'category_id' => ['required', $this->ownedCategoryExists()],
         ]);
 
         // Only update transactions that don't have splits

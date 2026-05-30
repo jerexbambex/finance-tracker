@@ -7,12 +7,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
+import { formatCurrency } from '@/lib/formatCurrency';
 
 
 interface Account {
   id: string;
   name: string;
   balance: number;
+  currency: string;
 }
 
 interface Props {
@@ -37,15 +39,10 @@ export default function Create({ accounts }: Props) {
     });
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
-  };
 
   const fromAccount = accounts.find(a => a.id === data.from_account_id);
   const toAccount = accounts.find(a => a.id === data.to_account_id);
+  const currencyMismatch = !!fromAccount && !!toAccount && fromAccount.currency !== toAccount.currency;
 
   return (
     <AppLayout>
@@ -69,7 +66,7 @@ export default function Create({ accounts }: Props) {
                       <SelectContent>
                         {accounts.map((account) => (
                           <SelectItem key={account.id} value={account.id}>
-                            {account.name} ({formatCurrency(account.balance)})
+                            {account.name} ({formatCurrency(account.balance, account.currency)})
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -90,7 +87,7 @@ export default function Create({ accounts }: Props) {
                       <SelectContent>
                         {accounts.map((account) => (
                           <SelectItem key={account.id} value={account.id}>
-                            {account.name} ({formatCurrency(account.balance)})
+                            {account.name} ({formatCurrency(account.balance, account.currency)})
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -100,8 +97,16 @@ export default function Create({ accounts }: Props) {
                 </div>
 
                 {fromAccount && toAccount && fromAccount.id === toAccount.id && (
-                  <div className="bg-red-50 border border-red-200 rounded-md p-3">
-                    <p className="text-sm text-red-600">Cannot transfer to the same account</p>
+                  <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/30 rounded-md p-3">
+                    <p className="text-sm text-red-600 dark:text-red-400">Cannot transfer to the same account</p>
+                  </div>
+                )}
+
+                {currencyMismatch && (
+                  <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/30 rounded-md p-3">
+                    <p className="text-sm text-red-600 dark:text-red-400">
+                      Both accounts must use the same currency ({fromAccount?.currency} → {toAccount?.currency} is not supported).
+                    </p>
                   </div>
                 )}
 
@@ -147,7 +152,7 @@ export default function Create({ accounts }: Props) {
                 </div>
 
                 <div className="flex gap-4">
-                  <Button type="submit" disabled={processing || (fromAccount?.id === toAccount?.id)}>
+                  <Button type="submit" disabled={processing || (fromAccount?.id === toAccount?.id) || currencyMismatch}>
                     {processing ? 'Processing...' : 'Transfer'}
                   </Button>
                   <Link href="/accounts">

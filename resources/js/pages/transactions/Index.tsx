@@ -1,6 +1,6 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { TrendingUp, TrendingDown, Wallet, Pencil, Trash2, MoreVertical, Eye, CheckCircle } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 import { Button } from '@/components/ui/button';
@@ -30,6 +30,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
+import { formatCurrency } from '@/lib/formatCurrency';
 
 
 interface Transaction {
@@ -53,8 +54,20 @@ interface Category {
   name: string;
 }
 
+interface PaginationLink {
+  url: string | null;
+  label: string;
+  active: boolean;
+}
+
 interface Props {
-  transactions: { data: Transaction[] };
+  transactions: {
+    data: Transaction[];
+    links: PaginationLink[];
+    from: number | null;
+    to: number | null;
+    total: number;
+  };
   accounts: Account[];
   categories: Category[];
   chartData: {
@@ -69,7 +82,6 @@ export default function Index({ transactions, categories, chartData }: Props) {
   const [showSuccess, setShowSuccess] = useState(!!flash?.success);
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
   const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>('all');
-  const [currentPage, setCurrentPage] = useState(1);
   const [chartPeriod, setChartPeriod] = useState<'daily' | 'monthly' | 'yearly'>('monthly');
   const [chartCurrency, setChartCurrency] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -77,7 +89,7 @@ export default function Index({ transactions, categories, chartData }: Props) {
   const [dateTo, setDateTo] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkCategoryId, setBulkCategoryId] = useState('');
-  const itemsPerPage = 10;
+  const searchDebounce = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     if (flash?.success) {
@@ -122,12 +134,6 @@ export default function Index({ transactions, categories, chartData }: Props) {
     });
   };
 
-  const formatCurrency = (amount: number, currency = 'USD') => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency,
-    }).format(amount);
-  };
 
   const formatDate = (date: string) => {
     const d = new Date(date);
@@ -249,20 +255,13 @@ export default function Index({ transactions, categories, chartData }: Props) {
     return true;
   });
 
-  // Sort transactions
+  // Sort transactions (client-side sort on current page only)
   const sortedTransactions = [...filteredTransactions].sort((a, b) => {
     if (sortBy === 'date') {
       return new Date(b.transaction_date).getTime() - new Date(a.transaction_date).getTime();
     }
     return b.amount - a.amount;
   });
-
-  // Paginate
-  const totalPages = Math.ceil(sortedTransactions.length / itemsPerPage);
-  const paginatedTransactions = sortedTransactions.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
 
   return (
     <AppLayout>
@@ -314,13 +313,17 @@ export default function Index({ transactions, categories, chartData }: Props) {
                     placeholder="Search description..."
                     defaultValue={new URLSearchParams(window.location.search).get('search') || ''}
                     onChange={(e) => {
-                      const params = new URLSearchParams(window.location.search);
-                      if (e.target.value) {
-                        params.set('search', e.target.value);
-                      } else {
-                        params.delete('search');
-                      }
-                      router.get(`/transactions?${params.toString()}`, {}, { preserveState: true });
+                      const value = e.target.value;
+                      clearTimeout(searchDebounce.current);
+                      searchDebounce.current = setTimeout(() => {
+                        const params = new URLSearchParams(window.location.search);
+                        if (value) {
+                          params.set('search', value);
+                        } else {
+                          params.delete('search');
+                        }
+                        router.get(`/transactions?${params.toString()}`, {}, { preserveState: true });
+                      }, 300);
                     }}
                   />
                 </div>
@@ -614,7 +617,7 @@ export default function Index({ transactions, categories, chartData }: Props) {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {paginatedTransactions.map((transaction) => (
+                      {sortedTransactions.map((transaction) => (
                         <TableRow 
                           key={transaction.id}
                           className="cursor-pointer hover:bg-muted/50 transition-colors"
@@ -636,7 +639,7 @@ export default function Index({ transactions, categories, chartData }: Props) {
                                   backgroundColor: transaction.category?.color || '#6b7280',
                                 }}
                               >
-                                {transaction.type === 'income' ? '↑' : '↓'}
+                                {transaction.type === 'expense' ? '↓' : '↑'}
                             </div>
                             <div className="min-w-0">
                               <p className="font-medium truncate">{transaction.description}</p>
@@ -659,12 +662,12 @@ export default function Index({ transactions, categories, chartData }: Props) {
                         <TableCell className="text-right">
                           <span
                             className={`font-semibold text-sm sm:text-base ${
-                              transaction.type === 'income'
-                                ? 'text-green-600'
-                                : 'text-red-600'
+                              transaction.type === 'expense'
+                                ? 'text-red-600'
+                                : 'text-green-600'
                             }`}
                           >
-                            {transaction.type === 'income' ? '+' : '-'}
+                            {transaction.type === 'expense' ? '-' : '+'}
                             {formatCurrency(transaction.amount, transaction.account.currency)}
                           </span>
                         </TableCell>
@@ -709,31 +712,38 @@ export default function Index({ transactions, categories, chartData }: Props) {
                 </Table>
                 </div>
                 
-                {totalPages > 1 && (
+                {transactions.total > 0 && (
                   <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 px-4 sm:px-0">
                     <div className="text-xs sm:text-sm text-muted-foreground">
-                      Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, sortedTransactions.length)} of {sortedTransactions.length}
+                      {transactions.from !== null && transactions.to !== null
+                        ? `Showing ${transactions.from} to ${transactions.to} of ${transactions.total}`
+                        : `${transactions.total} total`}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                        disabled={currentPage === 1}
-                      >
-                        Previous
-                      </Button>
-                      <div className="text-xs sm:text-sm">
-                        Page {currentPage} of {totalPages}
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                        disabled={currentPage === totalPages}
-                      >
-                        Next
-                      </Button>
+                    <div className="flex items-center gap-1 flex-wrap justify-center">
+                      {transactions.links.map((link, i) => (
+                        link.url ? (
+                          <Link
+                            key={i}
+                            href={link.url}
+                            className={`px-3 py-1 text-xs sm:text-sm rounded border transition-colors ${
+                              link.active
+                                ? 'bg-primary text-primary-foreground border-primary'
+                                : 'hover:bg-muted'
+                            }`}
+                            preserveState
+                            preserveScroll
+                          >
+                            <span dangerouslySetInnerHTML={{ __html: link.label }} />
+                          </Link>
+                        ) : (
+                          <span
+                            key={i}
+                            className="px-3 py-1 text-xs sm:text-sm rounded border opacity-40 cursor-not-allowed"
+                          >
+                            <span dangerouslySetInnerHTML={{ __html: link.label }} />
+                          </span>
+                        )
+                      ))}
                     </div>
                   </div>
                 )}

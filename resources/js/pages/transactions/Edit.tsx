@@ -21,6 +21,19 @@ interface Category {
   type: string;
 }
 
+interface Split {
+  id?: string;
+  category_id: string;
+  amount: number;
+  description?: string;
+  category?: { id: string; name: string };
+}
+
+interface Tag {
+  id: string;
+  name: string;
+}
+
 interface Transaction {
   id: string;
   account_id: string;
@@ -30,6 +43,8 @@ interface Transaction {
   description: string;
   transaction_date: string;
   notes: string;
+  tags?: Tag[];
+  splits?: Split[];
   media?: Array<{ id: number; file_name: string; original_url: string }>;
 }
 
@@ -40,16 +55,33 @@ interface Props {
 }
 
 export default function Edit({ transaction, accounts, categories }: Props) {
+  const existingSplits = transaction.splits?.map((s) => ({
+    category_id: s.category_id,
+    amount: s.amount.toString(),
+    description: s.description ?? '',
+  })) ?? [];
+
   const { data, setData, put, processing, errors } = useForm({
     account_id: transaction.account_id,
-    category_id: transaction.category_id,
+    category_id: transaction.category_id ?? '',
     type: transaction.type,
     amount: transaction.amount.toString(),
     description: transaction.description,
     transaction_date: transaction.transaction_date,
     notes: transaction.notes || '',
+    tags: transaction.tags?.map((t) => t.name).join(', ') ?? '',
+    is_split: existingSplits.length > 0,
+    splits: existingSplits as Array<{ category_id: string; amount: string; description: string }>,
     receipt: null as File | null,
   });
+
+  const addSplit = () => setData('splits', [...data.splits, { category_id: '', amount: '', description: '' }]);
+  const removeSplit = (i: number) => setData('splits', data.splits.filter((_, idx) => idx !== i));
+  const updateSplit = (i: number, field: string, value: string) => {
+    const next = [...data.splits];
+    next[i] = { ...next[i], [field]: value };
+    setData('splits', next);
+  };
 
   const selectedAccount = accounts.find((a) => a.id === data.account_id) ?? null;
   const currencySymbol = selectedAccount
@@ -129,20 +161,87 @@ export default function Edit({ transaction, accounts, categories }: Props) {
                   {errors.account_id && <p className="text-red-500 text-sm mt-1">{errors.account_id}</p>}
                 </div>
 
+                {!data.is_split && (
+                  <div>
+                    <Label htmlFor="category_id">Category</Label>
+                    <Select value={data.category_id} onValueChange={(value) => setData('category_id', value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {filteredCategories.map((category) => (
+                          <SelectItem key={category.id} value={category.id}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
                 <div>
-                  <Label htmlFor="category_id">Category</Label>
-                  <Select value={data.category_id} onValueChange={(value) => setData('category_id', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {filteredCategories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
-                        </SelectItem>
+                  <div className="flex items-center justify-between mb-2">
+                    <Label>Split Transaction</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const next = !data.is_split;
+                        setData('is_split', next);
+                        if (next && data.splits.length === 0) addSplit();
+                      }}
+                    >
+                      {data.is_split ? 'Remove Split' : 'Split Across Categories'}
+                    </Button>
+                  </div>
+
+                  {data.is_split && (
+                    <div className="space-y-3 border rounded-lg p-4">
+                      {data.splits.map((split, index) => (
+                        <div key={index} className="flex gap-2 items-start">
+                          <div className="flex-1">
+                            <Select
+                              value={split.category_id}
+                              onValueChange={(value) => updateSplit(index, 'category_id', value)}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Category" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {filteredCategories.map((category) => (
+                                  <SelectItem key={category.id} value={category.id}>
+                                    {category.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="relative w-32">
+                            {currencySymbol && (
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm pointer-events-none">
+                                {currencySymbol}
+                              </span>
+                            )}
+                            <Input
+                              type="number"
+                              step="0.01"
+                              placeholder="0.00"
+                              value={split.amount}
+                              onChange={(e) => updateSplit(index, 'amount', e.target.value)}
+                              className={currencySymbol ? 'pl-8' : ''}
+                            />
+                          </div>
+                          <Button type="button" variant="ghost" size="sm" onClick={() => removeSplit(index)}>
+                            ×
+                          </Button>
+                        </div>
                       ))}
-                    </SelectContent>
-                  </Select>
+                      <Button type="button" variant="outline" size="sm" onClick={addSplit}>
+                        + Add Split
+                      </Button>
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -199,6 +298,17 @@ export default function Edit({ transaction, accounts, categories }: Props) {
                     placeholder="Additional notes"
                     rows={3}
                   />
+                </div>
+
+                <div>
+                  <Label htmlFor="tags">Tags (Optional)</Label>
+                  <Input
+                    id="tags"
+                    value={data.tags}
+                    onChange={(e) => setData('tags', e.target.value)}
+                    placeholder="e.g., business, tax-deductible (comma-separated)"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">Separate multiple tags with commas</p>
                 </div>
 
                 <div>

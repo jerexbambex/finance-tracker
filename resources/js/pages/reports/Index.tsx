@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
+import { formatCurrency as baseFmt } from '@/lib/formatCurrency';
 
 interface CategorySpending {
   category: string;
@@ -73,8 +74,7 @@ export default function Index({
     Object.keys(totalExpenseByCurrency)[0] ??
     'USD';
 
-  const formatCurrency = (amount: number, currency = primaryCurrency) =>
-    new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
+  const formatCurrency = (amount: number, currency = primaryCurrency) => baseFmt(amount, currency);
 
   const categoryCurrencies = useMemo(
     () => [...new Set(categorySpending.map((c) => c.currency))],

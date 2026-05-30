@@ -4,12 +4,12 @@ import { useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 import QuickAddTransaction from '@/components/QuickAddTransaction';
-import TestimonialWidget from '@/components/TestimonialWidget';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
+import { formatCurrency as baseFmt } from '@/lib/formatCurrency';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 
@@ -82,14 +82,6 @@ interface Reminder {
     category?: { name: string; color?: string };
 }
 
-interface UserTestimonial {
-    id: string;
-    content: string;
-    rating: number;
-    is_approved: boolean;
-    created_at: string;
-}
-
 interface Props {
     accounts: Account[];
     balancesByCurrency: Record<string, number>;
@@ -103,11 +95,10 @@ interface Props {
     goals: Goal[];
     categories: Category[];
     upcomingReminders: Reminder[];
-    userTestimonials: UserTestimonial[];
     currencies: Record<string, { symbol: string; label: string }>;
 }
 
-export default function Dashboard({ accounts, balancesByCurrency, recentTransactions, incomeByCurrency, expensesByCurrency, categorySpending, monthlyTrend, budgets, budgetAlerts, goals, categories, upcomingReminders, userTestimonials, currencies }: Props) {
+export default function Dashboard({ accounts, balancesByCurrency, recentTransactions, incomeByCurrency, expensesByCurrency, categorySpending, monthlyTrend, budgets, budgetAlerts, goals, categories, upcomingReminders }: Props) {
     const primaryCurrency = Object.keys(balancesByCurrency)[0] ?? 'USD';
 
     const trendCurrencies = [...new Set(
@@ -120,14 +111,10 @@ export default function Dashboard({ accounts, balancesByCurrency, recentTransact
         expense: d.expense[trendCurrency] ?? 0,
     }));
 
-    const formatCurrency = (amount: number, currency: string = primaryCurrency) => {
-        const currencyInfo = currencies[currency];
-        return `${currencyInfo?.symbol || '$'}${amount.toFixed(2)}`;
-    };
+    const formatCurrency = (amount: number, currency: string = primaryCurrency) => baseFmt(amount, currency);
 
-    const formatCurrencyGroup = (amounts: Record<string, number>) => {
-        return Object.entries(amounts).map(([currency, amount]) => formatCurrency(amount, currency)).join(', ') || formatCurrency(0);
-    };
+    const formatCurrencyGroup = (amounts: Record<string, number>) =>
+        Object.entries(amounts).map(([currency, amount]) => formatCurrency(amount, currency)).join(', ') || formatCurrency(0);
 
     const netByCurrency = Object.keys({ ...incomeByCurrency, ...expensesByCurrency }).reduce<Record<string, number>>(
         (acc, currency) => ({
@@ -417,9 +404,9 @@ export default function Dashboard({ accounts, balancesByCurrency, recentTransact
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2">
                                                 <p className="text-sm font-medium truncate">{transaction.description}</p>
-                                                <Badge 
-                                                    variant={transaction.type === 'income' ? 'default' : 'secondary'} 
-                                                    className={`text-[10px] px-1.5 py-0 ${transaction.type === 'income' ? 'bg-green-500/10 text-green-600 border-green-500/20' : 'bg-red-500/10 text-red-600 border-red-500/20'}`}
+                                                <Badge
+                                                    variant={transaction.type === 'expense' ? 'secondary' : 'default'}
+                                                    className={`text-[10px] px-1.5 py-0 ${transaction.type === 'expense' ? 'bg-red-500/10 text-red-600 border-red-500/20' : 'bg-green-500/10 text-green-600 border-green-500/20'}`}
                                                 >
                                                     {transaction.type}
                                                 </Badge>
@@ -434,9 +421,9 @@ export default function Dashboard({ accounts, balancesByCurrency, recentTransact
                                             </div>
                                         </div>
                                         <div className={`text-sm font-semibold ${
-                                            transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+                                            transaction.type === 'expense' ? 'text-red-600' : 'text-green-600'
                                         }`}>
-                                            {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount, transaction.account.currency)}
+                                            {transaction.type === 'expense' ? '-' : '+'}{formatCurrency(transaction.amount, transaction.account.currency)}
                                         </div>
                                     </div>
                                 ))}
@@ -535,8 +522,6 @@ export default function Dashboard({ accounts, balancesByCurrency, recentTransact
                             </CardContent>
                         </Card>
                     )}
-
-                    <TestimonialWidget testimonials={userTestimonials} />
                 </div>
             </div>
             </div>
