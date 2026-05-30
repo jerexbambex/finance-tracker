@@ -45,10 +45,10 @@ export default function ProblemSolution() {
                         <h3 className="text-2xl font-bold mb-6 text-primary">Intelligent Control</h3>
                         <ul className="space-y-4">
                             {[
-                                "Automated bank syncing",
-                                "Smart auto-categorization",
+                                "CSV import with duplicate detection",
+                                "Custom categories, tags & splits",
                                 "One dashboard for everything",
-                                "Real-time alerts & insights",
+                                "Budget alerts & spending insights",
                                 "Total peace of mind"
                             ].map((item, i) => (
                                 <li key={i} className="flex items-start gap-3 text-foreground font-medium">

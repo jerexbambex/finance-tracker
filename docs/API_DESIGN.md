@@ -1,5 +1,9 @@
 # API Design Specification
 
+> **Status: design proposal — NOT yet implemented.** There is no `routes/api.php`,
+> no Sanctum token auth, and no `/api/v1` endpoints in the current app. This
+> document describes a future REST API, not shipped behavior.
+
 ## API Overview
 RESTful API design following Laravel conventions with Inertia.js for seamless SPA experience.
 

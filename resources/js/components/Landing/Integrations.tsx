@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Database, Globe, Server } from 'lucide-react';
+import { Database, Server } from 'lucide-react';
 
 export default function Integrations() {
     return (
@@ -11,26 +11,17 @@ export default function Integrations() {
                             Connects with your ecosystem.
                         </h2>
                         <p className="text-lg text-muted-foreground leading-relaxed">
-                            Don't replace your banking stack—enhance it. We integrate securely with your existing accounts and tools.
+                            Bring your data in and take it with you. Import from a CSV and export everything, anytime.
                         </p>
 
                         <div className="space-y-6">
                             <div className="flex gap-4 items-start">
                                 <div className="p-2 bg-secondary rounded-lg text-primary mt-1">
-                                    <Globe className="h-5 w-5" />
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-lg">Bank Sync</h3>
-                                    <p className="text-muted-foreground">Connect securely with 12,000+ banks and credit cards worldwide.</p>
-                                </div>
-                            </div>
-                            <div className="flex gap-4 items-start">
-                                <div className="p-2 bg-secondary rounded-lg text-primary mt-1">
                                     <Database className="h-5 w-5" />
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-lg">One-Click Imports</h3>
-                                    <p className="text-muted-foreground">Migrate from Mint, YNAB, or Excel in seconds.</p>
+                                    <h3 className="font-bold text-lg">CSV Import</h3>
+                                    <p className="text-muted-foreground">Import transactions from a CSV export of your bank or spreadsheet, with duplicate detection.</p>
                                 </div>
                             </div>
                             <div className="flex gap-4 items-start">

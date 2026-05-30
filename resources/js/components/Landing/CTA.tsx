@@ -54,7 +54,7 @@ export default function CTA() {
                         )}
                     </div>
                     <p className="text-sm text-muted-foreground">
-                        Join 12,000+ people managing their money smarter
+                        Start managing your money smarter today
                     </p>
                 </motion.div>
             </div>
