@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Goal;
+use App\Models\GoalContribution;
 use App\Notifications\GoalAchievedNotification;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class GoalController extends Controller
@@ -53,7 +55,25 @@ class GoalController extends Controller
             'category' => 'nullable|string|max:100',
         ]);
 
-        auth()->user()->goals()->create($validated);
+        // current_amount is derived from contributions by GoalContributionObserver.
+        // A starting amount is materialized as the goal's first contribution so the
+        // figure always reconstructs from the contribution ledger.
+        $startingAmount = (float) ($validated['current_amount'] ?? 0);
+        unset($validated['current_amount']);
+
+        DB::transaction(function () use ($validated, $startingAmount) {
+            $goal = auth()->user()->goals()->create($validated);
+
+            if ($startingAmount > 0) {
+                GoalContribution::create([
+                    'goal_id' => $goal->id,
+                    'user_id' => auth()->id(),
+                    'amount' => $startingAmount,
+                    'note' => 'Starting amount',
+                    'contribution_date' => now(),
+                ]);
+            }
+        });
 
         return redirect()->route('goals.index');
     }
@@ -71,11 +91,12 @@ class GoalController extends Controller
     {
         $this->authorize('update', $goal);
 
+        // current_amount is NOT editable here — it is derived from contributions.
+        // To change progress, add a contribution.
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'target_amount' => 'required|numeric|min:0.01',
-            'current_amount' => 'nullable|numeric|min:0',
             'target_date' => 'nullable|date',
             'category' => 'nullable|string|max:100',
         ]);
@@ -83,8 +104,12 @@ class GoalController extends Controller
         $wasCompleted = $goal->is_completed;
         $goal->update($validated);
 
-        if (! $wasCompleted && $goal->current_amount >= $goal->target_amount) {
-            $goal->update(['is_completed' => true]);
+        // Changing the target can flip completion; re-evaluate against derived progress.
+        $nowCompleted = $goal->fresh()->current_amount >= $goal->target_amount;
+        if ($nowCompleted !== $wasCompleted) {
+            $goal->update(['is_completed' => $nowCompleted]);
+        }
+        if (! $wasCompleted && $nowCompleted) {
             auth()->user()->notify(new GoalAchievedNotification($goal));
         }
 
