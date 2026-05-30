@@ -63,6 +63,16 @@ it('deleting a transaction reverses its balance effect', function () {
     expect($account->fresh()->balance)->toEqual(500);
 });
 
+it('balance can go negative when an expense exceeds available funds', function () {
+    $user = User::factory()->create();
+    $account = Account::create(['user_id' => $user->id, 'name' => 'Checking', 'type' => 'checking', 'balance' => 50, 'currency' => 'USD', 'is_active' => true]);
+
+    Transaction::create(['user_id' => $user->id, 'account_id' => $account->id, 'type' => 'expense', 'amount' => 200, 'currency' => 'USD', 'description' => 'Overdraft', 'transaction_date' => now()]);
+
+    // Signed column must store and read back the negative value
+    expect($account->fresh()->balance)->toEqual(-150);
+});
+
 it('transfer legs affect balance by their direction via the observer', function () {
     $user = User::factory()->create();
     $account = Account::create(['user_id' => $user->id, 'name' => 'Checking', 'type' => 'checking', 'balance' => 1000, 'currency' => 'USD', 'is_active' => true]);
