@@ -72,7 +72,10 @@ class SpendingInsightsController extends Controller
         $avgByCategory = $user->transactions()
             ->where('transactions.type', 'expense')
             ->whereBetween('transactions.transaction_date', [$threeMonthsAgo, $lastMonth])
-            ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
+            ->join('accounts', function ($join) use ($user) {
+                $join->on('transactions.account_id', '=', 'accounts.id')
+                    ->where('accounts.user_id', $user->id);
+            })
             ->selectRaw('transactions.category_id, accounts.currency, AVG(transactions.amount) as avg_amount')
             ->groupBy('transactions.category_id', 'accounts.currency')
             ->get()
@@ -81,7 +84,10 @@ class SpendingInsightsController extends Controller
         $currentByCategory = $user->transactions()
             ->where('transactions.type', 'expense')
             ->where('transactions.transaction_date', '>=', now()->startOfMonth())
-            ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
+            ->join('accounts', function ($join) use ($user) {
+                $join->on('transactions.account_id', '=', 'accounts.id')
+                    ->where('accounts.user_id', $user->id);
+            })
             ->selectRaw('transactions.category_id, accounts.currency, SUM(transactions.amount) as total')
             ->groupBy('transactions.category_id', 'accounts.currency')
             ->get()
@@ -120,12 +126,22 @@ class SpendingInsightsController extends Controller
 
     private function analyzeCategoryTrends($user)
     {
+        $yearExpression = \DB::getDriverName() === 'sqlite'
+            ? "CAST(strftime('%Y', transactions.transaction_date) AS INTEGER)"
+            : 'YEAR(transactions.transaction_date)';
+        $monthExpression = \DB::getDriverName() === 'sqlite'
+            ? "CAST(strftime('%m', transactions.transaction_date) AS INTEGER)"
+            : 'MONTH(transactions.transaction_date)';
+
         // One query for all 3 months instead of O(N*3) per category
         $allRows = $user->transactions()
             ->where('transactions.type', 'expense')
             ->where('transactions.transaction_date', '>=', now()->subMonths(2)->startOfMonth())
-            ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
-            ->selectRaw('transactions.category_id, accounts.currency, YEAR(transactions.transaction_date) as yr, MONTH(transactions.transaction_date) as mo, SUM(transactions.amount) as total')
+            ->join('accounts', function ($join) use ($user) {
+                $join->on('transactions.account_id', '=', 'accounts.id')
+                    ->where('accounts.user_id', $user->id);
+            })
+            ->selectRaw("transactions.category_id, accounts.currency, {$yearExpression} as yr, {$monthExpression} as mo, SUM(transactions.amount) as total")
             ->groupBy('transactions.category_id', 'accounts.currency', 'yr', 'mo')
             ->get()
             ->groupBy('category_id');
@@ -195,7 +211,13 @@ class SpendingInsightsController extends Controller
             ->where('transaction_date', '>=', $threeMonthsAgo)
             ->whereNotNull('category_id')
             ->where('category_id', '!=', '')
-            ->with(['category', 'account'])
+            ->whereHas('account', fn ($query) => $query->where('user_id', $user->id))
+            ->with([
+                'category' => fn ($query) => $query->where(fn ($query) => $query
+                    ->where('user_id', $user->id)
+                    ->orWhereNull('user_id')),
+                'account' => fn ($query) => $query->where('user_id', $user->id),
+            ])
             ->get()
             ->groupBy(function ($transaction) {
                 return ($transaction->account?->currency ?? 'USD').'-'.round($transaction->amount).'-'.substr($transaction->description, 0, 10);
@@ -224,7 +246,8 @@ class SpendingInsightsController extends Controller
         $recentTransactions = $user->transactions()
             ->where('type', 'expense')
             ->where('transaction_date', '>=', now()->subMonth())
-            ->with('account')
+            ->whereHas('account', fn ($query) => $query->where('user_id', $user->id))
+            ->with(['account' => fn ($query) => $query->where('user_id', $user->id)])
             ->get();
 
         $currencies = $recentTransactions->pluck('account.currency')->unique()->filter();
@@ -267,7 +290,12 @@ class SpendingInsightsController extends Controller
         $results = [];
 
         $budgets = $user->budgets()
-            ->with('category')
+            ->whereHas('category', fn ($query) => $query->where(fn ($query) => $query
+                ->where('user_id', $user->id)
+                ->orWhereNull('user_id')))
+            ->with(['category' => fn ($query) => $query->where(fn ($query) => $query
+                ->where('user_id', $user->id)
+                ->orWhereNull('user_id'))])
             ->where('period_year', now()->year)
             ->where('period_month', now()->month)
             ->get();
@@ -277,11 +305,12 @@ class SpendingInsightsController extends Controller
                 ->where('category_id', $budget->category_id)
                 ->where('type', 'expense')
                 ->where('transaction_date', '>=', now()->startOfMonth())
+                ->whereHas('account', fn ($query) => $query->where('user_id', $user->id))
                 ->sum(\DB::raw('amount')) / 100;
 
             if ($spent > $budget->amount) {
                 $results[] = [
-                    'category' => $budget->category->name,
+                    'category' => $budget->category?->name ?? 'Uncategorized',
                     'budgeted' => $budget->amount,
                     'spent' => $spent,
                     'overspend' => $spent - $budget->amount,
@@ -293,7 +322,8 @@ class SpendingInsightsController extends Controller
         $smallPurchases = $user->transactions()
             ->where('type', 'expense')
             ->where('transaction_date', '>=', now()->subMonth())
-            ->with('account')
+            ->whereHas('account', fn ($query) => $query->where('user_id', $user->id))
+            ->with(['account' => fn ($query) => $query->where('user_id', $user->id)])
             ->get()
             ->filter(fn ($t) => $t->amount < 20);
 
@@ -310,5 +340,4 @@ class SpendingInsightsController extends Controller
 
         return $results;
     }
-
 }

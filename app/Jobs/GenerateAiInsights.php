@@ -68,7 +68,9 @@ class GenerateAiInsights implements ShouldQueue
                 ->sum('amount') / 100,
             'category_breakdown' => $user->transactions()
                 ->selectRaw('category_id, SUM(amount) as total')
-                ->with('category')
+                ->with(['category' => fn ($query) => $query->where(fn ($query) => $query
+                    ->where('user_id', $user->id)
+                    ->orWhereNull('user_id'))])
                 ->where('type', 'expense')
                 ->where('transaction_date', '>=', now()->startOfMonth())
                 ->groupBy('category_id')
