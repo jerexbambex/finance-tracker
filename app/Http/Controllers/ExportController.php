@@ -119,6 +119,7 @@ class ExportController extends Controller
             'typeFilter' => $request->type,
             'generatedAt' => now(),
         ])
+            ->driver('dompdf')
             ->format('a4')
             ->inline($filename);
     }
