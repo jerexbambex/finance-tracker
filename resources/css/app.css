@@ -173,6 +173,118 @@
     --sidebar-ring: oklch(0.70 0.22 160);
 }
 
+/* ── Financial-analytics theme (scoped to user dashboard pages) ───────────── */
+/* Adapted from v0 financial-analytics-dashboard reference. Applied via the      */
+/* `.fin-theme` wrapper on the sidebar layout so landing/Filament stay untouched.*/
+.fin-theme {
+    --font-sans: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+
+    --radius: 0.75rem;
+
+    /* Light variant — teal-based derivation of the (dark-only) reference */
+    --background: #fafaf9;
+    --foreground: #0a0c10;
+
+    --card: #ffffff;
+    --card-foreground: #0a0c10;
+
+    --popover: #ffffff;
+    --popover-foreground: #0a0c10;
+
+    --primary: #009e8c;
+    --primary-foreground: #ffffff;
+
+    --secondary: #f1f3f2;
+    --secondary-foreground: #1c1f25;
+
+    --muted: #f1f3f2;
+    --muted-foreground: #5b6168;
+
+    --accent: #eef1f0;
+    --accent-foreground: #0a0c10;
+
+    --destructive: #e11d48;
+    --destructive-foreground: #ffffff;
+
+    --border: #e3e6e4;
+    --input: #e3e6e4;
+    --ring: #009e8c;
+
+    --chart-1: #00b8a6;
+    --chart-2: #2f8fd8;
+    --chart-3: #d9921f;
+    --chart-4: #e11d48;
+    --chart-5: #6b7280;
+
+    --sidebar: #f6f7f6;
+    --sidebar-foreground: #0a0c10;
+    --sidebar-primary: #009e8c;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #eef1f0;
+    --sidebar-accent-foreground: #0a0c10;
+    --sidebar-border: #e3e6e4;
+    --sidebar-ring: #009e8c;
+}
+
+.dark .fin-theme {
+    /* Dark variant — exact reference tokens */
+    --background: #030407;
+    --foreground: #f0eeeb;
+
+    --card: #0a0c10;
+    --card-foreground: #f0eeeb;
+
+    --popover: #0a0c10;
+    --popover-foreground: #f0eeeb;
+
+    --primary: #00d4be;
+    --primary-foreground: #030407;
+
+    --secondary: #101317;
+    --secondary-foreground: #dad7d2;
+
+    --muted: #13161b;
+    --muted-foreground: #757b83;
+
+    --accent: #13161c;
+    --accent-foreground: #f0eeeb;
+
+    --destructive: #ed3151;
+    --destructive-foreground: #eeeeee;
+
+    --border: #1c1f25;
+    --input: #181b1f;
+    --ring: #00d4be;
+
+    --chart-1: #00d4be;
+    --chart-2: #3f9fe8;
+    --chart-3: #e4a339;
+    --chart-4: #ed3151;
+    --chart-5: #5d646f;
+
+    --sidebar: #06070a;
+    --sidebar-foreground: #f0eeeb;
+    --sidebar-primary: #00d4be;
+    --sidebar-primary-foreground: #030407;
+    --sidebar-accent: #13161c;
+    --sidebar-accent-foreground: #f0eeeb;
+    --sidebar-border: #1c1f25;
+    --sidebar-ring: #00d4be;
+}
+
+/* Display font for headings within the dashboard theme */
+.fin-theme :is(h1, h2, h3, h4, h5),
+.fin-theme [data-slot='card-title'] {
+    font-family: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Card shape: minimalist — faint hairline border, flat (no shadow, no hover glow) */
+.fin-theme [data-slot='card'] {
+    border-color: color-mix(in oklab, var(--border) 55%, transparent);
+    box-shadow: none;
+}
+
 @layer base {
     * {
         @apply border-border outline-ring/50;

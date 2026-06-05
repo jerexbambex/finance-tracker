@@ -232,7 +232,7 @@ export default function Index({ goals }: Props) {
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="text-sm font-medium text-muted-foreground">Total Target</div>
-                      <div className="text-2xl font-bold mt-2">{formatCurrency(totalTarget)}</div>
+                      <div className="text-2xl font-bold font-mono tabular-nums mt-2">{formatCurrency(totalTarget)}</div>
                     </div>
                     <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
                       <Target className="h-6 w-6 text-blue-600" />
@@ -245,7 +245,7 @@ export default function Index({ goals }: Props) {
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="text-sm font-medium text-muted-foreground">Total Saved</div>
-                      <div className="text-2xl font-bold text-green-600 mt-2">{formatCurrency(totalSaved)}</div>
+                      <div className="text-2xl font-bold font-mono tabular-nums text-green-600 mt-2">{formatCurrency(totalSaved)}</div>
                     </div>
                     <div className="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
                       <TrendingUp className="h-6 w-6 text-green-600" />
@@ -258,7 +258,7 @@ export default function Index({ goals }: Props) {
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="text-sm font-medium text-muted-foreground">Overall Progress</div>
-                      <div className="text-2xl font-bold mt-2">{overallProgress.toFixed(0)}%</div>
+                      <div className="text-2xl font-bold font-mono tabular-nums mt-2">{overallProgress.toFixed(0)}%</div>
                     </div>
                     <div className="h-12 w-12 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
                       <Calendar className="h-6 w-6 text-purple-600" />
@@ -295,7 +295,7 @@ export default function Index({ goals }: Props) {
                       
                       <div>
                         <div className="flex justify-between items-baseline mb-2">
-                          <span className="text-2xl font-bold">{formatCurrency(goal.current_amount, goal.currency)}</span>
+                          <span className="text-2xl font-bold font-mono tabular-nums">{formatCurrency(goal.current_amount, goal.currency)}</span>
                           <span className="text-sm text-muted-foreground">of {formatCurrency(goal.target_amount, goal.currency)}</span>
                         </div>
                         <Progress value={Math.min(goal.percentage, 100)} className="h-2" />
@@ -344,7 +344,7 @@ export default function Index({ goals }: Props) {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold text-green-600">
+                      <div className="text-2xl font-bold font-mono tabular-nums text-green-600">
                         {formatCurrency(goal.current_amount, goal.currency)}
                       </div>
                       <p className="text-sm text-muted-foreground">

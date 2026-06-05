@@ -90,7 +90,7 @@ export default function Show({ transaction }: Props) {
                     <DollarSign className="h-4 w-4 mr-2" />
                     Amount
                   </div>
-                  <div className="text-2xl font-bold">
+                  <div className="text-2xl font-bold font-mono tabular-nums">
                     {formatCurrency(transaction.amount, transaction.currency)}
                   </div>
                 </div>

@@ -100,14 +100,16 @@ class DashboardController extends Controller
             })
             ->get()
             ->map(function ($budget) {
-                $percentage = $budget->getPercentageUsed();
+                // Compute spend once; derive percentage from it (avoids re-running the spend queries)
+                $spent = $budget->getSpentAmount();
+                $percentage = $budget->amount > 0 ? ($spent / $budget->amount) * 100 : 0;
 
                 return [
                     'id' => $budget->id,
                     'category' => $budget->category->name,
                     'percentage' => $percentage,
                     'amount' => $budget->amount,
-                    'spent' => $budget->getSpentAmount(),
+                    'spent' => $spent,
                     'status' => $percentage >= 100 ? 'exceeded' : ($percentage >= 80 ? 'warning' : 'ok'),
                     'currency' => $budget->currency,
                 ];
@@ -122,6 +124,8 @@ class DashboardController extends Controller
             ->map(fn ($goal) => [
                 'name' => $goal->name,
                 'percentage' => $goal->getPercentageComplete(),
+                'current_amount' => $goal->current_amount,
+                'target_amount' => $goal->target_amount,
             ]);
 
         $upcomingReminders = $user->reminders()

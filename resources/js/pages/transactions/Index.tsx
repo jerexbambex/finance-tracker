@@ -1,7 +1,7 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { TrendingUp, TrendingDown, Wallet, Pencil, Trash2, MoreVertical, Eye, CheckCircle } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, Pencil, Trash2, MoreVertical, Eye, CheckCircle, FileText } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -90,6 +90,16 @@ export default function Index({ transactions, categories, chartData }: Props) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkCategoryId, setBulkCategoryId] = useState('');
   const searchDebounce = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  // Build export/statement query from the active client-side filters
+  const exportQuery = () => {
+    const params = new URLSearchParams();
+    if (filterType !== 'all') params.set('type', filterType);
+    if (searchQuery) params.set('search', searchQuery);
+    if (dateFrom) params.set('date_from', dateFrom);
+    if (dateTo) params.set('date_to', dateTo);
+    return params.toString();
+  };
 
   useEffect(() => {
     if (flash?.success) {
@@ -232,11 +242,11 @@ export default function Index({ transactions, categories, chartData }: Props) {
   const chartConfig = {
     income: {
       label: "Income",
-      color: "hsl(142, 76%, 36%)",
+      color: "var(--chart-1)",
     },
     expense: {
       label: "Expenses",
-      color: "hsl(0, 84%, 60%)",
+      color: "var(--chart-4)",
     },
   } satisfies ChartConfig;
 
@@ -279,7 +289,13 @@ export default function Index({ transactions, categories, chartData }: Props) {
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
             <h1 className="text-2xl sm:text-3xl font-bold">Transactions</h1>
             <div className="flex gap-2">
-              <a href={`/export/transactions?${new URLSearchParams(window.location.search).toString()}`}>
+              <a href={`/export/statement?${exportQuery()}`} target="_blank" rel="noopener noreferrer">
+                <Button variant="default" size="sm" className="sm:size-default">
+                  <FileText className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Statement PDF</span>
+                </Button>
+              </a>
+              <a href={`/export/transactions?${exportQuery()}`}>
                 <Button variant="outline" size="sm" className="sm:size-default">
                   <span className="hidden sm:inline">Export CSV</span>
                   <span className="sm:hidden">Export</span>
@@ -386,9 +402,9 @@ export default function Index({ transactions, categories, chartData }: Props) {
                         <div className="text-sm font-medium text-muted-foreground">Total Income</div>
                         <div className="mt-2 space-y-0.5">
                           {Object.entries(incomeByCurrency).map(([currency, amount]) => (
-                            <div key={currency} className="text-2xl font-bold text-green-600">{formatCurrency(amount, currency)}</div>
+                            <div key={currency} className="text-2xl font-bold font-mono tabular-nums text-green-600">{formatCurrency(amount, currency)}</div>
                           ))}
-                          {Object.keys(incomeByCurrency).length === 0 && <div className="text-2xl font-bold text-green-600">—</div>}
+                          {Object.keys(incomeByCurrency).length === 0 && <div className="text-2xl font-bold font-mono tabular-nums text-green-600">—</div>}
                         </div>
                       </div>
                       <div className="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
@@ -404,9 +420,9 @@ export default function Index({ transactions, categories, chartData }: Props) {
                         <div className="text-sm font-medium text-muted-foreground">Total Expenses</div>
                         <div className="mt-2 space-y-0.5">
                           {Object.entries(expenseByCurrency).map(([currency, amount]) => (
-                            <div key={currency} className="text-2xl font-bold text-red-600">{formatCurrency(amount, currency)}</div>
+                            <div key={currency} className="text-2xl font-bold font-mono tabular-nums text-red-600">{formatCurrency(amount, currency)}</div>
                           ))}
-                          {Object.keys(expenseByCurrency).length === 0 && <div className="text-2xl font-bold text-red-600">—</div>}
+                          {Object.keys(expenseByCurrency).length === 0 && <div className="text-2xl font-bold font-mono tabular-nums text-red-600">—</div>}
                         </div>
                       </div>
                       <div className="h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
@@ -422,11 +438,11 @@ export default function Index({ transactions, categories, chartData }: Props) {
                         <div className="text-sm font-medium text-muted-foreground">Net</div>
                         <div className="mt-2 space-y-0.5">
                           {Object.entries(netByCurrency).map(([currency, amount]) => (
-                            <div key={currency} className={`text-2xl font-bold ${amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            <div key={currency} className={`text-2xl font-bold font-mono tabular-nums ${amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                               {formatCurrency(amount, currency)}
                             </div>
                           ))}
-                          {Object.keys(netByCurrency).length === 0 && <div className="text-2xl font-bold">—</div>}
+                          {Object.keys(netByCurrency).length === 0 && <div className="text-2xl font-bold font-mono tabular-nums">—</div>}
                         </div>
                       </div>
                       <div className={`h-12 w-12 rounded-full flex items-center justify-center ${Object.values(netByCurrency).every(v => v >= 0) ? 'bg-green-100 dark:bg-green-900/20' : 'bg-red-100 dark:bg-red-900/20'}`}>
@@ -473,37 +489,49 @@ export default function Index({ transactions, categories, chartData }: Props) {
                 <CardContent>
                   {currentChartData.length > 0 ? (
                     <ChartContainer config={chartConfig} className="h-[300px] w-full">
-                      <LineChart accessibilityLayer data={currentChartData}>
-                        <CartesianGrid vertical={false} />
-                        <XAxis 
-                          dataKey="period" 
+                      <AreaChart accessibilityLayer data={currentChartData}>
+                        <defs>
+                          <linearGradient id="txFillIncome" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="var(--color-income)" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="var(--color-income)" stopOpacity={0} />
+                          </linearGradient>
+                          <linearGradient id="txFillExpense" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="var(--color-expense)" stopOpacity={0.25} />
+                            <stop offset="95%" stopColor="var(--color-expense)" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/60" />
+                        <XAxis
+                          dataKey="period"
                           tickLine={false}
                           axisLine={false}
                           tickMargin={10}
                         />
-                        <YAxis 
+                        <YAxis
                           tickLine={false}
                           axisLine={false}
                           tickFormatter={(value) => formatCurrency(value, activeCurrency)}
                         />
                         <ChartTooltip content={<ChartTooltipContent />} />
-                        <Line 
+                        <Area
                           type="monotone"
-                          dataKey="income" 
+                          dataKey="income"
                           stroke="var(--color-income)"
                           strokeWidth={2}
-                          dot={{ r: 4 }}
-                          activeDot={{ r: 6 }}
+                          fill="url(#txFillIncome)"
+                          dot={false}
+                          activeDot={{ r: 4 }}
                         />
-                        <Line 
+                        <Area
                           type="monotone"
-                          dataKey="expense" 
+                          dataKey="expense"
                           stroke="var(--color-expense)"
                           strokeWidth={2}
-                          dot={{ r: 4 }}
-                          activeDot={{ r: 6 }}
+                          fill="url(#txFillExpense)"
+                          dot={false}
+                          activeDot={{ r: 4 }}
                         />
-                      </LineChart>
+                      </AreaChart>
                     </ChartContainer>
                   ) : (
                     <div className="flex items-center justify-center h-[300px] text-muted-foreground">

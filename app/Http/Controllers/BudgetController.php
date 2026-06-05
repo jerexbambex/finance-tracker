@@ -16,39 +16,64 @@ class BudgetController extends Controller
 
     public function index(Request $request)
     {
-        $currentYear = $request->input('year', now()->year);
-        $currentMonth = $request->input('month', now()->month);
+        $view = $request->input('view') === 'period' ? 'period' : 'all';
+        $currentYear = (int) $request->input('year', now()->year);
+        $currentMonth = (int) $request->input('month', now()->month);
 
-        $budgets = auth()->user()->budgets()
+        $query = auth()->user()->budgets()
             ->with('category')
-            ->where('period_year', $currentYear)
-            ->where(function ($q) use ($currentMonth) {
-                $q->where('period_type', 'yearly')
-                    ->orWhere(function ($q2) use ($currentMonth) {
-                        $q2->where('period_type', 'monthly')
-                            ->where('period_month', $currentMonth);
-                    });
-            })
-            ->get()
-            ->map(function ($budget) {
-                return [
-                    'id' => $budget->id,
-                    'category' => $budget->category,
-                    'amount' => $budget->amount,
-                    'currency' => $budget->currency,
-                    'period_type' => $budget->period_type,
-                    'spent' => $budget->getSpentAmount(),
-                    'percentage' => $budget->getPercentageUsed(),
-                ];
-            });
+            ->orderByDesc('period_year')
+            ->orderByRaw('period_month IS NULL') // yearly (null month) after monthly within a year
+            ->orderByDesc('period_month');
+
+        // Only narrow to a single month/year when explicitly browsing by period
+        if ($view === 'period') {
+            $query->where('period_year', $currentYear)
+                ->where(function ($q) use ($currentMonth) {
+                    $q->where('period_type', 'yearly')
+                        ->orWhere(function ($q2) use ($currentMonth) {
+                            $q2->where('period_type', 'monthly')
+                                ->where('period_month', $currentMonth);
+                        });
+                });
+        }
+
+        $budgets = $query->get()->map(function ($budget) {
+            // Compute spend once; derive percentage from it (avoids a second pass of queries)
+            $spent = $budget->getSpentAmount();
+
+            return [
+                'id' => $budget->id,
+                'category' => $budget->category,
+                'amount' => $budget->amount,
+                'currency' => $budget->currency,
+                'period_type' => $budget->period_type,
+                'period_year' => $budget->period_year,
+                'period_month' => $budget->period_month,
+                'spent' => $spent,
+                'percentage' => $budget->amount > 0 ? ($spent / $budget->amount) * 100 : 0,
+            ];
+        });
 
         $categories = Category::where(function ($q) {
             $q->whereNull('user_id')->orWhere('user_id', auth()->id());
         })->where('type', 'expense')->where('is_active', true)->get();
 
+        // Years the user actually has budgets for (+ current and viewed year), newest first
+        $availableYears = auth()->user()->budgets()
+            ->distinct()
+            ->pluck('period_year')
+            ->push(now()->year)
+            ->push($currentYear)
+            ->unique()
+            ->sortDesc()
+            ->values();
+
         return Inertia::render('budgets/Index', [
             'budgets' => $budgets,
             'categories' => $categories,
+            'view' => $view,
+            'availableYears' => $availableYears,
             'currentPeriod' => [
                 'year' => $currentYear,
                 'month' => $currentMonth,

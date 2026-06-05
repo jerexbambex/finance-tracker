@@ -5,16 +5,71 @@ namespace App\Http\Controllers;
 use App\Currency;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Spatie\LaravelPdf\Facades\Pdf;
 
 class ReportsController extends Controller
 {
     public function index(Request $request)
     {
-        $user = auth()->user();
+        [$startDate, $endDate] = $this->resolveRange($request);
 
-        $startDate = $request->input('start_date', now()->startOfMonth()->toDateString());
-        $endDate = $request->input('end_date', now()->endOfMonth()->toDateString());
+        return Inertia::render('reports/Index', [
+            ...$this->buildReportData(auth()->user(), $startDate, $endDate),
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'currencies' => $this->currencyMeta(),
+        ]);
+    }
 
+    public function pdf(Request $request)
+    {
+        [$startDate, $endDate] = $this->resolveRange($request);
+
+        $data = $this->buildReportData(auth()->user(), $startDate, $endDate);
+
+        $filename = 'financial-report_'.$startDate.'_to_'.$endDate.'.pdf';
+
+        return Pdf::view('reports.pdf', [
+            ...$data,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'currencies' => $this->currencyMeta(),
+            'generatedAt' => now(),
+        ])
+            ->format('a4')
+            ->inline($filename);
+    }
+
+    /**
+     * Resolve and clamp the requested date range (defaults to the current month).
+     *
+     * @return array{0:string,1:string}
+     */
+    protected function resolveRange(Request $request): array
+    {
+        $validated = $request->validate([
+            'start_date' => ['nullable', 'date'],
+            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
+        ]);
+
+        $startDate = $validated['start_date'] ?? now()->startOfMonth()->toDateString();
+        $endDate = $validated['end_date'] ?? now()->endOfMonth()->toDateString();
+
+        return [$startDate, $endDate];
+    }
+
+    protected function currencyMeta()
+    {
+        return collect(Currency::cases())->mapWithKeys(fn ($c) => [
+            $c->value => ['symbol' => $c->symbol(), 'label' => $c->label()],
+        ]);
+    }
+
+    /**
+     * Build the full report dataset for a user over a date range.
+     */
+    protected function buildReportData($user, string $startDate, string $endDate): array
+    {
         // Load expense transactions once for reuse (account spending below)
         $expenseTransactions = $user->transactions()
             ->where('type', 'expense')
@@ -152,7 +207,7 @@ class ReportsController extends Controller
             ]);
         }
 
-        return Inertia::render('reports/Index', [
+        return [
             'categorySpending' => $categorySpending,
             'monthlyTrends' => $monthlyTrends,
             'totalIncomeByCurrency' => $totalIncomeByCurrency,
@@ -160,11 +215,6 @@ class ReportsController extends Controller
             'avgDailySpendingByCurrency' => $avgDailySpendingByCurrency,
             'accountSpending' => $accountSpending,
             'yoyComparison' => $yoyComparison,
-            'startDate' => $startDate,
-            'endDate' => $endDate,
-            'currencies' => collect(Currency::cases())->mapWithKeys(fn ($c) => [
-                $c->value => ['symbol' => $c->symbol(), 'label' => $c->label()],
-            ]),
-        ]);
+        ];
     }
 }

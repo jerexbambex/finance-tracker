@@ -59,6 +59,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('cash-flow', [App\Http\Controllers\CashFlowProjectionController::class, 'index'])->name('cash-flow.index');
     Route::resource('recurring-transactions', RecurringTransactionController::class);
     Route::get('reports', [ReportsController::class, 'index'])->name('reports.index');
+    Route::get('reports/pdf', [ReportsController::class, 'pdf'])->name('reports.pdf');
     Route::resource('reminders', App\Http\Controllers\ReminderController::class);
     Route::post('/reminders/{reminder}/complete', [App\Http\Controllers\ReminderController::class, 'complete'])->name('reminders.complete');
 
@@ -70,6 +71,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/import/transactions', [ImportController::class, 'import'])->name('import.transactions');
 
     Route::get('/export/transactions', [App\Http\Controllers\ExportController::class, 'transactions'])->name('export.transactions');
+    Route::get('/export/statement', [App\Http\Controllers\ExportController::class, 'statement'])->name('export.statement');
     Route::get('/export/all-data', [App\Http\Controllers\ExportController::class, 'allData'])->name('export.all-data');
 
     Route::post('/testimonials', [App\Http\Controllers\TestimonialController::class, 'store'])->name('testimonials.store');

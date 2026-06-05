@@ -21,6 +21,8 @@ interface Budget {
   spent: number;
   percentage: number;
   period_type: string;
+  period_year: number;
+  period_month: number | null;
   currency: string;
 }
 
@@ -38,10 +40,12 @@ interface Props {
   budgets: Budget[];
   categories: Category[];
   currencies: CurrencyOption[];
+  view: 'all' | 'period';
+  availableYears: number[];
   currentPeriod: { year: number; month: number };
 }
 
-export default function Index({ budgets, categories, currencies, currentPeriod }: Props) {
+export default function Index({ budgets, categories, currencies, view, availableYears, currentPeriod }: Props) {
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
@@ -114,11 +118,14 @@ export default function Index({ budgets, categories, currencies, currentPeriod }
       }
     }
 
-    router.get('/budgets', { year: newYear, month: newMonth });
+    router.get('/budgets', { view: 'period', year: newYear, month: newMonth });
   };
 
 
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  // Years the user has budgets for (from the server), newest first
+  const yearOptions = availableYears;
 
   const totalBudgeted = budgets.reduce((sum, b) => sum + b.amount, 0);
   const totalSpent = budgets.reduce((sum, b) => sum + b.spent, 0);
@@ -131,14 +138,83 @@ export default function Index({ budgets, categories, currencies, currentPeriod }
     spent: b.spent,
   }));
 
+  const fullMonthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+  const periodLabel = (b: Budget) =>
+    b.period_type === 'yearly'
+      ? `${b.period_year} · Yearly`
+      : `${fullMonthNames[(b.period_month ?? 1) - 1]} ${b.period_year}`;
+
+  // Group budgets by period for the "All" view (preserves controller ordering)
+  const groupedBudgets: { label: string; items: Budget[] }[] = [];
+  const groupIndex: Record<string, number> = {};
+  budgets.forEach((b) => {
+    const label = periodLabel(b);
+    if (groupIndex[label] === undefined) {
+      groupIndex[label] = groupedBudgets.length;
+      groupedBudgets.push({ label, items: [] });
+    }
+    groupedBudgets[groupIndex[label]].items.push(b);
+  });
+
+  const renderBudgetCard = (budget: Budget) => (
+    <Card key={budget.id} className="transition-colors">
+      <CardHeader className="pb-3">
+        <div className="flex justify-between items-start">
+          <div className="flex-1">
+            <CardTitle className="text-xl">{budget.category.name}</CardTitle>
+            <p className="text-xs text-muted-foreground capitalize mt-1">{budget.period_type}</p>
+          </div>
+          <Button variant="ghost" size="sm" onClick={() => openEditModal(budget)}>
+            Edit
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex justify-between items-baseline">
+          <div>
+            <p className="text-3xl font-bold font-mono tabular-nums">{formatCurrency(budget.spent, budget.currency)}</p>
+            <p className="text-sm text-muted-foreground">of {formatCurrency(budget.amount, budget.currency)}</p>
+          </div>
+          <div className={`text-right ${budget.percentage >= 100 ? 'text-red-600' : budget.percentage >= 80 ? 'text-yellow-600' : 'text-green-600'}`}>
+            <p className="text-2xl font-bold font-mono tabular-nums">{budget.percentage.toFixed(0)}%</p>
+            <p className="text-xs">used</p>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Progress
+            value={Math.min(budget.percentage, 100)}
+            className={`h-2 ${budget.percentage >= 100 ? '[&>div]:bg-red-600' : budget.percentage >= 80 ? '[&>div]:bg-yellow-600' : '[&>div]:bg-green-600'}`}
+          />
+          <div className="flex justify-between items-center text-sm">
+            <span className={budget.percentage >= 100 ? 'text-red-600 font-semibold' : 'text-muted-foreground'}>
+              {budget.percentage >= 100 ? (
+                <>Over by {formatCurrency(budget.spent - budget.amount, budget.currency)}</>
+              ) : (
+                <>{formatCurrency(budget.amount - budget.spent, budget.currency)} left</>
+              )}
+            </span>
+            {budget.percentage >= 80 && budget.percentage < 100 && (
+              <span className="text-yellow-600 text-xs font-medium">⚠️ Near limit</span>
+            )}
+            {budget.percentage >= 100 && (
+              <span className="text-red-600 text-xs font-medium">⚠️ Exceeded</span>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   const chartConfig = {
     budgeted: {
       label: "Budgeted",
-      color: "hsl(217, 91%, 60%)",
+      color: "var(--chart-2)",
     },
     spent: {
       label: "Spent",
-      color: "hsl(142, 76%, 36%)",
+      color: "var(--chart-1)",
     },
   } satisfies ChartConfig;
 
@@ -151,17 +227,58 @@ export default function Index({ budgets, categories, currencies, currentPeriod }
           <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
               <h1 className="text-2xl sm:text-3xl font-bold">Budgets</h1>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="icon" onClick={() => navigatePeriod('prev')}>
-                  <ChevronLeft className="h-4 w-4" />
+              <div className="inline-flex rounded-lg border border-border/55 p-0.5">
+                <Button
+                  variant={view === 'all' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => router.get('/budgets', { view: 'all' }, { preserveScroll: true })}
+                >
+                  All Budgets
                 </Button>
-                <span className="text-base sm:text-lg font-medium min-w-[120px] text-center">
-                  {monthNames[currentPeriod.month - 1]} {currentPeriod.year}
-                </span>
-                <Button variant="outline" size="icon" onClick={() => navigatePeriod('next')}>
-                  <ChevronRight className="h-4 w-4" />
+                <Button
+                  variant={view === 'period' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => router.get('/budgets', { view: 'period', year: currentPeriod.year, month: currentPeriod.month }, { preserveScroll: true })}
+                >
+                  By Month
                 </Button>
               </div>
+              {view === 'period' && (
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="icon" onClick={() => navigatePeriod('prev')}>
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Select
+                    value={String(currentPeriod.month)}
+                    onValueChange={(m) => router.get('/budgets', { view: 'period', year: currentPeriod.year, month: Number(m) }, { preserveScroll: true })}
+                  >
+                    <SelectTrigger className="w-[110px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {monthNames.map((name, i) => (
+                        <SelectItem key={i} value={String(i + 1)}>{name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select
+                    value={String(currentPeriod.year)}
+                    onValueChange={(y) => router.get('/budgets', { view: 'period', year: Number(y), month: currentPeriod.month }, { preserveScroll: true })}
+                  >
+                    <SelectTrigger className="w-[90px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {yearOptions.map((y) => (
+                        <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button variant="outline" size="icon" onClick={() => navigatePeriod('next')}>
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
             </div>
             <div className="flex gap-2">
               <Link href="/budgets/recommendations">
@@ -182,7 +299,7 @@ export default function Index({ budgets, categories, currencies, currentPeriod }
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="text-sm font-medium text-muted-foreground">Total Budgeted</div>
-                        <div className="text-2xl font-bold mt-2">{formatCurrency(totalBudgeted)}</div>
+                        <div className="text-2xl font-bold font-mono tabular-nums mt-2">{formatCurrency(totalBudgeted)}</div>
                       </div>
                       <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
                         <Wallet className="h-6 w-6 text-blue-600" />
@@ -195,7 +312,7 @@ export default function Index({ budgets, categories, currencies, currentPeriod }
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="text-sm font-medium text-muted-foreground">Total Spent</div>
-                        <div className="text-2xl font-bold text-red-600 mt-2">{formatCurrency(totalSpent)}</div>
+                        <div className="text-2xl font-bold font-mono tabular-nums text-red-600 mt-2">{formatCurrency(totalSpent)}</div>
                       </div>
                       <div className="h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
                         <TrendingDown className="h-6 w-6 text-red-600" />
@@ -208,7 +325,7 @@ export default function Index({ budgets, categories, currencies, currentPeriod }
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="text-sm font-medium text-muted-foreground">Remaining</div>
-                        <div className={`text-2xl font-bold mt-2 ${totalRemaining >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        <div className={`text-2xl font-bold font-mono tabular-nums mt-2 ${totalRemaining >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                           {formatCurrency(totalRemaining)}
                         </div>
                       </div>
@@ -220,6 +337,7 @@ export default function Index({ budgets, categories, currencies, currentPeriod }
                 </Card>
               </div>
 
+              {view === 'period' && (
               <Card className="mb-6">
                 <CardHeader>
                   <CardTitle>Budget vs Actual Spending</CardTitle>
@@ -245,7 +363,7 @@ export default function Index({ budgets, categories, currencies, currentPeriod }
                         {chartData.map((entry, index) => (
                           <Cell 
                             key={`cell-${index}`} 
-                            fill={entry.spent > entry.budgeted ? 'hsl(0, 84%, 60%)' : 'hsl(142, 76%, 36%)'} 
+                            fill={entry.spent > entry.budgeted ? 'var(--chart-4)' : 'var(--chart-1)'}
                           />
                         ))}
                       </Bar>
@@ -253,66 +371,38 @@ export default function Index({ budgets, categories, currencies, currentPeriod }
                   </ChartContainer>
                 </CardContent>
               </Card>
+              )}
             </>
           )}
 
           {budgets.length > 0 ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {budgets.map((budget) => (
-                <Card key={budget.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader className="pb-3">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <CardTitle className="text-xl">{budget.category.name}</CardTitle>
-                        <p className="text-xs text-muted-foreground capitalize mt-1">{budget.period_type}</p>
-                      </div>
-                      <Button variant="ghost" size="sm" onClick={() => openEditModal(budget)}>
-                        Edit
-                      </Button>
+            view === 'all' ? (
+              <div className="space-y-8">
+                {groupedBudgets.map((group) => (
+                  <div key={group.label}>
+                    <div className="mb-3 flex items-center gap-3">
+                      <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{group.label}</h2>
+                      <span className="text-xs text-muted-foreground">{group.items.length} budget{group.items.length !== 1 ? 's' : ''}</span>
+                      <div className="h-px flex-1 bg-border/55" />
                     </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex justify-between items-baseline">
-                      <div>
-                        <p className="text-3xl font-bold">{formatCurrency(budget.spent, budget.currency)}</p>
-                        <p className="text-sm text-muted-foreground">of {formatCurrency(budget.amount, budget.currency)}</p>
-                      </div>
-                      <div className={`text-right ${budget.percentage >= 100 ? 'text-red-600' : budget.percentage >= 80 ? 'text-yellow-600' : 'text-green-600'}`}>
-                        <p className="text-2xl font-bold">{budget.percentage.toFixed(0)}%</p>
-                        <p className="text-xs">used</p>
-                      </div>
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      {group.items.map(renderBudgetCard)}
                     </div>
-                    
-                    <div className="space-y-2">
-                      <Progress 
-                        value={Math.min(budget.percentage, 100)} 
-                        className={`h-2 ${budget.percentage >= 100 ? '[&>div]:bg-red-600' : budget.percentage >= 80 ? '[&>div]:bg-yellow-600' : '[&>div]:bg-green-600'}`}
-                      />
-                      <div className="flex justify-between items-center text-sm">
-                        <span className={budget.percentage >= 100 ? 'text-red-600 font-semibold' : 'text-muted-foreground'}>
-                          {budget.percentage >= 100 ? (
-                            <>Over by {formatCurrency(budget.spent - budget.amount, budget.currency)}</>
-                          ) : (
-                            <>{formatCurrency(budget.amount - budget.spent, budget.currency)} left</>
-                          )}
-                        </span>
-                        {budget.percentage >= 80 && budget.percentage < 100 && (
-                          <span className="text-yellow-600 text-xs font-medium">⚠️ Near limit</span>
-                        )}
-                        {budget.percentage >= 100 && (
-                          <span className="text-red-600 text-xs font-medium">⚠️ Exceeded</span>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {budgets.map(renderBudgetCard)}
+              </div>
+            )
           ) : (
             <Card>
               <CardContent className="text-center py-12">
                 <Wallet className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                <p className="text-gray-500 mb-4">No budgets set for this period</p>
+                <p className="text-gray-500 mb-4">
+                  {view === 'period' ? 'No budgets set for this period' : 'No budgets yet'}
+                </p>
                 <Button onClick={() => setCreateOpen(true)}>Create Your First Budget</Button>
               </CardContent>
             </Card>

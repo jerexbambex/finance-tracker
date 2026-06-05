@@ -71,7 +71,7 @@ export default function Recommendations({ recommendations }: Props) {
                   <CardContent className="space-y-4">
                     <div>
                       <p className="text-sm text-muted-foreground">Average spending</p>
-                      <p className="text-2xl font-bold">{formatCurrency(rec.avg_spending, rec.currency)}</p>
+                      <p className="text-2xl font-bold font-mono tabular-nums">{formatCurrency(rec.avg_spending, rec.currency)}</p>
                     </div>
 
                     <div className="bg-muted rounded-lg p-3">
