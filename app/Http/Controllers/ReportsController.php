@@ -36,6 +36,7 @@ class ReportsController extends Controller
             'currencies' => $this->currencyMeta(),
             'generatedAt' => now(),
         ])
+            ->driver('dompdf')
             ->format('a4')
             ->inline($filename);
     }
