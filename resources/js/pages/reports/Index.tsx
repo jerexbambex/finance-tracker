@@ -1,13 +1,14 @@
-import { Head } from '@inertiajs/react';
-import { Download, TrendingUp, TrendingDown, PieChart as PieChartIcon } from 'lucide-react';
+import { Head, router } from '@inertiajs/react';
+import { Download, Printer, TrendingUp, TrendingDown, PieChart as PieChartIcon } from 'lucide-react';
 import { useState, useMemo } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, PieChart, Pie, Legend, Label } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, PieChart, Pie, Legend, Label } from 'recharts';
 import { Sector } from 'recharts';
 import { type PieSectorDataItem } from 'recharts/types/polar/Pie';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency as baseFmt } from '@/lib/formatCurrency';
@@ -54,12 +55,12 @@ interface Props {
 }
 
 const COLORS = [
-  'hsl(217, 91%, 60%)',
-  'hsl(142, 76%, 36%)',
-  'hsl(0, 84%, 60%)',
-  'hsl(45, 93%, 47%)',
-  'hsl(262, 83%, 58%)',
-  'hsl(173, 58%, 39%)',
+  'var(--chart-1)',
+  'var(--chart-2)',
+  'var(--chart-3)',
+  'var(--chart-4)',
+  'var(--chart-5)',
+  'var(--primary)',
 ];
 
 export default function Index({
@@ -68,7 +69,35 @@ export default function Index({
   totalIncomeByCurrency,
   totalExpenseByCurrency,
   avgDailySpendingByCurrency,
+  startDate,
+  endDate,
 }: Props) {
+  const [rangeStart, setRangeStart] = useState(startDate);
+  const [rangeEnd, setRangeEnd] = useState(endDate);
+
+  const applyRange = (start: string, end: string) => {
+    setRangeStart(start);
+    setRangeEnd(end);
+    router.get('/reports', { start_date: start, end_date: end }, { preserveScroll: true, preserveState: true });
+  };
+
+  const applyPreset = (preset: 'this-month' | 'last-month' | 'this-year') => {
+    const now = new Date();
+    let start: Date;
+    let end: Date;
+    if (preset === 'this-month') {
+      start = new Date(now.getFullYear(), now.getMonth(), 1);
+      end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    } else if (preset === 'last-month') {
+      start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      end = new Date(now.getFullYear(), now.getMonth(), 0);
+    } else {
+      start = new Date(now.getFullYear(), 0, 1);
+      end = new Date(now.getFullYear(), 11, 31);
+    }
+    const toIso = (d: Date) => d.toLocaleDateString('en-CA');
+    applyRange(toIso(start), toIso(end));
+  };
   const primaryCurrency =
     Object.keys(totalIncomeByCurrency)[0] ??
     Object.keys(totalExpenseByCurrency)[0] ??
@@ -129,11 +158,11 @@ export default function Index({
   const trendsConfig = {
     income: {
       label: 'Income',
-      color: 'hsl(142, 76%, 36%)',
+      color: 'var(--chart-1)',
     },
     expense: {
       label: 'Expenses',
-      color: 'hsl(0, 84%, 60%)',
+      color: 'var(--chart-4)',
     },
   } satisfies ChartConfig;
 
@@ -149,6 +178,12 @@ export default function Index({
               <p className="text-muted-foreground">Insights into your spending and saving habits</p>
             </div>
             <div className="flex flex-wrap gap-2">
+              <a href={`/reports/pdf?start_date=${rangeStart}&end_date=${rangeEnd}`} target="_blank" rel="noopener noreferrer">
+                <Button variant="default" size="sm" className="w-full sm:w-auto">
+                  <Printer className="h-4 w-4 mr-2" />
+                  View PDF
+                </Button>
+              </a>
               <a href="/export/transactions">
                 <Button variant="outline" size="sm" className="w-full sm:w-auto">
                   <Download className="h-4 w-4 mr-2" />
@@ -164,6 +199,30 @@ export default function Index({
             </div>
           </div>
 
+          {/* Date range controls */}
+          <Card className="mb-6 print:hidden">
+            <CardContent className="flex flex-col gap-4 pt-6 lg:flex-row lg:items-end lg:justify-between">
+              <div className="flex flex-wrap gap-2">
+                <Button variant="secondary" size="sm" onClick={() => applyPreset('this-month')}>This Month</Button>
+                <Button variant="secondary" size="sm" onClick={() => applyPreset('last-month')}>Last Month</Button>
+                <Button variant="secondary" size="sm" onClick={() => applyPreset('this-year')}>This Year</Button>
+              </div>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                <div className="grid gap-1.5">
+                  <label htmlFor="start_date" className="text-xs font-medium text-muted-foreground">Start date</label>
+                  <Input id="start_date" type="date" value={rangeStart} max={rangeEnd} onChange={(e) => setRangeStart(e.target.value)} className="w-full sm:w-auto" />
+                </div>
+                <div className="grid gap-1.5">
+                  <label htmlFor="end_date" className="text-xs font-medium text-muted-foreground">End date</label>
+                  <Input id="end_date" type="date" value={rangeEnd} min={rangeStart} onChange={(e) => setRangeEnd(e.target.value)} className="w-full sm:w-auto" />
+                </div>
+                <Button size="sm" onClick={() => applyRange(rangeStart, rangeEnd)} disabled={!rangeStart || !rangeEnd}>
+                  Apply
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
           <div className="grid gap-4 md:grid-cols-4 mb-6">
             <Card>
               <CardContent className="pt-6">
@@ -171,10 +230,10 @@ export default function Index({
                   <div>
                     <div className="text-sm font-medium text-muted-foreground">Total Income</div>
                     {Object.entries(totalIncomeByCurrency).length === 0 ? (
-                      <div className="text-2xl font-bold text-green-600 mt-2">{formatCurrency(0)}</div>
+                      <div className="text-2xl font-bold font-mono tabular-nums text-green-600 mt-2">{formatCurrency(0)}</div>
                     ) : (
                       Object.entries(totalIncomeByCurrency).map(([cur, amt]) => (
-                        <div key={cur} className="text-2xl font-bold text-green-600 mt-1">
+                        <div key={cur} className="text-2xl font-bold font-mono tabular-nums text-green-600 mt-1">
                           {formatCurrency(amt, cur)}
                         </div>
                       ))
@@ -192,10 +251,10 @@ export default function Index({
                   <div>
                     <div className="text-sm font-medium text-muted-foreground">Total Expenses</div>
                     {Object.entries(totalExpenseByCurrency).length === 0 ? (
-                      <div className="text-2xl font-bold text-red-600 mt-2">{formatCurrency(0)}</div>
+                      <div className="text-2xl font-bold font-mono tabular-nums text-red-600 mt-2">{formatCurrency(0)}</div>
                     ) : (
                       Object.entries(totalExpenseByCurrency).map(([cur, amt]) => (
-                        <div key={cur} className="text-2xl font-bold text-red-600 mt-1">
+                        <div key={cur} className="text-2xl font-bold font-mono tabular-nums text-red-600 mt-1">
                           {formatCurrency(amt, cur)}
                         </div>
                       ))
@@ -212,13 +271,13 @@ export default function Index({
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-sm font-medium text-muted-foreground">Savings Rate</div>
-                    <div className={`text-2xl font-bold mt-2 ${savingsRate >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <div className={`text-2xl font-bold font-mono tabular-nums mt-2 ${savingsRate >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {savingsRate.toFixed(1)}%
                     </div>
                     <div className="text-xs text-muted-foreground mt-1">{primaryCurrency}</div>
                   </div>
                   <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
-                    <PieChartIcon className="h-6 w-6 text-blue-600" />
+                    <PieChartIcon className="h-6 w-6 text-primary" />
                   </div>
                 </div>
               </CardContent>
@@ -229,10 +288,10 @@ export default function Index({
                   <div>
                     <div className="text-sm font-medium text-muted-foreground">Avg Daily Spending</div>
                     {Object.entries(avgDailySpendingByCurrency).length === 0 ? (
-                      <div className="text-2xl font-bold mt-2">{formatCurrency(0)}</div>
+                      <div className="text-2xl font-bold font-mono tabular-nums mt-2">{formatCurrency(0)}</div>
                     ) : (
                       Object.entries(avgDailySpendingByCurrency).map(([cur, amt]) => (
-                        <div key={cur} className="text-2xl font-bold mt-1">
+                        <div key={cur} className="text-2xl font-bold font-mono tabular-nums mt-1">
                           {formatCurrency(amt, cur)}
                         </div>
                       ))
@@ -320,7 +379,7 @@ export default function Index({
                               if (!activeItem) return null;
                               return (
                                 <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
-                                  <tspan x={viewBox.cx} y={viewBox.cy} className="fill-foreground text-2xl font-bold">
+                                  <tspan x={viewBox.cx} y={viewBox.cy} className="fill-foreground text-2xl font-bold font-mono tabular-nums">
                                     {formatCurrency(activeItem.amount, activeItem.currency)}
                                   </tspan>
                                   <tspan
@@ -397,8 +456,18 @@ export default function Index({
             <CardContent>
               {monthlyTrends.length > 0 ? (
                 <ChartContainer config={trendsConfig} className="h-[400px] w-full">
-                  <LineChart accessibilityLayer data={trendChartData}>
-                    <CartesianGrid vertical={false} />
+                  <AreaChart accessibilityLayer data={trendChartData}>
+                    <defs>
+                      <linearGradient id="reportsFillIncome" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="var(--color-income)" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="var(--color-income)" stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="reportsFillExpense" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="var(--color-expense)" stopOpacity={0.25} />
+                        <stop offset="95%" stopColor="var(--color-expense)" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/60" />
                     <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={10} />
                     <YAxis
                       tickLine={false}
@@ -407,25 +476,27 @@ export default function Index({
                     />
                     <ChartTooltip content={<ChartTooltipContent />} />
                     <Legend />
-                    <Line
+                    <Area
                       type="monotone"
                       dataKey="income"
                       stroke="var(--color-income)"
                       strokeWidth={2}
-                      dot={{ r: 4 }}
-                      activeDot={{ r: 6 }}
+                      fill="url(#reportsFillIncome)"
+                      dot={false}
+                      activeDot={{ r: 4 }}
                       name="Income"
                     />
-                    <Line
+                    <Area
                       type="monotone"
                       dataKey="expense"
                       stroke="var(--color-expense)"
                       strokeWidth={2}
-                      dot={{ r: 4 }}
-                      activeDot={{ r: 6 }}
+                      fill="url(#reportsFillExpense)"
+                      dot={false}
+                      activeDot={{ r: 4 }}
                       name="Expenses"
                     />
-                  </LineChart>
+                  </AreaChart>
                 </ChartContainer>
               ) : (
                 <p className="text-muted-foreground text-center py-12">No trend data available</p>
