@@ -60,7 +60,7 @@ export default function Show({ account }: Props) {
               </div>
               <div>
                 <span className="text-sm text-muted-foreground">Balance:</span>
-                <p className="text-2xl font-bold">{formatCurrency(account.balance, account.currency)}</p>
+                <p className="text-2xl font-bold font-mono tabular-nums">{formatCurrency(account.balance, account.currency)}</p>
               </div>
               {account.description && (
                 <div>

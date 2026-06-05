@@ -91,7 +91,7 @@ export default function Index({ notifications, unreadCount }: Props) {
           </div>
 
           {notifications.data.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center border rounded-lg bg-card">
+            <div className="flex flex-col items-center justify-center py-16 text-center border border-border/55 rounded-lg bg-card">
               <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
                 <Bell className="h-8 w-8 text-muted-foreground" />
               </div>
@@ -106,7 +106,7 @@ export default function Index({ notifications, unreadCount }: Props) {
                 <div
                   key={notification.id}
                   className={`group flex items-start gap-3 p-4 rounded-lg border transition-colors hover:bg-muted/50 ${
-                    !notification.read_at ? "bg-accent/30 border-primary/20" : "bg-card"
+                    !notification.read_at ? "bg-accent/30 border-primary/20" : "bg-card border-border/55"
                   }`}
                 >
                   <div className="flex-1 min-w-0">

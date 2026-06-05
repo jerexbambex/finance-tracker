@@ -84,7 +84,7 @@ function InsightSection({
     count,
 }: InsightSectionProps) {
     return (
-        <Card className={`border-border/50 shadow-sm ${className}`}>
+        <Card className={`border-border/50 ${className}`}>
             <CardHeader className="gap-3 pb-3">
                 <div className="flex items-start justify-between gap-4">
                     <div className="flex min-w-0 items-start gap-3">
@@ -124,13 +124,13 @@ function MetricCard({
     iconClassName: string;
 }) {
     return (
-        <Card className="border-border/50 py-4 shadow-sm">
+        <Card className="border-border/50 py-4">
             <CardContent className="flex items-center justify-between gap-4 px-4">
                 <div className="min-w-0">
                     <p className="text-sm font-medium text-muted-foreground">
                         {label}
                     </p>
-                    <p className="mt-1 truncate text-2xl font-semibold tracking-tight">
+                    <p className="mt-1 truncate font-mono text-2xl font-semibold tracking-tight tabular-nums">
                         {value}
                     </p>
                     <p className="mt-1 text-xs text-muted-foreground">
@@ -230,7 +230,7 @@ export default function Index({ insights, primaryCurrency }: Props) {
 
             <div className="flex-1 p-4 sm:p-6 md:p-8">
                 <div className="mx-auto max-w-7xl space-y-6">
-                    <div className="flex flex-col gap-4 rounded-lg border border-border/60 bg-card/60 p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-6">
+                    <div className="flex flex-col gap-4 rounded-lg border border-border/60 bg-card/60 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
                         <div className="max-w-2xl">
                             <div className="mb-3 inline-flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
                                 <Sparkles className="h-4 w-4" />
@@ -292,7 +292,7 @@ export default function Index({ insights, primaryCurrency }: Props) {
                     )}
 
                     {aiInsights && (
-                        <Card className="border-primary/20 bg-primary/5 shadow-sm">
+                        <Card className="border-primary/20 bg-primary/5">
                             <CardHeader>
                                 <div className="flex items-start gap-3">
                                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -316,7 +316,7 @@ export default function Index({ insights, primaryCurrency }: Props) {
                     )}
 
                     {!hasAnyInsights && (
-                        <Card className="border-dashed border-border/70 shadow-sm">
+                        <Card className="border-dashed border-border/70">
                             <CardContent className="flex flex-col items-center justify-center px-6 py-16 text-center">
                                 <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-lg bg-primary/10 text-primary">
                                     <TrendingUp className="h-7 w-7" />
@@ -380,7 +380,7 @@ export default function Index({ insights, primaryCurrency }: Props) {
                                                                 </span>
                                                             </div>
                                                         </div>
-                                                        <p className="text-2xl font-semibold tracking-tight">
+                                                        <p className="text-2xl font-semibold font-mono tabular-nums tracking-tight">
                                                             {formatCurrency(
                                                                 item.current!,
                                                                 item.currency,
@@ -431,7 +431,7 @@ export default function Index({ insights, primaryCurrency }: Props) {
                                                                 </div>
                                                             </div>
                                                             <div className="sm:text-right">
-                                                                <p className="text-lg font-semibold">
+                                                                <p className="text-lg font-semibold font-mono tabular-nums">
                                                                     {formatCurrency(
                                                                         item.total!,
                                                                         item.currency,
@@ -489,7 +489,7 @@ export default function Index({ insights, primaryCurrency }: Props) {
                                                                 }
                                                             </p>
                                                         </div>
-                                                        <p className="text-xl font-semibold text-amber-700 dark:text-amber-300">
+                                                        <p className="text-xl font-semibold font-mono tabular-nums text-amber-700 dark:text-amber-300">
                                                             {formatCurrency(
                                                                 topOverspend.overspend!,
                                                                 topOverspend.currency,
@@ -585,7 +585,7 @@ export default function Index({ insights, primaryCurrency }: Props) {
                                                                         purchases
                                                                     </p>
                                                                 </div>
-                                                                <p className="text-xl font-semibold">
+                                                                <p className="text-xl font-semibold font-mono tabular-nums">
                                                                     {formatCurrency(
                                                                         item.total!,
                                                                         item.currency,
@@ -638,7 +638,7 @@ export default function Index({ insights, primaryCurrency }: Props) {
                                                                 </span>
                                                             </div>
                                                         </div>
-                                                        <p className="shrink-0 text-lg font-semibold">
+                                                        <p className="shrink-0 text-lg font-semibold font-mono tabular-nums">
                                                             {formatCurrency(
                                                                 item.amount!,
                                                                 item.currency,
@@ -687,7 +687,7 @@ export default function Index({ insights, primaryCurrency }: Props) {
                                                                     <p className="text-sm text-muted-foreground">
                                                                         Weekend
                                                                     </p>
-                                                                    <p className="mt-1 text-2xl font-semibold">
+                                                                    <p className="mt-1 text-2xl font-semibold font-mono tabular-nums">
                                                                         {formatCurrency(
                                                                             item.weekend!,
                                                                             item.currency,
@@ -698,7 +698,7 @@ export default function Index({ insights, primaryCurrency }: Props) {
                                                                     <p className="text-sm text-muted-foreground">
                                                                         Weekday
                                                                     </p>
-                                                                    <p className="mt-1 text-2xl font-semibold">
+                                                                    <p className="mt-1 text-2xl font-semibold font-mono tabular-nums">
                                                                         {formatCurrency(
                                                                             item.weekday!,
                                                                             item.currency,
@@ -725,7 +725,7 @@ export default function Index({ insights, primaryCurrency }: Props) {
                                                                     </Badge>
                                                                 )}
                                                             </div>
-                                                            <p className="text-3xl font-semibold tracking-tight">
+                                                            <p className="text-3xl font-semibold font-mono tabular-nums tracking-tight">
                                                                 {formatCurrency(
                                                                     item.amount!,
                                                                     item.currency,

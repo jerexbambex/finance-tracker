@@ -24,7 +24,7 @@ export default function AppSidebarLayout({
     }, [flash]);
 
     return (
-        <AppShell variant="sidebar">
+        <AppShell variant="sidebar" className="fin-theme">
             <Toaster position="top-right" />
             {impersonating && (
                 <div className="fixed top-0 left-0 right-0 z-50 bg-yellow-500 px-4 py-2 text-center text-sm font-medium text-white">

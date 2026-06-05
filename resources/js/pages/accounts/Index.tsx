@@ -240,7 +240,7 @@ export default function Index({ accounts, currencies = [] }: Props) {
                       <div className="text-sm font-medium text-muted-foreground">Total Balance</div>
                       <div className="mt-2 space-y-0.5">
                         {Object.entries(balancesByCurrency).map(([currency, amount]) => (
-                          <div key={currency} className="text-2xl font-bold">{formatCurrency(amount, currency)}</div>
+                          <div key={currency} className="text-2xl font-bold font-mono tabular-nums">{formatCurrency(amount, currency)}</div>
                         ))}
                       </div>
                     </div>
@@ -255,7 +255,7 @@ export default function Index({ accounts, currencies = [] }: Props) {
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="text-sm font-medium text-muted-foreground">Active Accounts</div>
-                      <div className="text-2xl font-bold mt-2">{activeAccounts}</div>
+                      <div className="text-2xl font-bold font-mono tabular-nums mt-2">{activeAccounts}</div>
                     </div>
                     <div className="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
                       <TrendingUp className="h-6 w-6 text-green-600" />
@@ -268,7 +268,7 @@ export default function Index({ accounts, currencies = [] }: Props) {
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="text-sm font-medium text-muted-foreground">Account Types</div>
-                      <div className="text-2xl font-bold mt-2">{Object.keys(accountsByType).length}</div>
+                      <div className="text-2xl font-bold font-mono tabular-nums mt-2">{Object.keys(accountsByType).length}</div>
                     </div>
                     <div className="h-12 w-12 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
                       <CreditCard className="h-6 w-6 text-purple-600" />
@@ -295,7 +295,7 @@ export default function Index({ accounts, currencies = [] }: Props) {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    <div className="text-2xl font-bold">
+                    <div className="text-2xl font-bold font-mono tabular-nums">
                       {formatCurrency(account.balance, account.currency)}
                     </div>
                     {account.description && (

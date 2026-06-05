@@ -1,7 +1,7 @@
 import { Head } from '@inertiajs/react';
 import { TrendingUp, TrendingDown, Wallet, AlertTriangle } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ReferenceLine } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ReferenceLine } from 'recharts';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
@@ -30,7 +30,7 @@ interface Props {
 }
 
 const chartConfig = {
-  balance: { label: 'Projected Balance', color: 'hsl(217, 91%, 60%)' },
+  balance: { label: 'Projected Balance', color: 'var(--chart-2)' },
 } satisfies ChartConfig;
 
 export default function Index({ timelines, milestones }: Props) {
@@ -74,7 +74,7 @@ export default function Index({ timelines, milestones }: Props) {
         <div className="flex items-center justify-between">
           <div>
             <div className="text-sm font-medium text-muted-foreground">{label}</div>
-            <div className={`text-2xl font-bold mt-2 ${value < 0 ? 'text-red-600' : 'text-green-600'}`}>
+            <div className={`text-2xl font-bold font-mono tabular-nums mt-2 ${value < 0 ? 'text-red-600' : 'text-green-600'}`}>
               {formatCurrency(value, currency)}
             </div>
           </div>
@@ -138,21 +138,28 @@ export default function Index({ timelines, milestones }: Props) {
             <CardContent>
               {points.length > 1 ? (
                 <ChartContainer config={chartConfig} className="h-[360px] w-full">
-                  <LineChart accessibilityLayer data={points}>
-                    <CartesianGrid vertical={false} />
+                  <AreaChart accessibilityLayer data={points}>
+                    <defs>
+                      <linearGradient id="cashFillBalance" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="var(--color-balance)" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="var(--color-balance)" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/60" />
                     <XAxis dataKey="label" tickLine={false} axisLine={false} tickMargin={10} minTickGap={24} />
                     <YAxis tickLine={false} axisLine={false} tickFormatter={(v) => formatCurrency(v, currency)} width={80} />
-                    <ReferenceLine y={0} stroke="hsl(0, 84%, 60%)" strokeDasharray="4 4" />
+                    <ReferenceLine y={0} stroke="var(--chart-4)" strokeDasharray="4 4" />
                     <ChartTooltip content={<ChartTooltipContent />} />
-                    <Line
+                    <Area
                       type="stepAfter"
                       dataKey="balance"
                       stroke="var(--color-balance)"
                       strokeWidth={2}
-                      dot={{ r: 3 }}
+                      fill="url(#cashFillBalance)"
+                      dot={false}
                       activeDot={{ r: 5 }}
                     />
-                  </LineChart>
+                  </AreaChart>
                 </ChartContainer>
               ) : (
                 <div className="flex items-center justify-center h-[360px] text-muted-foreground text-center">
