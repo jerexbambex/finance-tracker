@@ -39,6 +39,10 @@ class UserResource extends Resource
                 Section::make('User Information')
                     ->columns(2)
                     ->schema([
+                        Infolists\Components\TextEntry::make('id')
+                            ->label('ID')
+                            ->copyable()
+                            ->icon('heroicon-o-identification'),
                         Infolists\Components\TextEntry::make('name'),
                         Infolists\Components\TextEntry::make('email')
                             ->copyable()
