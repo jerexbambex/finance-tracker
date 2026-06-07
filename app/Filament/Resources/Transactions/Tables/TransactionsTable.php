@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Transactions\Tables;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -18,6 +19,10 @@ class TransactionsTable
                 TextColumn::make('transaction_date')
                     ->date()
                     ->sortable(),
+                TextColumn::make('user.name')
+                    ->label('Owner')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('account.name')
                     ->searchable()
                     ->sortable(),
@@ -30,10 +35,11 @@ class TransactionsTable
                         default => 'gray',
                     }),
                 TextColumn::make('category.name')
+                    ->placeholder('Uncategorized')
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('amount')
-                    ->money(fn ($record) => $record->account?->currency ?? 'USD')
+                    ->money(fn ($record) => $record->currency ?? $record->account?->currency ?? 'USD')
                     ->sortable(),
                 TextColumn::make('description')
                     ->limit(50)
@@ -50,6 +56,7 @@ class TransactionsTable
                 //
             ])
             ->recordActions([
+                ViewAction::make(),
                 EditAction::make(),
             ])
             ->toolbarActions([
