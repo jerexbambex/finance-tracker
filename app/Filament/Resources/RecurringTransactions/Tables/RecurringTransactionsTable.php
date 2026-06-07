@@ -28,7 +28,7 @@ class RecurringTransactionsTable
                 TextColumn::make('category.name')
                     ->searchable(),
                 TextColumn::make('amount')
-                    ->money('USD')
+                    ->money(fn ($record) => $record->account?->currency ?? 'USD')
                     ->sortable(),
                 TextColumn::make('description')
                     ->limit(40),

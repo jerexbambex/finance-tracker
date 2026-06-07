@@ -43,7 +43,7 @@ class RecentTransactions extends TableWidget
                 TextColumn::make('category.name')
                     ->searchable(),
                 TextColumn::make('amount')
-                    ->money('USD'),
+                    ->money(fn ($record) => $record->account?->currency ?? 'USD'),
                 TextColumn::make('description')
                     ->limit(50),
             ]);

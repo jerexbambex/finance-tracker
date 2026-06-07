@@ -30,7 +30,7 @@ class AccountsTable
                     })
                     ->searchable(),
                 TextColumn::make('balance')
-                    ->money('USD')
+                    ->money(fn ($record) => $record->currency ?? 'USD')
                     ->sortable(),
                 IconColumn::make('is_active')
                     ->boolean()

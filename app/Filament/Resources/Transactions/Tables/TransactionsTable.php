@@ -33,7 +33,7 @@ class TransactionsTable
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('amount')
-                    ->money('USD')
+                    ->money(fn ($record) => $record->account?->currency ?? 'USD')
                     ->sortable(),
                 TextColumn::make('description')
                     ->limit(50)
