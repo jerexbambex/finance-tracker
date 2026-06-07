@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Budgets\Tables;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -15,23 +16,30 @@ class BudgetsTable
     {
         return $table
             ->columns([
-                TextColumn::make('id')
-                    ->label('ID')
-                    ->searchable(),
-                TextColumn::make('user_id')
-                    ->searchable(),
-                TextColumn::make('category_id')
-                    ->searchable(),
-                TextColumn::make('amount')
-                    ->numeric()
+                TextColumn::make('user.name')
+                    ->label('Owner')
+                    ->searchable()
                     ->sortable(),
+                TextColumn::make('category.name')
+                    ->label('Category')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('amount')
+                    ->money(fn ($record) => $record->currency ?? 'USD')
+                    ->sortable(),
+                TextColumn::make('currency')
+                    ->badge(),
                 TextColumn::make('period_type')
-                    ->searchable(),
+                    ->badge()
+                    ->sortable(),
                 TextColumn::make('period_year')
+                    ->label('Year')
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('period_month')
+                    ->label('Month')
                     ->numeric()
+                    ->placeholder('—')
                     ->sortable(),
                 IconColumn::make('is_active')
                     ->boolean(),
@@ -48,6 +56,7 @@ class BudgetsTable
                 //
             ])
             ->recordActions([
+                ViewAction::make(),
                 EditAction::make(),
             ])
             ->toolbarActions([
