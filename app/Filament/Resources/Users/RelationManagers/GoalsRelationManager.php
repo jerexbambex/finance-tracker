@@ -35,10 +35,10 @@ class GoalsRelationManager extends RelationManager
                 TextColumn::make('name')
                     ->searchable(),
                 TextColumn::make('target_amount')
-                    ->money(fn ($record) => $record->account->currency ?? 'USD')
+                    ->numeric()
                     ->sortable(),
                 TextColumn::make('current_amount')
-                    ->money(fn ($record) => $record->account->currency ?? 'USD')
+                    ->numeric()
                     ->sortable(),
                 TextColumn::make('target_date')
                     ->date()
