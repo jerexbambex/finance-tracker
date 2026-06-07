@@ -35,8 +35,10 @@ class UserResource extends Resource
     public static function infolist(Schema $schema): Schema
     {
         return $schema
+            ->columns(3)
             ->components([
                 Section::make('User Information')
+                    ->columnSpan(2)
                     ->columns(2)
                     ->schema([
                         Infolists\Components\TextEntry::make('id')
@@ -58,6 +60,7 @@ class UserResource extends Resource
                             ->since(),
                     ]),
                 Section::make('Roles')
+                    ->columnSpan(1)
                     ->schema([
                         Infolists\Components\TextEntry::make('roles.name')
                             ->badge()
