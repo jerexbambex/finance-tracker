@@ -10,6 +10,7 @@ use App\Filament\Resources\Transactions\Schemas\TransactionForm;
 use App\Filament\Resources\Transactions\Tables\TransactionsTable;
 use App\Models\Transaction;
 use BackedEnum;
+use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
@@ -49,11 +50,14 @@ class TransactionResource extends Resource
                     ->extraAttributes(['class' => 'h-full'])
                     ->schema([
                         TextEntry::make('user.name')
-                            ->label('Owner'),
+                            ->label('Owner')
+                            ->icon('heroicon-o-user'),
                         TextEntry::make('account.name')
-                            ->label('Account'),
+                            ->label('Account')
+                            ->icon('heroicon-o-banknotes'),
                         TextEntry::make('category.name')
                             ->label('Category')
+                            ->icon('heroicon-o-tag')
                             ->placeholder('Uncategorized'),
                         TextEntry::make('type')
                             ->badge()
@@ -89,8 +93,34 @@ class TransactionResource extends Resource
                             ->label('Transfer leg')
                             ->placeholder('—')
                             ->visible(fn (Transaction $record) => $record->type === 'transfer'),
+                        TextEntry::make('receipt')
+                            ->label('Receipt')
+                            ->state(fn (Transaction $record) => $record->getFirstMediaUrl('receipts') ? 'View receipt' : null)
+                            ->placeholder('No receipt')
+                            ->url(fn (Transaction $record) => $record->getFirstMediaUrl('receipts') ?: null, shouldOpenInNewTab: true)
+                            ->icon('heroicon-o-paper-clip'),
+                        TextEntry::make('id')
+                            ->label('ID')
+                            ->copyable()
+                            ->icon('heroicon-o-identification'),
                         TextEntry::make('created_at')->dateTime(),
                         TextEntry::make('updated_at')->dateTime()->since(),
+                    ]),
+                Section::make('Splits')
+                    ->visible(fn (Transaction $record) => $record->splits()->exists())
+                    ->schema([
+                        RepeatableEntry::make('splits')
+                            ->hiddenLabel()
+                            ->columns(3)
+                            ->schema([
+                                TextEntry::make('category.name')
+                                    ->label('Category')
+                                    ->placeholder('Uncategorized'),
+                                TextEntry::make('amount')
+                                    ->numeric(),
+                                TextEntry::make('description')
+                                    ->placeholder('—'),
+                            ]),
                     ]),
             ]);
     }

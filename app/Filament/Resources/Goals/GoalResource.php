@@ -48,9 +48,11 @@ class GoalResource extends Resource
                     ->columns(2)
                     ->extraAttributes(['class' => 'h-full'])
                     ->schema([
-                        TextEntry::make('name'),
+                        TextEntry::make('name')
+                            ->icon('heroicon-o-flag'),
                         TextEntry::make('user.name')
-                            ->label('Owner'),
+                            ->label('Owner')
+                            ->icon('heroicon-o-user'),
                         TextEntry::make('category')
                             ->badge()
                             ->placeholder('—'),
@@ -86,8 +88,12 @@ class GoalResource extends Resource
                             ->color(fn (Goal $record) => $record->getPercentageComplete() >= 100 ? 'success' : 'info'),
                     ]),
                 Section::make('Meta')
-                    ->columns(2)
+                    ->columns(3)
                     ->schema([
+                        TextEntry::make('id')
+                            ->label('ID')
+                            ->copyable()
+                            ->icon('heroicon-o-identification'),
                         TextEntry::make('created_at')->dateTime(),
                         TextEntry::make('updated_at')->dateTime()->since(),
                     ]),
@@ -97,7 +103,7 @@ class GoalResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            \App\Filament\Resources\Goals\RelationManagers\ContributionsRelationManager::class,
         ];
     }
 

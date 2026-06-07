@@ -48,9 +48,11 @@ class AccountResource extends Resource
                     ->columns(2)
                     ->extraAttributes(['class' => 'h-full'])
                     ->schema([
-                        TextEntry::make('name'),
+                        TextEntry::make('name')
+                            ->icon('heroicon-o-banknotes'),
                         TextEntry::make('user.name')
-                            ->label('Owner'),
+                            ->label('Owner')
+                            ->icon('heroicon-o-user'),
                         TextEntry::make('type')
                             ->badge()
                             ->color(fn (string $state) => match ($state) {
@@ -76,7 +78,12 @@ class AccountResource extends Resource
                     ->schema([
                         TextEntry::make('transactions_count')
                             ->label('Transactions')
+                            ->icon('heroicon-o-arrows-right-left')
                             ->state(fn (Account $record) => $record->transactions()->count()),
+                        TextEntry::make('id')
+                            ->label('ID')
+                            ->copyable()
+                            ->icon('heroicon-o-identification'),
                         TextEntry::make('created_at')->dateTime(),
                         TextEntry::make('updated_at')->dateTime()->since(),
                     ]),
@@ -86,6 +93,7 @@ class AccountResource extends Resource
     public static function getRelations(): array
     {
         return [
+            \App\Filament\Resources\Accounts\RelationManagers\TransactionsRelationManager::class,
             //
         ];
     }

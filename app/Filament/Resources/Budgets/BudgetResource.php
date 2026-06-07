@@ -50,9 +50,11 @@ class BudgetResource extends Resource
                     ->schema([
                         TextEntry::make('category.name')
                             ->label('Category')
+                            ->icon('heroicon-o-tag')
                             ->placeholder('Uncategorized'),
                         TextEntry::make('user.name')
-                            ->label('Owner'),
+                            ->label('Owner')
+                            ->icon('heroicon-o-user'),
                         TextEntry::make('amount')
                             ->label('Budgeted')
                             ->money(fn (Budget $record) => $record->currency ?? 'USD'),
@@ -92,8 +94,12 @@ class BudgetResource extends Resource
                             ->color(fn (Budget $record) => $record->getPercentageUsed() >= 100 ? 'danger' : ($record->getPercentageUsed() >= 80 ? 'warning' : 'success')),
                     ]),
                 Section::make('Meta')
-                    ->columns(2)
+                    ->columns(3)
                     ->schema([
+                        TextEntry::make('id')
+                            ->label('ID')
+                            ->copyable()
+                            ->icon('heroicon-o-identification'),
                         TextEntry::make('created_at')->dateTime(),
                         TextEntry::make('updated_at')->dateTime()->since(),
                     ]),
