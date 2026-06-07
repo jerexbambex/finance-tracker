@@ -40,6 +40,7 @@ class UserResource extends Resource
                 Section::make('User Information')
                     ->columnSpan(2)
                     ->columns(2)
+                    ->extraAttributes(['class' => 'h-full'])
                     ->schema([
                         Infolists\Components\TextEntry::make('id')
                             ->label('ID')
@@ -61,6 +62,7 @@ class UserResource extends Resource
                     ]),
                 Section::make('Roles')
                     ->columnSpan(1)
+                    ->extraAttributes(['class' => 'h-full'])
                     ->schema([
                         Infolists\Components\TextEntry::make('roles.name')
                             ->badge()
