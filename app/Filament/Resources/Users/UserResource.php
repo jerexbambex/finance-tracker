@@ -35,10 +35,17 @@ class UserResource extends Resource
     public static function infolist(Schema $schema): Schema
     {
         return $schema
+            ->columns(3)
             ->components([
                 Section::make('User Information')
+                    ->columnSpan(2)
                     ->columns(2)
+                    ->extraAttributes(['class' => 'h-full'])
                     ->schema([
+                        Infolists\Components\TextEntry::make('id')
+                            ->label('ID')
+                            ->copyable()
+                            ->icon('heroicon-o-identification'),
                         Infolists\Components\TextEntry::make('name'),
                         Infolists\Components\TextEntry::make('email')
                             ->copyable()
@@ -54,6 +61,8 @@ class UserResource extends Resource
                             ->since(),
                     ]),
                 Section::make('Roles')
+                    ->columnSpan(1)
+                    ->extraAttributes(['class' => 'h-full'])
                     ->schema([
                         Infolists\Components\TextEntry::make('roles.name')
                             ->badge()

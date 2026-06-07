@@ -1,65 +1,74 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Policies;
 
 use App\Models\Testimonial;
-use App\Models\User;
+use Illuminate\Auth\Access\HandlesAuthorization;
+use Illuminate\Foundation\Auth\User as AuthUser;
 
 class TestimonialPolicy
 {
-    /**
-     * Determine whether the user can view any models.
-     */
-    public function viewAny(User $user): bool
+    use HandlesAuthorization;
+
+    public function viewAny(AuthUser $authUser): bool
     {
-        return true; // Allow admins to view all testimonials
+        return $authUser->can('ViewAny:Testimonial');
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
-    public function view(User $user, Testimonial $testimonial): bool
+    public function view(AuthUser $authUser, Testimonial $testimonial): bool
     {
-        return true;
+        return $authUser->id === $testimonial->user_id || $authUser->can('View:Testimonial');
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
-    public function create(User $user): bool
+    public function create(AuthUser $authUser): bool
     {
-        return true;
+        return $authUser->can('Create:Testimonial');
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
-    public function update(User $user, Testimonial $testimonial): bool
+    public function update(AuthUser $authUser, Testimonial $testimonial): bool
     {
-        return true;
+        return $authUser->id === $testimonial->user_id || $authUser->can('Update:Testimonial');
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
-    public function delete(User $user, Testimonial $testimonial): bool
+    public function delete(AuthUser $authUser, Testimonial $testimonial): bool
     {
-        return $user->id === $testimonial->user_id;
+        return $authUser->id === $testimonial->user_id || $authUser->can('Delete:Testimonial');
     }
 
-    /**
-     * Determine whether the user can restore the model.
-     */
-    public function restore(User $user, Testimonial $testimonial): bool
+    public function deleteAny(AuthUser $authUser): bool
     {
-        return false;
+        return $authUser->can('DeleteAny:Testimonial');
     }
 
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(User $user, Testimonial $testimonial): bool
+    public function restore(AuthUser $authUser, Testimonial $testimonial): bool
     {
-        return false;
+        return $authUser->can('Restore:Testimonial');
+    }
+
+    public function forceDelete(AuthUser $authUser, Testimonial $testimonial): bool
+    {
+        return $authUser->can('ForceDelete:Testimonial');
+    }
+
+    public function forceDeleteAny(AuthUser $authUser): bool
+    {
+        return $authUser->can('ForceDeleteAny:Testimonial');
+    }
+
+    public function restoreAny(AuthUser $authUser): bool
+    {
+        return $authUser->can('RestoreAny:Testimonial');
+    }
+
+    public function replicate(AuthUser $authUser, Testimonial $testimonial): bool
+    {
+        return $authUser->can('Replicate:Testimonial');
+    }
+
+    public function reorder(AuthUser $authUser): bool
+    {
+        return $authUser->can('Reorder:Testimonial');
     }
 }

@@ -3,7 +3,6 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Budget;
-use App\Models\Transaction;
 use Filament\Widgets\ChartWidget;
 
 class BudgetOverview extends ChartWidget
@@ -24,26 +23,24 @@ class BudgetOverview extends ChartWidget
         $labels = [];
         $budgetData = [];
         $spentData = [];
+        $indexByKey = [];
 
         foreach ($budgets as $budget) {
-            $spent = Transaction::where('category_id', $budget->category_id)
-                ->where('type', 'expense')
-                ->whereYear('transaction_date', now()->year)
-                ->whereMonth('transaction_date', now()->month)
-                ->sum('amount');
+            // Group by category AND currency so figures of different currencies are
+            // never summed together. amount and getSpentAmount() are already in major
+            // units (dollars); getSpentAmount() is currency-, user- and split-aware.
+            $key = $budget->category->name.' ('.$budget->currency.')';
 
-            $categoryName = $budget->category->name;
-
-            // Aggregate by category if multiple users have budgets for same category
-            if (in_array($categoryName, $labels)) {
-                $index = array_search($categoryName, $labels);
-                $budgetData[$index] += $budget->amount / 100;
-                $spentData[$index] += $spent / 100;
-            } else {
-                $labels[] = $categoryName;
-                $budgetData[] = $budget->amount / 100;
-                $spentData[] = $spent / 100;
+            if (! isset($indexByKey[$key])) {
+                $indexByKey[$key] = count($labels);
+                $labels[] = $key;
+                $budgetData[] = 0;
+                $spentData[] = 0;
             }
+
+            $i = $indexByKey[$key];
+            $budgetData[$i] += $budget->amount;
+            $spentData[$i] += $budget->getSpentAmount();
         }
 
         return [

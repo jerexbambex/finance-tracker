@@ -18,6 +18,10 @@ class AccountsTable
                 TextColumn::make('name')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('user.name')
+                    ->label('Owner')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('type')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
@@ -30,7 +34,7 @@ class AccountsTable
                     })
                     ->searchable(),
                 TextColumn::make('balance')
-                    ->money('USD')
+                    ->money(fn ($record) => $record->currency ?? 'USD')
                     ->sortable(),
                 IconColumn::make('is_active')
                     ->boolean()
