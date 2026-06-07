@@ -1,53 +1,74 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Policies;
 
 use App\Models\Account;
-use App\Models\User;
+use Illuminate\Auth\Access\HandlesAuthorization;
+use Illuminate\Foundation\Auth\User as AuthUser;
 
 class AccountPolicy
 {
-    /**
-     * Determine whether the user can view any models.
-     */
-    public function viewAny(User $user): bool
+    use HandlesAuthorization;
+
+    public function viewAny(AuthUser $authUser): bool
     {
-        return $user->hasRole('admin');
+        return $authUser->can('ViewAny:Account');
     }
 
-    public function view(User $user, Account $account): bool
+    public function view(AuthUser $authUser, Account $account): bool
     {
-        return $user->hasRole('admin') || $user->id === $account->user_id;
+        return $authUser->id === $account->user_id || $authUser->can('View:Account');
     }
 
-    public function create(User $user): bool
+    public function create(AuthUser $authUser): bool
     {
-        return true;
+        return $authUser->can('Create:Account');
     }
 
-    public function update(User $user, Account $account): bool
+    public function update(AuthUser $authUser, Account $account): bool
     {
-        return $user->hasRole('admin') || $user->id === $account->user_id;
+        return $authUser->id === $account->user_id || $authUser->can('Update:Account');
     }
 
-    public function delete(User $user, Account $account): bool
+    public function delete(AuthUser $authUser, Account $account): bool
     {
-        return $user->hasRole('admin') || $user->id === $account->user_id;
+        return $authUser->id === $account->user_id || $authUser->can('Delete:Account');
     }
 
-    /**
-     * Determine whether the user can restore the model.
-     */
-    public function restore(User $user, Account $account): bool
+    public function deleteAny(AuthUser $authUser): bool
     {
-        return false;
+        return $authUser->can('DeleteAny:Account');
     }
 
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(User $user, Account $account): bool
+    public function restore(AuthUser $authUser, Account $account): bool
     {
-        return false;
+        return $authUser->can('Restore:Account');
+    }
+
+    public function forceDelete(AuthUser $authUser, Account $account): bool
+    {
+        return $authUser->can('ForceDelete:Account');
+    }
+
+    public function forceDeleteAny(AuthUser $authUser): bool
+    {
+        return $authUser->can('ForceDeleteAny:Account');
+    }
+
+    public function restoreAny(AuthUser $authUser): bool
+    {
+        return $authUser->can('RestoreAny:Account');
+    }
+
+    public function replicate(AuthUser $authUser, Account $account): bool
+    {
+        return $authUser->can('Replicate:Account');
+    }
+
+    public function reorder(AuthUser $authUser): bool
+    {
+        return $authUser->can('Reorder:Account');
     }
 }

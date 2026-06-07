@@ -1,62 +1,74 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Policies;
 
 use App\Models\Budget;
-use App\Models\User;
+use Illuminate\Auth\Access\HandlesAuthorization;
+use Illuminate\Foundation\Auth\User as AuthUser;
 
 class BudgetPolicy
 {
-    /**
-     * Determine whether the user can view any models.
-     */
-    public function viewAny(User $user): bool
+    use HandlesAuthorization;
+
+    public function viewAny(AuthUser $authUser): bool
     {
-        return $user->hasRole('admin');
+        return $authUser->can('ViewAny:Budget');
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
-    public function view(User $user, Budget $budget): bool
+    public function view(AuthUser $authUser, Budget $budget): bool
     {
-        return $user->hasRole('admin') || $user->id === $budget->user_id;
+        return $authUser->id === $budget->user_id || $authUser->can('View:Budget');
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
-    public function create(User $user): bool
+    public function create(AuthUser $authUser): bool
     {
-        return true;
+        return $authUser->can('Create:Budget');
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
-    public function update(User $user, Budget $budget): bool
+    public function update(AuthUser $authUser, Budget $budget): bool
     {
-        return $user->hasRole('admin') || $user->id === $budget->user_id;
+        return $authUser->id === $budget->user_id || $authUser->can('Update:Budget');
     }
 
-    public function delete(User $user, Budget $budget): bool
+    public function delete(AuthUser $authUser, Budget $budget): bool
     {
-        return $user->hasRole('admin') || $user->id === $budget->user_id;
+        return $authUser->id === $budget->user_id || $authUser->can('Delete:Budget');
     }
 
-    /**
-     * Determine whether the user can restore the model.
-     */
-    public function restore(User $user, Budget $budget): bool
+    public function deleteAny(AuthUser $authUser): bool
     {
-        return false;
+        return $authUser->can('DeleteAny:Budget');
     }
 
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(User $user, Budget $budget): bool
+    public function restore(AuthUser $authUser, Budget $budget): bool
     {
-        return false;
+        return $authUser->can('Restore:Budget');
+    }
+
+    public function forceDelete(AuthUser $authUser, Budget $budget): bool
+    {
+        return $authUser->can('ForceDelete:Budget');
+    }
+
+    public function forceDeleteAny(AuthUser $authUser): bool
+    {
+        return $authUser->can('ForceDeleteAny:Budget');
+    }
+
+    public function restoreAny(AuthUser $authUser): bool
+    {
+        return $authUser->can('RestoreAny:Budget');
+    }
+
+    public function replicate(AuthUser $authUser, Budget $budget): bool
+    {
+        return $authUser->can('Replicate:Budget');
+    }
+
+    public function reorder(AuthUser $authUser): bool
+    {
+        return $authUser->can('Reorder:Budget');
     }
 }
