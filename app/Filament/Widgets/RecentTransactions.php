@@ -9,7 +9,7 @@ use Filament\Widgets\TableWidget;
 
 class RecentTransactions extends TableWidget
 {
-    protected static ?int $sort = 2;
+    protected static ?int $sort = 4;
 
     protected int|string|array $columnSpan = 'full';
 

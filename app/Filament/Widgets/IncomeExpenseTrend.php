@@ -14,7 +14,7 @@ class IncomeExpenseTrend extends ChartWidget
 
     protected ?string $pollingInterval = null;
 
-    protected static ?int $sort = 2;
+    protected static ?int $sort = 3;
 
     protected int|string|array $columnSpan = 'full';
 
