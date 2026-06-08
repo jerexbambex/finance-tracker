@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Accounts\Pages;
 
 use App\Filament\Resources\Accounts\AccountResource;
 use App\Filament\Resources\Accounts\Widgets\AccountStatsWidget;
+use App\Filament\Resources\Accounts\Widgets\AccountTransactionsChart;
 use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
 
@@ -22,6 +23,13 @@ class ViewAccount extends ViewRecord
     {
         return [
             AccountStatsWidget::class,
+        ];
+    }
+
+    protected function getFooterWidgets(): array
+    {
+        return [
+            AccountTransactionsChart::class,
         ];
     }
 }

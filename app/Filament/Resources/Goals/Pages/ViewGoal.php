@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Goals\Pages;
 
 use App\Filament\Resources\Goals\GoalResource;
+use App\Filament\Resources\Goals\Widgets\GoalProgressChart;
 use App\Filament\Resources\Goals\Widgets\GoalStatsWidget;
 use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
@@ -22,6 +23,13 @@ class ViewGoal extends ViewRecord
     {
         return [
             GoalStatsWidget::class,
+        ];
+    }
+
+    protected function getFooterWidgets(): array
+    {
+        return [
+            GoalProgressChart::class,
         ];
     }
 }
