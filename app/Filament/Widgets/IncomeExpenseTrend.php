@@ -43,14 +43,18 @@ class IncomeExpenseTrend extends ChartWidget
         $start = now()->subMonths(5)->startOfMonth();
 
         // One grouped query, filtering on the transactions.currency column directly
-        // (no join to accounts — that join over millions of rows is the bottleneck)
-        $rows = Transaction::query()
-            ->where('currency', $currency)
-            ->whereIn('type', ['income', 'expense'])
-            ->where('transaction_date', '>=', $start->toDateString())
-            ->selectRaw('YEAR(transaction_date) as yr, MONTH(transaction_date) as mo, type, SUM(amount) as total')
-            ->groupBy('yr', 'mo', 'type')
-            ->get();
+        // (no join to accounts). Cached briefly — admin trend needn't be real-time.
+        $rows = \Illuminate\Support\Facades\Cache::remember(
+            "admin.trend.{$currency}",
+            now()->addMinutes(5),
+            fn () => Transaction::query()
+                ->where('currency', $currency)
+                ->whereIn('type', ['income', 'expense'])
+                ->where('transaction_date', '>=', $start->toDateString())
+                ->selectRaw('YEAR(transaction_date) as yr, MONTH(transaction_date) as mo, type, SUM(amount) as total')
+                ->groupBy('yr', 'mo', 'type')
+                ->get(),
+        );
 
         $income = array_fill(0, 6, 0);
         $expense = array_fill(0, 6, 0);

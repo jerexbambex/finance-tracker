@@ -6,44 +6,54 @@ use App\Models\Account;
 use App\Models\Budget;
 use App\Models\Goal;
 use App\Models\Transaction;
+use App\Models\User;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Illuminate\Support\Facades\Cache;
 
 class StatsOverview extends StatsOverviewWidget
 {
     protected function getStats(): array
     {
-        // Get balances by currency
-        $balancesByCurrency = Account::where('is_active', true)
-            ->selectRaw('currency, SUM(balance) as total')
-            ->groupBy('currency')
-            ->get()
-            ->mapWithKeys(fn ($item) => [$item->currency => $item->total / 100]);
+        // These are all-users aggregates over potentially millions of rows, so cache
+        // them briefly — the admin overview doesn't need to be real-time to the second.
+        $data = Cache::remember('admin.stats.overview', now()->addMinutes(5), function () {
+            $monthStart = now()->startOfMonth()->toDateString();
+            $monthEnd = now()->endOfMonth()->toDateString();
 
-        // Get income by currency
-        $incomeByCurrency = Transaction::where('transactions.type', 'income')
-            ->whereBetween('transactions.transaction_date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()])
-            ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
-            ->selectRaw('accounts.currency, SUM(transactions.amount) as total')
-            ->groupBy('accounts.currency')
-            ->get()
-            ->mapWithKeys(fn ($item) => [$item->currency => $item->total / 100]);
+            $sumByCurrency = fn (string $type) => Transaction::where('type', $type)
+                ->whereBetween('transaction_date', [$monthStart, $monthEnd])
+                ->selectRaw('currency, SUM(amount) as total')
+                ->groupBy('currency')
+                ->pluck('total', 'currency')
+                ->map(fn ($v) => $v / 100)
+                ->all();
 
-        // Get expenses by currency
-        $expensesByCurrency = Transaction::where('transactions.type', 'expense')
-            ->whereBetween('transactions.transaction_date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()])
-            ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
-            ->selectRaw('accounts.currency, SUM(transactions.amount) as total')
-            ->groupBy('accounts.currency')
-            ->get()
-            ->mapWithKeys(fn ($item) => [$item->currency => $item->total / 100]);
+            return [
+                'balances' => Account::where('is_active', true)
+                    ->selectRaw('currency, SUM(balance) as total')
+                    ->groupBy('currency')
+                    ->pluck('total', 'currency')
+                    ->map(fn ($v) => $v / 100)
+                    ->all(),
+                'income' => $sumByCurrency('income'),
+                'expense' => $sumByCurrency('expense'),
+                'activeBudgets' => Budget::where('is_active', true)->count(),
+                'activeGoals' => Goal::where('is_active', true)->where('is_completed', false)->count(),
+                'totalUsers' => User::count(),
+                'activeUsers' => User::where('updated_at', '>=', now()->subDays(30))->count(),
+                'totalTransactions' => Transaction::whereBetween('transaction_date', [$monthStart, $monthEnd])->count(),
+            ];
+        });
 
-        $activeBudgets = Budget::where('is_active', true)->count();
-        $activeGoals = Goal::where('is_active', true)->where('is_completed', false)->count();
-        $totalUsers = \App\Models\User::count();
-        $activeUsers = \App\Models\User::where('updated_at', '>=', now()->subDays(30))->count();
-        $totalTransactions = Transaction::whereBetween('transaction_date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()])
-            ->count();
+        $balancesByCurrency = collect($data['balances']);
+        $incomeByCurrency = collect($data['income']);
+        $expensesByCurrency = collect($data['expense']);
+        $activeBudgets = $data['activeBudgets'];
+        $activeGoals = $data['activeGoals'];
+        $totalUsers = $data['totalUsers'];
+        $activeUsers = $data['activeUsers'];
+        $totalTransactions = $data['totalTransactions'];
 
         // Format currency amounts
         $formatCurrencies = function ($amounts) {
