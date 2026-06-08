@@ -44,10 +44,6 @@ class StatsOverview extends StatsOverviewWidget
         $activeUsers = \App\Models\User::where('updated_at', '>=', now()->subDays(30))->count();
         $totalTransactions = Transaction::whereBetween('transaction_date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()])
             ->count();
-        $budgetsExceeded = Budget::where('is_active', true)
-            ->get()
-            ->filter(fn ($b) => $b->getPercentageUsed() >= 100)
-            ->count();
 
         // Format currency amounts
         $formatCurrencies = function ($amounts) {
@@ -79,9 +75,9 @@ class StatsOverview extends StatsOverviewWidget
                 ->description('This month')
                 ->color('info'),
 
-            Stat::make('Budgets Exceeded', $budgetsExceeded)
-                ->description('Needs attention')
-                ->color($budgetsExceeded > 0 ? 'danger' : 'success'),
+            Stat::make('Active Budgets', $activeBudgets)
+                ->description($activeGoals.' active goals')
+                ->color('warning'),
         ];
     }
 }
