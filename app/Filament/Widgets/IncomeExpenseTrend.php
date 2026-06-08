@@ -3,7 +3,6 @@
 namespace App\Filament\Widgets;
 
 use App\Currency;
-use App\Models\Account;
 use App\Models\Transaction;
 use Filament\Widgets\ChartWidget;
 
@@ -19,39 +18,55 @@ class IncomeExpenseTrend extends ChartWidget
 
     /**
      * Currency selector — amounts of different currencies must never be summed
-     * together, so the trend is always scoped to a single currency.
+     * together, so the trend is always scoped to a single currency. Sourced from
+     * the enum (no DB query — a DISTINCT over all accounts is expensive at scale).
      */
     protected function getFilters(): ?array
     {
-        return Account::query()
-            ->distinct()
-            ->orderBy('currency')
-            ->pluck('currency')
-            ->mapWithKeys(fn ($code) => [$code => Currency::tryFrom($code)?->label() ?? $code])
+        return collect(Currency::cases())
+            ->mapWithKeys(fn ($c) => [$c->value => $c->label()])
             ->all();
     }
 
     protected function getData(): array
     {
-        $currency = $this->filter ?? Account::query()->orderBy('currency')->value('currency') ?? 'USD';
+        $currency = $this->filter ?? Currency::cases()[0]->value;
 
+        // Build the 6 month buckets up front
         $labels = [];
-        $income = [];
-        $expense = [];
-
+        $keys = [];
         for ($i = 5; $i >= 0; $i--) {
             $month = now()->subMonths($i);
             $labels[] = $month->format('M Y');
+            $keys[] = $month->format('Y-n');
+        }
+        $start = now()->subMonths(5)->startOfMonth();
 
-            $base = fn (string $type) => Transaction::query()
-                ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
-                ->where('accounts.currency', $currency)
-                ->where('transactions.type', $type)
-                ->whereBetween('transactions.transaction_date', [$month->copy()->startOfMonth()->toDateString(), $month->copy()->endOfMonth()->toDateString()])
-                ->sum('transactions.amount') / 100;
+        // One grouped query, filtering on the transactions.currency column directly
+        // (no join to accounts — that join over millions of rows is the bottleneck)
+        $rows = Transaction::query()
+            ->where('currency', $currency)
+            ->whereIn('type', ['income', 'expense'])
+            ->where('transaction_date', '>=', $start->toDateString())
+            ->selectRaw('YEAR(transaction_date) as yr, MONTH(transaction_date) as mo, type, SUM(amount) as total')
+            ->groupBy('yr', 'mo', 'type')
+            ->get();
 
-            $income[] = $base('income');
-            $expense[] = $base('expense');
+        $income = array_fill(0, 6, 0);
+        $expense = array_fill(0, 6, 0);
+        $indexByKey = array_flip($keys);
+
+        foreach ($rows as $row) {
+            $key = $row->yr.'-'.$row->mo;
+            if (! isset($indexByKey[$key])) {
+                continue;
+            }
+            $i = $indexByKey[$key];
+            if ($row->type === 'income') {
+                $income[$i] = $row->total / 100;
+            } else {
+                $expense[$i] = $row->total / 100;
+            }
         }
 
         return [
