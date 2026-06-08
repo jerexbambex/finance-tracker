@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Goals\Pages;
 
 use App\Filament\Resources\Goals\GoalResource;
+use App\Filament\Resources\Goals\Widgets\GoalStatsWidget;
 use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
 
@@ -14,6 +15,13 @@ class ViewGoal extends ViewRecord
     {
         return [
             EditAction::make(),
+        ];
+    }
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            GoalStatsWidget::class,
         ];
     }
 }
