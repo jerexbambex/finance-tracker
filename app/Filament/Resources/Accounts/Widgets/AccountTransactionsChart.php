@@ -25,13 +25,11 @@ class AccountTransactionsChart extends ChartWidget
             $labels[] = $month->format('M Y');
             $income[] = $this->record->transactions()
                 ->where('type', 'income')
-                ->whereYear('transaction_date', $month->year)
-                ->whereMonth('transaction_date', $month->month)
+                ->whereBetween('transaction_date', [$month->copy()->startOfMonth()->toDateString(), $month->copy()->endOfMonth()->toDateString()])
                 ->sum('amount') / 100;
             $expense[] = $this->record->transactions()
                 ->where('type', 'expense')
-                ->whereYear('transaction_date', $month->year)
-                ->whereMonth('transaction_date', $month->month)
+                ->whereBetween('transaction_date', [$month->copy()->startOfMonth()->toDateString(), $month->copy()->endOfMonth()->toDateString()])
                 ->sum('amount') / 100;
         }
 

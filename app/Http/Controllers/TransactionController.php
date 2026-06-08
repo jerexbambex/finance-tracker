@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\ScopesOwnership;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\Category;
 use App\Models\SavedFilter;
 use App\Models\Transaction;
 use App\Models\TransactionSplit;
-use App\Http\Controllers\Concerns\ScopesOwnership;
 use App\Notifications\BudgetExceededNotification;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
@@ -79,8 +79,7 @@ class TransactionController extends Controller
             $date = now()->subMonths($i);
             $rows = auth()->user()->transactions()
                 ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
-                ->whereYear('transactions.transaction_date', $date->year)
-                ->whereMonth('transactions.transaction_date', $date->month)
+                ->whereBetween('transactions.transaction_date', [$date->copy()->startOfMonth()->toDateString(), $date->copy()->endOfMonth()->toDateString()])
                 ->whereIn('transactions.type', ['income', 'expense'])
                 ->selectRaw('transactions.type, accounts.currency, SUM(transactions.amount) as total')
                 ->groupBy('transactions.type', 'accounts.currency')
@@ -103,8 +102,10 @@ class TransactionController extends Controller
         for ($month = 1; $month <= 12; $month++) {
             $rows = auth()->user()->transactions()
                 ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
-                ->whereYear('transactions.transaction_date', now()->year)
-                ->whereMonth('transactions.transaction_date', $month)
+                ->whereBetween('transactions.transaction_date', [
+                    \Illuminate\Support\Carbon::create(now()->year, $month, 1)->toDateString(),
+                    \Illuminate\Support\Carbon::create(now()->year, $month, 1)->endOfMonth()->toDateString(),
+                ])
                 ->whereIn('transactions.type', ['income', 'expense'])
                 ->selectRaw('transactions.type, accounts.currency, SUM(transactions.amount) as total')
                 ->groupBy('transactions.type', 'accounts.currency')

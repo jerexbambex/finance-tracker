@@ -47,8 +47,7 @@ class IncomeExpenseTrend extends ChartWidget
                 ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
                 ->where('accounts.currency', $currency)
                 ->where('transactions.type', $type)
-                ->whereYear('transactions.transaction_date', $month->year)
-                ->whereMonth('transactions.transaction_date', $month->month)
+                ->whereBetween('transactions.transaction_date', [$month->copy()->startOfMonth()->toDateString(), $month->copy()->endOfMonth()->toDateString()])
                 ->sum('transactions.amount') / 100;
 
             $income[] = $base('income');

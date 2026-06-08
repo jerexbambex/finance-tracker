@@ -27,8 +27,7 @@ class UserTransactionsChart extends ChartWidget
             $labels[] = $month->format('M Y');
 
             $counts = $this->record->transactions()
-                ->whereYear('transaction_date', $month->year)
-                ->whereMonth('transaction_date', $month->month)
+                ->whereBetween('transaction_date', [$month->copy()->startOfMonth()->toDateString(), $month->copy()->endOfMonth()->toDateString()])
                 ->selectRaw('type, COUNT(*) as total')
                 ->groupBy('type')
                 ->pluck('total', 'type');

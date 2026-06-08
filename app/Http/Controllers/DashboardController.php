@@ -61,8 +61,7 @@ class DashboardController extends Controller
 
             $rows = $user->transactions()
                 ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
-                ->whereYear('transactions.transaction_date', $date->year)
-                ->whereMonth('transactions.transaction_date', $date->month)
+                ->whereBetween('transactions.transaction_date', [$date->copy()->startOfMonth()->toDateString(), $date->copy()->endOfMonth()->toDateString()])
                 ->whereIn('transactions.type', ['income', 'expense'])
                 ->selectRaw('transactions.type, accounts.currency, SUM(transactions.amount) as total')
                 ->groupBy('transactions.type', 'accounts.currency')

@@ -48,13 +48,14 @@ class Budget extends Model
 
     public function getSpentAmount()
     {
-        $applyPeriod = function ($query, string $dateColumn = 'transaction_date') {
-            $query->whereYear($dateColumn, $this->period_year);
-            if ($this->period_type === 'monthly' && $this->period_month) {
-                $query->whereMonth($dateColumn, $this->period_month);
-            }
+        // Use a date range (sargable) instead of whereYear/whereMonth so the
+        // transaction_date index is used rather than a full scan.
+        $isMonthly = $this->period_type === 'monthly' && $this->period_month;
+        $start = \Illuminate\Support\Carbon::create($this->period_year, $isMonthly ? $this->period_month : 1, 1);
+        $end = $isMonthly ? $start->copy()->endOfMonth() : $start->copy()->endOfYear();
 
-            return $query;
+        $applyPeriod = function ($query, string $dateColumn = 'transaction_date') use ($start, $end) {
+            return $query->whereBetween($dateColumn, [$start->toDateString(), $end->toDateString()]);
         };
 
         // Direct spend: non-split expense transactions in this category.

@@ -22,8 +22,7 @@ class StatsOverview extends StatsOverviewWidget
 
         // Get income by currency
         $incomeByCurrency = Transaction::where('transactions.type', 'income')
-            ->whereYear('transaction_date', now()->year)
-            ->whereMonth('transaction_date', now()->month)
+            ->whereBetween('transactions.transaction_date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()])
             ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
             ->selectRaw('accounts.currency, SUM(transactions.amount) as total')
             ->groupBy('accounts.currency')
@@ -32,8 +31,7 @@ class StatsOverview extends StatsOverviewWidget
 
         // Get expenses by currency
         $expensesByCurrency = Transaction::where('transactions.type', 'expense')
-            ->whereYear('transaction_date', now()->year)
-            ->whereMonth('transaction_date', now()->month)
+            ->whereBetween('transactions.transaction_date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()])
             ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
             ->selectRaw('accounts.currency, SUM(transactions.amount) as total')
             ->groupBy('accounts.currency')
@@ -44,8 +42,7 @@ class StatsOverview extends StatsOverviewWidget
         $activeGoals = Goal::where('is_active', true)->where('is_completed', false)->count();
         $totalUsers = \App\Models\User::count();
         $activeUsers = \App\Models\User::where('updated_at', '>=', now()->subDays(30))->count();
-        $totalTransactions = Transaction::whereYear('transaction_date', now()->year)
-            ->whereMonth('transaction_date', now()->month)
+        $totalTransactions = Transaction::whereBetween('transaction_date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()])
             ->count();
         $budgetsExceeded = Budget::where('is_active', true)
             ->get()
