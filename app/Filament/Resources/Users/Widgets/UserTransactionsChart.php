@@ -1,12 +1,14 @@
 <?php
 
-namespace App\Filament\Resources\Transactions\Widgets;
+namespace App\Filament\Resources\Users\Widgets;
 
-use App\Models\Transaction;
 use Filament\Widgets\ChartWidget;
+use Illuminate\Database\Eloquent\Model;
 
-class TransactionsOverviewChart extends ChartWidget
+class UserTransactionsChart extends ChartWidget
 {
+    public ?Model $record = null;
+
     protected ?string $heading = 'Transactions by type (last 6 months)';
 
     protected int|string|array $columnSpan = 'full';
@@ -22,7 +24,7 @@ class TransactionsOverviewChart extends ChartWidget
             $month = now()->subMonths($i);
             $labels[] = $month->format('M Y');
 
-            $counts = Transaction::query()
+            $counts = $this->record->transactions()
                 ->whereYear('transaction_date', $month->year)
                 ->whereMonth('transaction_date', $month->month)
                 ->selectRaw('type, COUNT(*) as total')

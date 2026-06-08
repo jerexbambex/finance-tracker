@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Users\Pages;
 
 use App\Filament\Resources\Users\UserResource;
 use App\Filament\Resources\Users\Widgets\UserStatsWidget;
+use App\Filament\Resources\Users\Widgets\UserTransactionsChart;
 use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
 
@@ -22,6 +23,13 @@ class ViewUser extends ViewRecord
     {
         return [
             UserStatsWidget::class,
+        ];
+    }
+
+    protected function getFooterWidgets(): array
+    {
+        return [
+            UserTransactionsChart::class,
         ];
     }
 }
