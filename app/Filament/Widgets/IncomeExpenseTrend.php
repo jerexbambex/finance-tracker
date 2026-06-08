@@ -11,6 +11,8 @@ class IncomeExpenseTrend extends ChartWidget
 {
     protected ?string $heading = 'Income vs Expenses (last 6 months)';
 
+    protected ?string $maxHeight = '280px';
+
     protected static ?int $sort = 2;
 
     protected int|string|array $columnSpan = 'full';

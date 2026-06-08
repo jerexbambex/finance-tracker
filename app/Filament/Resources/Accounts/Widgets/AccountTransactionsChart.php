@@ -11,6 +11,8 @@ class AccountTransactionsChart extends ChartWidget
 
     protected ?string $heading = 'Income vs Expenses (last 6 months)';
 
+    protected ?string $maxHeight = '280px';
+
     protected function getData(): array
     {
         $labels = [];

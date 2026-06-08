@@ -11,6 +11,8 @@ class TransactionSplitsChart extends ChartWidget
 
     protected ?string $heading = 'Split allocation by category';
 
+    protected ?string $maxHeight = '280px';
+
     protected function getData(): array
     {
         $splits = $this->record->splits()->with('category')->get();

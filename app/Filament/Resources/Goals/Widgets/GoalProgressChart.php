@@ -11,6 +11,8 @@ class GoalProgressChart extends ChartWidget
 
     protected ?string $heading = 'Savings Progress';
 
+    protected ?string $maxHeight = '280px';
+
     protected function getData(): array
     {
         $contributions = $this->record->contributions()

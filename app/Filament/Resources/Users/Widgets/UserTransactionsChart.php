@@ -11,6 +11,8 @@ class UserTransactionsChart extends ChartWidget
 
     protected ?string $heading = 'Transactions by type (last 6 months)';
 
+    protected ?string $maxHeight = '280px';
+
     protected int|string|array $columnSpan = 'full';
 
     protected function getData(): array
