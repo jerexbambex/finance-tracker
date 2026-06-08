@@ -74,53 +74,53 @@ class TransactionController extends Controller
             return ['period' => date('M d', strtotime($day)), 'income' => $income, 'expense' => $expense];
         })->values();
 
+        // Reusable per-row income/expense bucketing
+        $bucket = function ($rows) {
+            $income = [];
+            $expense = [];
+            foreach ($rows as $row) {
+                if ($row->type === 'income') {
+                    $income[$row->currency] = ($income[$row->currency] ?? 0) + $row->total / 100;
+                } else {
+                    $expense[$row->currency] = ($expense[$row->currency] ?? 0) + $row->total / 100;
+                }
+            }
+
+            return [$income, $expense];
+        };
+
+        // Last 6 months — one grouped query bucketed by month.
+        // SUBSTR(date, 1, 7) -> 'YYYY-MM' is portable across MySQL and SQLite.
+        $monthlyRaw = auth()->user()->transactions()
+            ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
+            ->where('transactions.transaction_date', '>=', now()->subMonths(5)->startOfMonth()->toDateString())
+            ->whereIn('transactions.type', ['income', 'expense'])
+            ->selectRaw('SUBSTR(transactions.transaction_date, 1, 7) as ym, transactions.type, accounts.currency, SUM(transactions.amount) as total')
+            ->groupBy('ym', 'transactions.type', 'accounts.currency')
+            ->get()
+            ->groupBy('ym');
+
         $monthlyData = collect();
         for ($i = 5; $i >= 0; $i--) {
             $date = now()->subMonths($i);
-            $rows = auth()->user()->transactions()
-                ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
-                ->whereBetween('transactions.transaction_date', [$date->copy()->startOfMonth()->toDateString(), $date->copy()->endOfMonth()->toDateString()])
-                ->whereIn('transactions.type', ['income', 'expense'])
-                ->selectRaw('transactions.type, accounts.currency, SUM(transactions.amount) as total')
-                ->groupBy('transactions.type', 'accounts.currency')
-                ->get();
-
-            $income = [];
-            $expense = [];
-            foreach ($rows as $row) {
-                if ($row->type === 'income') {
-                    $income[$row->currency] = ($income[$row->currency] ?? 0) + $row->total / 100;
-                } else {
-                    $expense[$row->currency] = ($expense[$row->currency] ?? 0) + $row->total / 100;
-                }
-            }
-
+            [$income, $expense] = $bucket($monthlyRaw->get($date->format('Y-m'), collect()));
             $monthlyData->push(['period' => $date->format('M'), 'income' => $income, 'expense' => $expense]);
         }
 
+        // Current year by month — one grouped query bucketed by month
+        $yearlyRaw = auth()->user()->transactions()
+            ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
+            ->whereBetween('transactions.transaction_date', [now()->startOfYear()->toDateString(), now()->endOfYear()->toDateString()])
+            ->whereIn('transactions.type', ['income', 'expense'])
+            ->selectRaw('SUBSTR(transactions.transaction_date, 1, 7) as ym, transactions.type, accounts.currency, SUM(transactions.amount) as total')
+            ->groupBy('ym', 'transactions.type', 'accounts.currency')
+            ->get()
+            ->groupBy('ym');
+
         $yearlyData = collect();
         for ($month = 1; $month <= 12; $month++) {
-            $rows = auth()->user()->transactions()
-                ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
-                ->whereBetween('transactions.transaction_date', [
-                    \Illuminate\Support\Carbon::create(now()->year, $month, 1)->toDateString(),
-                    \Illuminate\Support\Carbon::create(now()->year, $month, 1)->endOfMonth()->toDateString(),
-                ])
-                ->whereIn('transactions.type', ['income', 'expense'])
-                ->selectRaw('transactions.type, accounts.currency, SUM(transactions.amount) as total')
-                ->groupBy('transactions.type', 'accounts.currency')
-                ->get();
-
-            $income = [];
-            $expense = [];
-            foreach ($rows as $row) {
-                if ($row->type === 'income') {
-                    $income[$row->currency] = ($income[$row->currency] ?? 0) + $row->total / 100;
-                } else {
-                    $expense[$row->currency] = ($expense[$row->currency] ?? 0) + $row->total / 100;
-                }
-            }
-
+            $key = now()->startOfYear()->addMonths($month - 1)->format('Y-m');
+            [$income, $expense] = $bucket($yearlyRaw->get($key, collect()));
             $yearlyData->push(['period' => date('M', mktime(0, 0, 0, $month, 1)), 'income' => $income, 'expense' => $expense]);
         }
 

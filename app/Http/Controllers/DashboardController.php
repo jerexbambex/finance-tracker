@@ -55,17 +55,21 @@ class DashboardController extends Controller
             ])
             ->values();
 
+        // Last 6 months income/expense by currency — one grouped query, bucketed by month.
+        // SUBSTR(date, 1, 7) -> 'YYYY-MM' is portable across MySQL and SQLite.
+        $trendRaw = $user->transactions()
+            ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
+            ->where('transactions.transaction_date', '>=', now()->subMonths(5)->startOfMonth()->toDateString())
+            ->whereIn('transactions.type', ['income', 'expense'])
+            ->selectRaw('SUBSTR(transactions.transaction_date, 1, 7) as ym, transactions.type, accounts.currency, SUM(transactions.amount) as total')
+            ->groupBy('ym', 'transactions.type', 'accounts.currency')
+            ->get()
+            ->groupBy('ym');
+
         $monthlyTrend = collect();
         for ($i = 5; $i >= 0; $i--) {
             $date = now()->subMonths($i);
-
-            $rows = $user->transactions()
-                ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
-                ->whereBetween('transactions.transaction_date', [$date->copy()->startOfMonth()->toDateString(), $date->copy()->endOfMonth()->toDateString()])
-                ->whereIn('transactions.type', ['income', 'expense'])
-                ->selectRaw('transactions.type, accounts.currency, SUM(transactions.amount) as total')
-                ->groupBy('transactions.type', 'accounts.currency')
-                ->get();
+            $rows = $trendRaw->get($date->format('Y-m'), collect());
 
             $income = [];
             $expense = [];
