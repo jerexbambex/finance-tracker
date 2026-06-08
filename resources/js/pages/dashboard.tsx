@@ -117,6 +117,20 @@ export default function Dashboard({ accounts, balancesByCurrency, recentTransact
     const hasChartSide = categorySpending.length > 0 || goals.length > 0;
     const goalsSavedTotal = goals.reduce((sum, g) => sum + g.current_amount, 0);
 
+    // Compact currency for the trend Y-axis so labels don't get clipped (e.g. "CA$3.4K")
+    const formatAxisCurrency = (value: number) => {
+        try {
+            return new Intl.NumberFormat('en', {
+                style: 'currency',
+                currency: trendCurrency || primaryCurrency || 'USD',
+                notation: 'compact',
+                maximumFractionDigits: 1,
+            }).format(value);
+        } catch {
+            return String(value);
+        }
+    };
+
     const formatCurrency = (amount: number, currency: string = primaryCurrency) => baseFmt(amount, currency);
 
     const formatCurrencyGroup = (amounts: Record<string, number>) =>
@@ -298,7 +312,7 @@ export default function Dashboard({ accounts, balancesByCurrency, recentTransact
                                                 </defs>
                                                 <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/60" />
                                                 <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} className="text-xs" />
-                                                <YAxis tickLine={false} axisLine={false} tickMargin={8} width={56} className="text-xs" tickFormatter={(v) => formatCurrency(v, trendCurrency)} />
+                                                <YAxis tickLine={false} axisLine={false} tickMargin={8} width={70} className="text-xs" tickFormatter={formatAxisCurrency} />
                                                 <ChartTooltip content={<ChartTooltipContent />} />
                                                 <Area type="monotone" dataKey="income" stroke="var(--color-income)" strokeWidth={2} fill="url(#fillIncome)" dot={false} activeDot={{ r: 4 }} />
                                                 <Area type="monotone" dataKey="expense" stroke="var(--color-expense)" strokeWidth={2} fill="url(#fillExpense)" dot={false} activeDot={{ r: 4 }} />
