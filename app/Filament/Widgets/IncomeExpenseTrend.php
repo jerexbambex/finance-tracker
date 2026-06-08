@@ -12,6 +12,8 @@ class IncomeExpenseTrend extends ChartWidget
 
     protected ?string $maxHeight = '280px';
 
+    protected ?string $pollingInterval = null;
+
     protected static ?int $sort = 2;
 
     protected int|string|array $columnSpan = 'full';

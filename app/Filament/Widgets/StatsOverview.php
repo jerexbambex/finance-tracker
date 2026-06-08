@@ -13,6 +13,9 @@ use Illuminate\Support\Facades\Cache;
 
 class StatsOverview extends StatsOverviewWidget
 {
+    // Don't poll — these are cached, heavy all-users aggregates.
+    protected ?string $pollingInterval = null;
+
     protected function getStats(): array
     {
         // These are all-users aggregates over potentially millions of rows, so cache
