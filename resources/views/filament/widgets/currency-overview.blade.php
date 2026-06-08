@@ -6,40 +6,33 @@
         @php($rows = $this->getRows())
 
         @if (empty($rows))
-            <p class="text-sm text-gray-500 dark:text-gray-400">No account or transaction data yet.</p>
+            <p style="font-size:.875rem;color:#6b7280;">No account or transaction data yet.</p>
         @else
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                @foreach ($rows as $row)
-                    <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-white/10 dark:bg-white/5">
-                        <div class="mb-3 flex items-center justify-between">
-                            <x-filament::badge color="gray">{{ $row['currency'] }}</x-filament::badge>
-                            <span class="text-xs text-gray-400">Balance</span>
-                        </div>
-
-                        <p class="mb-3 text-2xl font-bold tabular-nums text-gray-950 dark:text-white">
-                            {{ $row['balance'] }}
-                        </p>
-
-                        <dl class="space-y-1.5 text-sm">
-                            <div class="flex items-center justify-between">
-                                <dt class="text-gray-500 dark:text-gray-400">Income</dt>
-                                <dd class="tabular-nums font-medium text-success-600 dark:text-success-400">{{ $row['income'] }}</dd>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <dt class="text-gray-500 dark:text-gray-400">Expenses</dt>
-                                <dd class="tabular-nums font-medium text-danger-600 dark:text-danger-400">{{ $row['expense'] }}</dd>
-                            </div>
-                            <div class="flex items-center justify-between border-t border-gray-100 pt-1.5 dark:border-white/10">
-                                <dt class="font-medium text-gray-700 dark:text-gray-200">Net</dt>
-                                <dd @class([
-                                    'tabular-nums font-semibold',
-                                    'text-success-600 dark:text-success-400' => $row['net_positive'],
-                                    'text-danger-600 dark:text-danger-400' => ! $row['net_positive'],
-                                ])>{{ $row['net'] }}</dd>
-                            </div>
-                        </dl>
-                    </div>
-                @endforeach
+            <div style="overflow-x:auto;">
+                <table style="width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;">
+                    <thead>
+                        <tr style="text-align:right;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;">
+                            <th style="text-align:left;padding:.5rem 1rem .5rem 0;font-weight:600;">Currency</th>
+                            <th style="padding:.5rem 1.5rem;font-weight:600;">Balance</th>
+                            <th style="padding:.5rem 1.5rem;font-weight:600;">Income</th>
+                            <th style="padding:.5rem 1.5rem;font-weight:600;">Expenses</th>
+                            <th style="padding:.5rem 0 .5rem 1.5rem;font-weight:600;">Net</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($rows as $row)
+                            <tr style="border-top:1px solid rgba(128,128,128,.18);">
+                                <td style="padding:.7rem 1rem .7rem 0;">
+                                    <x-filament::badge color="gray">{{ $row['currency'] }}</x-filament::badge>
+                                </td>
+                                <td style="text-align:right;padding:.7rem 1.5rem;font-weight:600;white-space:nowrap;">{{ $row['balance'] }}</td>
+                                <td style="text-align:right;padding:.7rem 1.5rem;white-space:nowrap;color:#16a34a;">{{ $row['income'] }}</td>
+                                <td style="text-align:right;padding:.7rem 1.5rem;white-space:nowrap;color:#dc2626;">{{ $row['expense'] }}</td>
+                                <td style="text-align:right;padding:.7rem 0 .7rem 1.5rem;white-space:nowrap;font-weight:700;color:{{ $row['net_positive'] ? '#16a34a' : '#dc2626' }};">{{ $row['net'] }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
         @endif
     </x-filament::section>
