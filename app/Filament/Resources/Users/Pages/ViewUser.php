@@ -23,12 +23,6 @@ class ViewUser extends ViewRecord
     {
         return [
             UserStatsWidget::class,
-        ];
-    }
-
-    protected function getFooterWidgets(): array
-    {
-        return [
             UserTransactionsChart::class,
         ];
     }
