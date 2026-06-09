@@ -7,12 +7,13 @@ export default function Footer() {
             <div className="container mx-auto px-6 max-w-7xl">
 
                 {/* Final CTA */}
-                <div className="relative rounded-3xl overflow-hidden bg-slate-900 px-6 py-20 text-center mb-24">
+                <div className="relative mb-24 overflow-hidden rounded-3xl border border-emerald-500/10 bg-[#050806] px-6 py-20 text-center shadow-2xl shadow-emerald-950/10">
                     {/* Background Glows */}
-                    <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/20 rounded-full blur-[120px]" />
-                    <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-[120px]" />
+                    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(to_right,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:64px_64px]" />
+                    <div className="absolute left-1/4 top-0 h-96 w-96 rounded-full bg-emerald-500/15 blur-[120px]" />
+                    <div className="absolute bottom-0 right-1/4 h-96 w-96 rounded-full bg-amber-500/10 blur-[120px]" />
 
-                    <div className="relative z-10 space-y-8 max-w-2xl mx-auto">
+                    <div className="relative z-10 mx-auto max-w-2xl space-y-8">
                         <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-white leading-tight">
                             Start building your legacy today.
                         </h2>
@@ -23,7 +24,7 @@ export default function Footer() {
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                             <Link
                                 href="/register"
-                                className="h-12 px-8 rounded-full bg-emerald-500 text-white font-semibold text-lg hover:bg-emerald-400 transition-all shadow-lg hover:shadow-emerald-500/25 flex items-center gap-2"
+                                className="flex h-12 items-center gap-2 rounded-full bg-emerald-500 px-8 text-lg font-semibold text-white shadow-lg shadow-emerald-950/30 transition-all hover:-translate-y-0.5 hover:bg-emerald-400 hover:shadow-emerald-500/20"
                             >
                                 Get Started Free
                                 <ArrowRight className="h-5 w-5" />

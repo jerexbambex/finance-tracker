@@ -46,31 +46,31 @@ const stats = [
         detail: 'Across 3 accounts',
         icon: Wallet,
         valueClass: 'text-foreground',
-        iconClass: 'bg-emerald-50 text-emerald-600',
+        iconClass: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-300',
     },
     {
         label: 'Income',
         value: '$6,450.00',
         detail: 'This month',
         icon: ArrowUpRight,
-        valueClass: 'text-green-600',
-        iconClass: 'bg-green-50 text-green-600',
+        valueClass: 'text-green-600 dark:text-emerald-300',
+        iconClass: 'bg-green-50 text-green-600 dark:bg-emerald-400/10 dark:text-emerald-300',
     },
     {
         label: 'Expenses',
         value: '$4,180.75',
         detail: 'This month',
         icon: ArrowDownRight,
-        valueClass: 'text-red-600',
-        iconClass: 'bg-red-50 text-red-600',
+        valueClass: 'text-red-600 dark:text-red-300',
+        iconClass: 'bg-red-50 text-red-600 dark:bg-red-400/10 dark:text-red-300',
     },
     {
         label: 'Net Income',
         value: '$2,269.25',
         detail: 'This month',
         icon: TrendingUp,
-        valueClass: 'text-green-600',
-        iconClass: 'bg-green-50 text-green-600',
+        valueClass: 'text-green-600 dark:text-emerald-300',
+        iconClass: 'bg-green-50 text-green-600 dark:bg-emerald-400/10 dark:text-emerald-300',
     },
 ];
 
@@ -90,7 +90,7 @@ const categories = [
 function SidebarNavGroup({ label, items }: { label: string; items: typeof overviewNav }) {
     return (
         <div className="space-y-2">
-            <p className="px-2 text-[11px] font-medium text-slate-500">{label}</p>
+            <p className="px-2 text-[11px] font-medium text-slate-500 dark:text-slate-500">{label}</p>
             <div className="space-y-1">
                 {items.map((item) => {
                     const Icon = item.icon;
@@ -99,8 +99,8 @@ function SidebarNavGroup({ label, items }: { label: string; items: typeof overvi
                         <Link
                             key={item.label}
                             href={item.href}
-                            className={`flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-[13px] transition duration-200 hover:translate-x-0.5 hover:bg-slate-100 hover:text-slate-950 focus:bg-slate-100 focus:outline-none ${
-                                item.active ? 'bg-slate-100 font-medium text-slate-950' : 'text-slate-700'
+                            className={`flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-[13px] transition duration-200 hover:translate-x-0.5 hover:bg-slate-100 hover:text-slate-950 focus:bg-slate-100 focus:outline-none dark:hover:bg-slate-800 dark:hover:text-slate-100 dark:focus:bg-slate-800 ${
+                                item.active ? 'bg-slate-100 font-medium text-slate-950 dark:bg-slate-800 dark:text-slate-100' : 'text-slate-700 dark:text-slate-400'
                             }`}
                         >
                             <Icon className="h-3.5 w-3.5" />
@@ -127,10 +127,10 @@ function AreaPreview() {
                 </linearGradient>
             </defs>
             {[30, 85, 140, 195, 250].map((y) => (
-                <line key={y} x1="44" x2="600" y1={y} y2={y} stroke="#e5e7eb" strokeDasharray="4 4" />
+                <line key={y} x1="44" x2="600" y1={y} y2={y} stroke="currentColor" strokeDasharray="4 4" className="text-slate-200/80 dark:text-slate-800" />
             ))}
             {['$8K', '$6K', '$4K', '$2K', '$0'].map((tick, index) => (
-                <text key={tick} x="0" y={34 + index * 55} fill="#6b7280" fontSize="12">
+                <text key={tick} x="0" y={34 + index * 55} fill="currentColor" className="text-slate-500 dark:text-slate-500" fontSize="12">
                     {tick}
                 </text>
             ))}
@@ -175,7 +175,7 @@ function AreaPreview() {
                 transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
             />
             {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((month, index) => (
-                <text key={month} x={44 + index * 111} y="273" fill="#4b5563" fontSize="12" textAnchor={index === 0 ? 'start' : 'middle'}>
+                <text key={month} x={44 + index * 111} y="273" fill="currentColor" className="text-slate-600 dark:text-slate-500" fontSize="12" textAnchor={index === 0 ? 'start' : 'middle'}>
                     {month}
                 </text>
             ))}
@@ -191,7 +191,7 @@ function DonutPreview() {
             className="relative mx-auto h-40 w-40 cursor-pointer rounded-full bg-[conic-gradient(#10b981_0_22%,#14b8a6_22%_42%,#f97316_42%_62%,#991b1b_62%_81%,#064e3b_81%_100%)] p-6 shadow-sm"
         >
             <span className="absolute inset-2 rounded-full border border-white/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-            <div className="h-full w-full rounded-full bg-white" />
+            <div className="h-full w-full rounded-full bg-white dark:bg-[#0a0c10]" />
         </motion.div>
     );
 }
@@ -275,14 +275,14 @@ export default function Hero() {
                     transition={{ duration: 0.7, delay: 0.28, ease: 'easeOut' }}
                     className="relative mx-auto mt-10 max-w-6xl"
                 >
-                    <div className="relative max-h-[680px] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl shadow-black/10 sm:max-h-[760px] lg:max-h-[820px]">
-                        <div className="grid min-h-[760px] bg-slate-50 text-slate-950 lg:grid-cols-[240px_1fr]">
-                            <aside className="hidden border-r border-slate-200 bg-white px-4 py-5 lg:flex lg:flex-col">
+                    <div className="relative max-h-[680px] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl shadow-black/10 sm:max-h-[760px] lg:max-h-[820px] dark:border-slate-800 dark:bg-[#0a0c10] dark:shadow-black/50">
+                        <div className="grid min-h-[760px] bg-slate-50 text-slate-950 lg:grid-cols-[240px_1fr] dark:bg-[#030407] dark:text-slate-100">
+                            <aside className="hidden border-r border-slate-200 bg-white px-4 py-5 lg:flex lg:flex-col dark:border-slate-800 dark:bg-[#0a0c10]">
                                 <div className="mb-8 flex items-center gap-3">
                                     <div className="flex h-8 w-8 items-center justify-center rounded-md bg-emerald-500 text-white">
                                         <Wallet className="h-4 w-4" />
                                     </div>
-                                    <span className="text-sm font-semibold">Budget App</span>
+                                    <span className="text-sm font-semibold dark:text-slate-100">Budget App</span>
                                 </div>
 
                                 <div className="space-y-7">
@@ -290,16 +290,16 @@ export default function Hero() {
                                     <SidebarNavGroup label="Planning" items={planningNav} />
                                 </div>
 
-                                <div className="mt-auto space-y-6 px-2 text-[13px] text-slate-700">
+                                <div className="mt-auto space-y-6 px-2 text-[13px] text-slate-700 dark:text-slate-400">
                                     <div className="flex items-center gap-2">
-                                        <span className="h-3.5 w-3.5 rounded-sm border border-slate-900" />
+                                        <span className="h-3.5 w-3.5 rounded-sm border border-slate-900 dark:border-slate-400" />
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <span className="h-3.5 w-3.5 rounded-full border border-slate-900" />
+                                        <span className="h-3.5 w-3.5 rounded-full border border-slate-900 dark:border-slate-400" />
                                         Settings
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-xs">L1</span>
+                                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-xs dark:bg-slate-800 dark:text-slate-200">L1</span>
                                         Load Test 1
                                     </div>
                                 </div>
@@ -308,8 +308,8 @@ export default function Hero() {
                             <div className="min-w-0 p-4 sm:p-6 lg:p-8">
                                 <div className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                                     <div>
-                                        <h2 className="text-2xl font-bold tracking-tight">Dashboard</h2>
-                                        <p className="text-sm text-slate-500">Welcome back! Here's your financial overview.</p>
+                                        <h2 className="text-2xl font-bold tracking-tight dark:text-slate-100">Dashboard</h2>
+                                        <p className="text-sm text-slate-500 dark:text-slate-500">Welcome back! Here's your financial overview.</p>
                                     </div>
                                     <button className="flex h-9 w-fit items-center gap-2 rounded-md bg-emerald-500 px-4 text-sm font-medium text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:bg-emerald-600 hover:shadow-md">
                                         <Plus className="h-4 w-4" />
@@ -326,10 +326,10 @@ export default function Hero() {
                                                 key={stat.label}
                                                 whileHover={{ y: -4 }}
                                                 transition={{ type: 'spring', stiffness: 320, damping: 24 }}
-                                                className="group rounded-lg border border-slate-200 bg-white p-5 transition duration-200 hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-950/5"
+                                                className="group rounded-lg border border-slate-200 bg-white p-5 transition duration-200 hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-950/5 dark:border-slate-800 dark:bg-[#0a0c10] dark:hover:border-emerald-400/30 dark:hover:bg-slate-900/70"
                                             >
                                                 <div className="mb-7 flex items-center justify-between">
-                                                    <p className="text-sm font-semibold">{stat.label}</p>
+                                                    <p className="text-sm font-semibold dark:text-slate-100">{stat.label}</p>
                                                     <div className={`flex h-9 w-9 items-center justify-center rounded-lg transition duration-200 group-hover:scale-110 ${stat.iconClass}`}>
                                                         <Icon className="h-4 w-4" />
                                                     </div>
@@ -337,62 +337,62 @@ export default function Hero() {
                                                 <p className={`font-mono text-[clamp(0.875rem,1.18vw,1.25rem)] font-bold leading-none tracking-normal whitespace-nowrap tabular-nums ${stat.valueClass}`}>
                                                     {stat.value}
                                                 </p>
-                                                <p className="mt-2 text-xs text-slate-500">{stat.detail}</p>
+                                                <p className="mt-2 text-xs text-slate-500 dark:text-slate-500">{stat.detail}</p>
                                             </motion.div>
                                         );
                                     })}
                                 </div>
 
                                 <div className="mt-5 grid gap-5 xl:grid-cols-[1.8fr_0.9fr]">
-                                    <div className="rounded-lg border border-slate-200 bg-white p-5 transition duration-200 hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-950/5">
+                                    <div className="rounded-lg border border-slate-200 bg-white p-5 transition duration-200 hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-950/5 dark:border-slate-800 dark:bg-[#0a0c10] dark:hover:border-emerald-400/30 dark:hover:bg-slate-900/70">
                                         <div className="mb-5 flex items-center justify-between gap-3">
                                             <div>
-                                                <h3 className="font-semibold">6-Month Trend</h3>
-                                                <p className="text-xs text-slate-500">Income vs Expenses</p>
+                                                <h3 className="font-semibold dark:text-slate-100">6-Month Trend</h3>
+                                                <p className="text-xs text-slate-500 dark:text-slate-500">Income vs Expenses</p>
                                             </div>
-                                            <span className="rounded-md border border-slate-200 px-3 py-1.5 text-xs text-slate-600">USD</span>
+                                            <span className="rounded-md border border-slate-200 px-3 py-1.5 text-xs text-slate-600 dark:border-slate-800 dark:text-slate-400">USD</span>
                                         </div>
                                         <AreaPreview />
                                     </div>
 
-                                    <div className="group rounded-lg border border-slate-200 bg-white p-5 transition duration-200 hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-950/5">
-                                        <h3 className="font-semibold">Spending by Category</h3>
-                                        <p className="text-xs text-slate-500">This month</p>
+                                    <div className="group rounded-lg border border-slate-200 bg-white p-5 transition duration-200 hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-950/5 dark:border-slate-800 dark:bg-[#0a0c10] dark:hover:border-emerald-400/30 dark:hover:bg-slate-900/70">
+                                        <h3 className="font-semibold dark:text-slate-100">Spending by Category</h3>
+                                        <p className="text-xs text-slate-500 dark:text-slate-500">This month</p>
                                         <div className="py-8">
                                             <DonutPreview />
                                         </div>
                                         <div className="space-y-2">
                                             {categories.map((category) => (
-                                                <div key={category.name} className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-sm transition duration-200 hover:bg-slate-50">
+                                                <div key={category.name} className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-sm transition duration-200 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800/80 dark:hover:text-slate-100">
                                                     <span className={`h-2.5 w-2.5 rounded-full transition duration-200 group-hover:scale-110 ${category.color}`} />
                                                     <span className="flex-1 truncate">{category.name}</span>
-                                                    <span className="font-mono text-slate-500">{category.percentage}</span>
+                                                    <span className="font-mono text-slate-500 dark:text-slate-500">{category.percentage}</span>
                                                 </div>
                                             ))}
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="mt-5 rounded-lg border border-slate-200 bg-white p-5 transition duration-200 hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-950/5">
+                                <div className="mt-5 rounded-lg border border-slate-200 bg-white p-5 transition duration-200 hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-950/5 dark:border-slate-800 dark:bg-[#0a0c10] dark:hover:border-emerald-400/30 dark:hover:bg-slate-900/70">
                                     <div className="mb-7 flex items-center justify-between">
-                                        <h3 className="font-semibold">Budget Alerts</h3>
-                                        <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-500">{budgetAlerts.length}</span>
+                                        <h3 className="font-semibold dark:text-slate-100">Budget Alerts</h3>
+                                        <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-500 dark:bg-slate-800 dark:text-slate-400">{budgetAlerts.length}</span>
                                     </div>
                                     <div className="grid gap-3 md:grid-cols-2">
                                         {budgetAlerts.map((alert) => (
-                                            <div key={alert.category} className="flex cursor-pointer items-center gap-3 rounded-md border border-slate-200 p-3 transition duration-200 hover:-translate-y-0.5 hover:border-red-200 hover:bg-red-50/40">
+                                            <div key={alert.category} className="flex cursor-pointer items-center gap-3 rounded-md border border-slate-200 p-3 transition duration-200 hover:-translate-y-0.5 hover:border-red-200 hover:bg-red-50/40 dark:border-slate-800 dark:hover:border-red-400/30 dark:hover:bg-red-400/10">
                                                 <div className="min-w-0 flex-1">
-                                                    <p className="truncate text-sm font-medium">{alert.category}</p>
-                                                    <p className="text-xs text-slate-500">{alert.status}</p>
+                                                    <p className="truncate text-sm font-medium dark:text-slate-100">{alert.category}</p>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-500">{alert.status}</p>
                                                 </div>
-                                                <span className="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-600">{alert.percentage}</span>
+                                                <span className="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-600 dark:bg-red-400/10 dark:text-red-300">{alert.percentage}</span>
                                             </div>
                                         ))}
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-white to-transparent" />
+                        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-white to-transparent dark:from-[#0a0c10]" />
                     </div>
                 </motion.div>
             </div>

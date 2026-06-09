@@ -54,7 +54,7 @@ function AnimatedCounter({ end, suffix = '', prefix = '' }: { end: number; suffi
 const liveMetrics = [
     { value: 50, prefix: '$', suffix: 'M+', label: 'tracked across accounts', icon: Wallet, tone: 'text-emerald-400', bg: 'bg-emerald-400/10' },
     { value: 42, suffix: '%', label: 'average debt reduction', icon: TrendingDown, tone: 'text-teal-300', bg: 'bg-teal-400/10' },
-    { value: 12, suffix: 'K+', label: 'active budgeters', icon: BarChart3, tone: 'text-cyan-300', bg: 'bg-cyan-400/10' },
+    { value: 12, suffix: 'K+', label: 'active budgeters', icon: BarChart3, tone: 'text-lime-300', bg: 'bg-lime-400/10' },
     { value: 4.9, suffix: '/5', label: 'user confidence score', icon: CheckCircle2, tone: 'text-amber-300', bg: 'bg-amber-400/10' },
 ];
 
@@ -86,15 +86,15 @@ const resultTabs = [
         change: '+$1,240 funded',
         quote: 'The progress bars made my emergency fund feel achievable instead of abstract.',
         points: 'M42 158 C88 154 122 134 168 132 C214 130 252 100 302 92 C360 82 416 54 486 44',
-        color: '#38bdf8',
-        fill: 'rgba(56, 189, 248, 0.2)',
+        color: '#f59e0b',
+        fill: 'rgba(245, 158, 11, 0.18)',
     },
 ];
 
 const recentWins = [
     { label: 'Emergency fund completed', meta: 'Goal reached 17 days early', value: '+$5,000', icon: Target, tone: 'text-emerald-300' },
     { label: 'Dining budget recovered', meta: 'Spending down this month', value: '-38%', icon: ArrowDownRight, tone: 'text-teal-300' },
-    { label: 'Subscriptions cleaned up', meta: 'Recurring charges reviewed', value: '$214', icon: Clock, tone: 'text-cyan-300' },
+    { label: 'Subscriptions cleaned up', meta: 'Recurring charges reviewed', value: '$214', icon: Clock, tone: 'text-amber-300' },
 ];
 
 function ResultChart({ points, color, fill }: { points: string; color: string; fill: string }) {
@@ -142,11 +142,11 @@ export default function Security() {
     const [selectedResult, setSelectedResult] = useState(resultTabs[0]);
 
     return (
-        <section id="security" className="relative overflow-hidden bg-slate-950 py-24 text-white">
+        <section id="security" className="relative overflow-hidden bg-[#050806] py-24 text-white">
             <div className="absolute inset-0">
                 <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(to_right,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:64px_64px]" />
                 <div className="absolute left-1/2 top-24 h-64 w-64 -translate-x-1/2 rounded-full bg-emerald-500/10 blur-3xl" />
-                <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-cyan-500/10 blur-3xl" />
+                <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-amber-500/10 blur-3xl" />
             </div>
 
             <div className="container relative z-10 mx-auto max-w-7xl px-6">
@@ -209,7 +209,7 @@ export default function Security() {
                     initial={{ opacity: 0, y: 28 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    className="overflow-hidden rounded-lg border border-white/10 bg-[#0c1017]/95 shadow-2xl shadow-emerald-950/20"
+                    className="overflow-hidden rounded-lg border border-white/10 bg-[#0a0f0c]/95 shadow-2xl shadow-emerald-950/20"
                 >
                     <div className="flex flex-col justify-between gap-4 border-b border-white/10 px-5 py-4 md:flex-row md:items-center">
                         <div className="flex items-center gap-3">
@@ -255,7 +255,7 @@ export default function Security() {
                                 </div>
                             </div>
 
-                            <div className="rounded-lg border border-white/10 bg-slate-950/50 p-5 transition duration-200 hover:border-emerald-300/30">
+                            <div className="rounded-lg border border-white/10 bg-[#050806]/70 p-5 transition duration-200 hover:border-emerald-300/30">
                                 <ResultChart points={selectedResult.points} color={selectedResult.color} fill={selectedResult.fill} />
                             </div>
                         </div>
