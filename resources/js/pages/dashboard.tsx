@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
-import { formatCurrency as baseFmt } from '@/lib/formatCurrency';
+import { formatCurrency as baseFmt, currencySymbol } from '@/lib/formatCurrency';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 
@@ -117,18 +117,14 @@ export default function Dashboard({ accounts, balancesByCurrency, recentTransact
     const hasChartSide = categorySpending.length > 0 || goals.length > 0;
     const goalsSavedTotal = goals.reduce((sum, g) => sum + g.current_amount, 0);
 
-    // Compact currency for the trend Y-axis so labels don't get clipped (e.g. "CA$3.4K")
+    // Compact currency for the trend Y-axis so labels don't get clipped (e.g. "CA$3.4K", "₦3.4K")
     const formatAxisCurrency = (value: number) => {
-        try {
-            return new Intl.NumberFormat('en', {
-                style: 'currency',
-                currency: trendCurrency || primaryCurrency || 'USD',
-                notation: 'compact',
-                maximumFractionDigits: 1,
-            }).format(value);
-        } catch {
-            return String(value);
-        }
+        const compact = new Intl.NumberFormat('en', {
+            notation: 'compact',
+            maximumFractionDigits: 1,
+        }).format(value);
+
+        return currencySymbol(trendCurrency || primaryCurrency || 'USD') + compact;
     };
 
     const formatCurrency = (amount: number, currency: string = primaryCurrency) => baseFmt(amount, currency);
