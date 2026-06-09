@@ -6,6 +6,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -91,14 +92,36 @@ export default function Index({ transactions, categories, chartData }: Props) {
   const [bulkCategoryId, setBulkCategoryId] = useState('');
   const searchDebounce = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  // Build export/statement query from the active client-side filters
-  const exportQuery = () => {
+  // Export dialog: user picks the date range to export (independent of the list filters,
+  // but keeps the active type/search so a filtered export still works).
+  const [exportFrom, setExportFrom] = useState('');
+  const [exportTo, setExportTo] = useState('');
+
+  const exportRangeQuery = () => {
     const params = new URLSearchParams();
     if (filterType !== 'all') params.set('type', filterType);
     if (searchQuery) params.set('search', searchQuery);
-    if (dateFrom) params.set('date_from', dateFrom);
-    if (dateTo) params.set('date_to', dateTo);
+    if (exportFrom) params.set('date_from', exportFrom);
+    if (exportTo) params.set('date_to', exportTo);
     return params.toString();
+  };
+
+  const applyExportPreset = (preset: 'this-month' | 'last-month' | 'this-year' | 'all') => {
+    const now = new Date();
+    const iso = (d: Date) => d.toLocaleDateString('en-CA');
+    if (preset === 'all') {
+      setExportFrom('');
+      setExportTo('');
+    } else if (preset === 'this-month') {
+      setExportFrom(iso(new Date(now.getFullYear(), now.getMonth(), 1)));
+      setExportTo(iso(new Date(now.getFullYear(), now.getMonth() + 1, 0)));
+    } else if (preset === 'last-month') {
+      setExportFrom(iso(new Date(now.getFullYear(), now.getMonth() - 1, 1)));
+      setExportTo(iso(new Date(now.getFullYear(), now.getMonth(), 0)));
+    } else {
+      setExportFrom(iso(new Date(now.getFullYear(), 0, 1)));
+      setExportTo(iso(new Date(now.getFullYear(), 11, 31)));
+    }
   };
 
   useEffect(() => {
@@ -289,18 +312,58 @@ export default function Index({ transactions, categories, chartData }: Props) {
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
             <h1 className="text-2xl sm:text-3xl font-bold">Transactions</h1>
             <div className="flex gap-2">
-              <a href={`/export/statement?${exportQuery()}`} target="_blank" rel="noopener noreferrer">
-                <Button variant="default" size="sm" className="sm:size-default">
-                  <FileText className="h-4 w-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Statement PDF</span>
-                </Button>
-              </a>
-              <a href={`/export/transactions?${exportQuery()}`}>
-                <Button variant="outline" size="sm" className="sm:size-default">
-                  <span className="hidden sm:inline">Export CSV</span>
-                  <span className="sm:hidden">Export</span>
-                </Button>
-              </a>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="default" size="sm" className="sm:size-default">
+                    <FileText className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Export</span>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Export transactions</DialogTitle>
+                    <DialogDescription>
+                      Choose a date range, then download a CSV or a PDF statement.
+                      {filterType !== 'all' || searchQuery ? ' Your current filters are applied.' : ''}
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <div className="space-y-4">
+                    <div className="flex flex-wrap gap-2">
+                      <Button type="button" variant="secondary" size="sm" onClick={() => applyExportPreset('this-month')}>This Month</Button>
+                      <Button type="button" variant="secondary" size="sm" onClick={() => applyExportPreset('last-month')}>Last Month</Button>
+                      <Button type="button" variant="secondary" size="sm" onClick={() => applyExportPreset('this-year')}>This Year</Button>
+                      <Button type="button" variant="secondary" size="sm" onClick={() => applyExportPreset('all')}>All Time</Button>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="grid gap-1.5">
+                        <label htmlFor="export_from" className="text-xs font-medium text-muted-foreground">From</label>
+                        <Input id="export_from" type="date" value={exportFrom} max={exportTo || undefined} onChange={(e) => setExportFrom(e.target.value)} />
+                      </div>
+                      <div className="grid gap-1.5">
+                        <label htmlFor="export_to" className="text-xs font-medium text-muted-foreground">To</label>
+                        <Input id="export_to" type="date" value={exportTo} min={exportFrom || undefined} onChange={(e) => setExportTo(e.target.value)} />
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {exportFrom || exportTo ? 'Range selected.' : 'No range — exports all transactions.'} PDF statement is capped at 500 rows; use CSV for the full history.
+                    </p>
+
+                    <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                      <a href={`/export/transactions?${exportRangeQuery()}`}>
+                        <Button variant="outline" className="w-full sm:w-auto">Download CSV</Button>
+                      </a>
+                      <a href={`/export/statement?${exportRangeQuery()}`} target="_blank" rel="noopener noreferrer">
+                        <Button className="w-full sm:w-auto">
+                          <FileText className="h-4 w-4 mr-2" />
+                          Statement PDF
+                        </Button>
+                      </a>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
               <Link href="/import/transactions">
                 <Button variant="outline" size="sm" className="sm:size-default">
                   <span className="hidden sm:inline">Import CSV</span>
