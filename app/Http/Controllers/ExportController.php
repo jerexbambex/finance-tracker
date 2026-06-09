@@ -4,13 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Currency;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
 use Spatie\LaravelPdf\Facades\Pdf;
 
 class ExportController extends Controller
 {
     /** Cap statement rows so a huge history can't exhaust memory / stall PDF rendering. */
-    private const STATEMENT_ROW_LIMIT = 2000;
+    // DOMPDF holds the whole document in memory, so keep statement rows bounded.
+    private const STATEMENT_ROW_LIMIT = 500;
 
     /**
      * Apply the shared transaction filters (account, category, type, date, search).
@@ -30,27 +32,47 @@ class ExportController extends Controller
 
     public function transactions(Request $request)
     {
+        // Stream a joined, plain-row query (no Eloquent hydration) via cursor() so the
+        // export stays fast and flat-memory even for users with millions of rows.
         $query = $this->applyTransactionFilters(
-            auth()->user()->transactions()->with(['account', 'category'])->latest('transaction_date'),
+            DB::table('transactions')
+                ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
+                ->leftJoin('categories', 'transactions.category_id', '=', 'categories.id')
+                ->where('transactions.user_id', auth()->id())
+                ->orderByDesc('transactions.transaction_date')
+                ->select([
+                    'transactions.transaction_date',
+                    'transactions.type',
+                    'accounts.name as account_name',
+                    'categories.name as category_name',
+                    'transactions.description',
+                    'transactions.amount',
+                ]),
             $request,
         );
 
         $filename = 'transactions_'.now()->format('Y-m-d_His').'.csv';
 
         $callback = function () use ($query) {
+            @set_time_limit(0);
             $file = fopen('php://output', 'w');
             fputcsv($file, ['Date', 'Type', 'Account', 'Category', 'Description', 'Amount']);
 
-            // lazy() chunks in batches of 1000 — never loads full dataset into memory
-            foreach ($query->lazy() as $transaction) {
+            $i = 0;
+            foreach ($query->cursor() as $row) {
                 fputcsv($file, [
-                    $transaction->transaction_date->format('Y-m-d'),
-                    ucfirst($transaction->type),
-                    $transaction->account->name,
-                    $transaction->category ? $transaction->category->name : 'Uncategorized',
-                    $transaction->description,
-                    number_format($transaction->amount, 2),
+                    substr((string) $row->transaction_date, 0, 10),
+                    ucfirst($row->type),
+                    $row->account_name,
+                    $row->category_name ?? 'Uncategorized',
+                    $row->description,
+                    number_format($row->amount / 100, 2),
                 ]);
+
+                // Flush periodically so the connection stays alive on huge exports
+                if (++$i % 2000 === 0) {
+                    flush();
+                }
             }
 
             fclose($file);
@@ -59,6 +81,7 @@ class ExportController extends Controller
         return Response::stream($callback, 200, [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            'X-Accel-Buffering' => 'no',
         ]);
     }
 
@@ -75,13 +98,11 @@ class ExportController extends Controller
         // of the row cap below, so totals stay correct even when the list is truncated.
         $totals = [];
         $totalRows = $this->applyTransactionFilters(
-            $user->transactions()
-                ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
-                ->whereIn('transactions.type', ['income', 'expense']),
+            $user->transactions()->whereIn('transactions.type', ['income', 'expense']),
             $request,
         )
-            ->selectRaw('transactions.type as type, accounts.currency as currency, SUM(transactions.amount) as total')
-            ->groupBy('transactions.type', 'accounts.currency')
+            ->selectRaw('transactions.type as type, transactions.currency as currency, SUM(transactions.amount) as total')
+            ->groupBy('transactions.type', 'transactions.currency')
             ->get();
 
         foreach ($totalRows as $row) {
