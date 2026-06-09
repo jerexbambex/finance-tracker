@@ -25,7 +25,9 @@ export function formatCurrency(amount: number, currency = 'USD'): string {
             maximumFractionDigits: 2,
         }).format(amount);
 
-        return `${symbol}${number}`;
+        // Space after the symbol: keeps glyphs that aren't in the mono font (e.g. ₦)
+        // from overlapping the first digit.
+        return `${symbol} ${number}`;
     }
 
     // Unknown currency — fall back to Intl's currency formatting.

@@ -226,80 +226,72 @@ export default function Index({
           <div className="grid gap-4 md:grid-cols-4 mb-6">
             <Card>
               <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-sm font-medium text-muted-foreground">Total Income</div>
-                    {Object.entries(totalIncomeByCurrency).length === 0 ? (
-                      <div className="text-2xl font-bold font-mono tabular-nums text-green-600 mt-2">{formatCurrency(0)}</div>
-                    ) : (
-                      Object.entries(totalIncomeByCurrency).map(([cur, amt]) => (
-                        <div key={cur} className="text-2xl font-bold font-mono tabular-nums text-green-600 mt-1">
-                          {formatCurrency(amt, cur)}
-                        </div>
-                      ))
-                    )}
+                <div className="flex items-start justify-between gap-2">
+                  <div className="text-sm font-medium text-muted-foreground">Total Income</div>
+                  <div className="h-9 w-9 shrink-0 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
+                    <TrendingUp className="h-5 w-5 text-green-600" />
                   </div>
-                  <div className="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
-                    <TrendingUp className="h-6 w-6 text-green-600" />
-                  </div>
+                </div>
+                <div className="mt-2 space-y-1">
+                  {Object.entries(totalIncomeByCurrency).length === 0 ? (
+                    <div className="text-xl font-bold font-mono tabular-nums text-green-600 break-all">{formatCurrency(0)}</div>
+                  ) : (
+                    Object.entries(totalIncomeByCurrency).map(([cur, amt]) => (
+                      <div key={cur} className="text-xl font-bold font-mono tabular-nums text-green-600 break-all">{formatCurrency(amt, cur)}</div>
+                    ))
+                  )}
                 </div>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-sm font-medium text-muted-foreground">Total Expenses</div>
-                    {Object.entries(totalExpenseByCurrency).length === 0 ? (
-                      <div className="text-2xl font-bold font-mono tabular-nums text-red-600 mt-2">{formatCurrency(0)}</div>
-                    ) : (
-                      Object.entries(totalExpenseByCurrency).map(([cur, amt]) => (
-                        <div key={cur} className="text-2xl font-bold font-mono tabular-nums text-red-600 mt-1">
-                          {formatCurrency(amt, cur)}
-                        </div>
-                      ))
-                    )}
+                <div className="flex items-start justify-between gap-2">
+                  <div className="text-sm font-medium text-muted-foreground">Total Expenses</div>
+                  <div className="h-9 w-9 shrink-0 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
+                    <TrendingDown className="h-5 w-5 text-red-600" />
                   </div>
-                  <div className="h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
-                    <TrendingDown className="h-6 w-6 text-red-600" />
-                  </div>
+                </div>
+                <div className="mt-2 space-y-1">
+                  {Object.entries(totalExpenseByCurrency).length === 0 ? (
+                    <div className="text-xl font-bold font-mono tabular-nums text-red-600 break-all">{formatCurrency(0)}</div>
+                  ) : (
+                    Object.entries(totalExpenseByCurrency).map(([cur, amt]) => (
+                      <div key={cur} className="text-xl font-bold font-mono tabular-nums text-red-600 break-all">{formatCurrency(amt, cur)}</div>
+                    ))
+                  )}
                 </div>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-sm font-medium text-muted-foreground">Savings Rate</div>
-                    <div className={`text-2xl font-bold font-mono tabular-nums mt-2 ${savingsRate >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {savingsRate.toFixed(1)}%
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1">{primaryCurrency}</div>
-                  </div>
-                  <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
-                    <PieChartIcon className="h-6 w-6 text-primary" />
+                <div className="flex items-start justify-between gap-2">
+                  <div className="text-sm font-medium text-muted-foreground">Savings Rate</div>
+                  <div className="h-9 w-9 shrink-0 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
+                    <PieChartIcon className="h-5 w-5 text-primary" />
                   </div>
                 </div>
+                <div className={`mt-2 text-xl font-bold font-mono tabular-nums ${savingsRate >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {savingsRate.toFixed(1)}%
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">{primaryCurrency}</div>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-sm font-medium text-muted-foreground">Avg Daily Spending</div>
-                    {Object.entries(avgDailySpendingByCurrency).length === 0 ? (
-                      <div className="text-2xl font-bold font-mono tabular-nums mt-2">{formatCurrency(0)}</div>
-                    ) : (
-                      Object.entries(avgDailySpendingByCurrency).map(([cur, amt]) => (
-                        <div key={cur} className="text-2xl font-bold font-mono tabular-nums mt-1">
-                          {formatCurrency(amt, cur)}
-                        </div>
-                      ))
-                    )}
+                <div className="flex items-start justify-between gap-2">
+                  <div className="text-sm font-medium text-muted-foreground">Avg Daily Spending</div>
+                  <div className="h-9 w-9 shrink-0 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
+                    <TrendingDown className="h-5 w-5 text-purple-600" />
                   </div>
-                  <div className="h-12 w-12 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
-                    <TrendingDown className="h-6 w-6 text-purple-600" />
-                  </div>
+                </div>
+                <div className="mt-2 space-y-1">
+                  {Object.entries(avgDailySpendingByCurrency).length === 0 ? (
+                    <div className="text-xl font-bold font-mono tabular-nums break-all">{formatCurrency(0)}</div>
+                  ) : (
+                    Object.entries(avgDailySpendingByCurrency).map(([cur, amt]) => (
+                      <div key={cur} className="text-xl font-bold font-mono tabular-nums break-all">{formatCurrency(amt, cur)}</div>
+                    ))
+                  )}
                 </div>
               </CardContent>
             </Card>
