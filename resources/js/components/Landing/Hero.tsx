@@ -1,287 +1,401 @@
 import { Link, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Play, Sparkles, TrendingUp } from 'lucide-react';
+import {
+    ArrowDownRight,
+    ArrowRight,
+    ArrowUpDown,
+    ArrowUpRight,
+    BarChart3,
+    Bell,
+    Folder,
+    LayoutGrid,
+    LineChart,
+    PieChart,
+    Plus,
+    Repeat,
+    Sparkles,
+    Target,
+    TrendingUp,
+    Wallet,
+} from 'lucide-react';
 
 import { SharedData } from '@/types';
+
+const overviewNav = [
+    { label: 'Dashboard', href: '/dashboard', icon: LayoutGrid, active: true },
+    { label: 'Accounts', href: '/accounts', icon: Wallet },
+    { label: 'Transactions', href: '/transactions', icon: ArrowUpDown },
+    { label: 'Reports', href: '/reports', icon: BarChart3 },
+    { label: 'Insights', href: '/insights', icon: TrendingUp },
+    { label: 'Cash Flow', href: '/cash-flow', icon: LineChart },
+    { label: 'Notifications', href: '/notifications', icon: Bell },
+];
+
+const planningNav = [
+    { label: 'Budgets', href: '/budgets', icon: PieChart },
+    { label: 'Goals', href: '/goals', icon: Target },
+    { label: 'Recurring', href: '/recurring-transactions', icon: Repeat },
+    { label: 'Reminders', href: '/reminders', icon: Bell },
+    { label: 'Categories', href: '/categories', icon: Folder },
+];
+
+const stats = [
+    {
+        label: 'Total Balance',
+        value: '$24,680.50',
+        detail: 'Across 3 accounts',
+        icon: Wallet,
+        valueClass: 'text-foreground',
+        iconClass: 'bg-emerald-50 text-emerald-600',
+    },
+    {
+        label: 'Income',
+        value: '$6,450.00',
+        detail: 'This month',
+        icon: ArrowUpRight,
+        valueClass: 'text-green-600',
+        iconClass: 'bg-green-50 text-green-600',
+    },
+    {
+        label: 'Expenses',
+        value: '$4,180.75',
+        detail: 'This month',
+        icon: ArrowDownRight,
+        valueClass: 'text-red-600',
+        iconClass: 'bg-red-50 text-red-600',
+    },
+    {
+        label: 'Net Income',
+        value: '$2,269.25',
+        detail: 'This month',
+        icon: TrendingUp,
+        valueClass: 'text-green-600',
+        iconClass: 'bg-green-50 text-green-600',
+    },
+];
+
+const budgetAlerts = [
+    { category: 'Groceries', status: 'Near limit', percentage: '84%' },
+    { category: 'Dining Out', status: 'Over budget', percentage: '108%' },
+];
+
+const categories = [
+    { name: 'Entertainment', percentage: '22%', color: 'bg-emerald-500' },
+    { name: 'Salary', percentage: '20%', color: 'bg-teal-500' },
+    { name: 'Shopping', percentage: '20%', color: 'bg-orange-500' },
+    { name: 'Healthcare', percentage: '19%', color: 'bg-red-700' },
+    { name: 'Other Income', percentage: '19%', color: 'bg-emerald-950' },
+];
+
+function SidebarNavGroup({ label, items }: { label: string; items: typeof overviewNav }) {
+    return (
+        <div className="space-y-2">
+            <p className="px-2 text-[11px] font-medium text-slate-500">{label}</p>
+            <div className="space-y-1">
+                {items.map((item) => {
+                    const Icon = item.icon;
+
+                    return (
+                        <Link
+                            key={item.label}
+                            href={item.href}
+                            className={`flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-[13px] transition duration-200 hover:translate-x-0.5 hover:bg-slate-100 hover:text-slate-950 focus:bg-slate-100 focus:outline-none ${
+                                item.active ? 'bg-slate-100 font-medium text-slate-950' : 'text-slate-700'
+                            }`}
+                        >
+                            <Icon className="h-3.5 w-3.5" />
+                            <span>{item.label}</span>
+                        </Link>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
+function AreaPreview() {
+    return (
+        <svg viewBox="0 0 620 250" className="group h-[260px] w-full overflow-visible" role="img" aria-label="6-month income and expense trend preview">
+            <defs>
+                <linearGradient id="landing-expense-fill" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0%" stopColor="#fb7185" stopOpacity="0.28" />
+                    <stop offset="100%" stopColor="#fb7185" stopOpacity="0" />
+                </linearGradient>
+                <linearGradient id="landing-income-fill" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.22" />
+                    <stop offset="100%" stopColor="#14b8a6" stopOpacity="0" />
+                </linearGradient>
+            </defs>
+            {[30, 85, 140, 195, 250].map((y) => (
+                <line key={y} x1="44" x2="600" y1={y} y2={y} stroke="#e5e7eb" strokeDasharray="4 4" />
+            ))}
+            {['$8K', '$6K', '$4K', '$2K', '$0'].map((tick, index) => (
+                <text key={tick} x="0" y={34 + index * 55} fill="#6b7280" fontSize="12">
+                    {tick}
+                </text>
+            ))}
+            <path className="transition-opacity duration-300 group-hover:opacity-90" d="M44 48 C110 62 142 78 196 70 C260 58 300 45 356 51 C425 59 468 55 520 50 C548 48 570 92 600 205 L600 250 L44 250 Z" fill="url(#landing-expense-fill)" />
+            <motion.path
+                d="M44 48 C110 62 142 78 196 70 C260 58 300 45 356 51 C425 59 468 55 520 50 C548 48 570 92 600 205"
+                fill="none"
+                stroke="#f43f5e"
+                strokeLinecap="round"
+                strokeWidth="2.5"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 1.35, delay: 0.2, ease: 'easeOut' }}
+                className="transition-[stroke-width] duration-300 group-hover:[stroke-width:4]"
+            />
+            <path className="transition-opacity duration-300 group-hover:opacity-90" d="M44 185 C120 194 184 194 248 187 C320 181 390 192 474 185 C524 178 560 206 600 230 L600 250 L44 250 Z" fill="url(#landing-income-fill)" />
+            <motion.path
+                d="M44 185 C120 194 184 194 248 187 C320 181 390 192 474 185 C524 178 560 206 600 230"
+                fill="none"
+                stroke="#14b8a6"
+                strokeLinecap="round"
+                strokeWidth="2.5"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 1.35, delay: 0.35, ease: 'easeOut' }}
+                className="transition-[stroke-width] duration-300 group-hover:[stroke-width:4]"
+            />
+            <motion.circle
+                cx="520"
+                cy="50"
+                r="5"
+                fill="#f43f5e"
+                animate={{ opacity: [0.35, 1, 0.35], scale: [0.9, 1.2, 0.9] }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            />
+            <motion.circle
+                cx="474"
+                cy="185"
+                r="5"
+                fill="#14b8a6"
+                animate={{ opacity: [0.4, 1, 0.4], scale: [0.9, 1.2, 0.9] }}
+                transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+            />
+            {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((month, index) => (
+                <text key={month} x={44 + index * 111} y="273" fill="#4b5563" fontSize="12" textAnchor={index === 0 ? 'start' : 'middle'}>
+                    {month}
+                </text>
+            ))}
+        </svg>
+    );
+}
+
+function DonutPreview() {
+    return (
+        <motion.div
+            whileHover={{ rotate: 4, scale: 1.04 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 18 }}
+            className="relative mx-auto h-40 w-40 cursor-pointer rounded-full bg-[conic-gradient(#10b981_0_22%,#14b8a6_22%_42%,#f97316_42%_62%,#991b1b_62%_81%,#064e3b_81%_100%)] p-6 shadow-sm"
+        >
+            <span className="absolute inset-2 rounded-full border border-white/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+            <div className="h-full w-full rounded-full bg-white" />
+        </motion.div>
+    );
+}
 
 export default function Hero() {
     const { auth } = usePage<SharedData>().props;
     const user = auth?.user;
 
     return (
-        <section className="relative pt-28 pb-20 md:pt-40 md:pb-28 overflow-hidden">
-            {/* Soft gradient background inspired by Laravel AI */}
-            <div className="absolute inset-0 -z-10">
-                <div className="absolute inset-0 bg-gradient-to-b from-emerald-50/50 via-background to-background dark:from-emerald-950/20" />
-                <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-emerald-200/30 dark:bg-emerald-900/20 blur-[120px] rounded-full" />
-                <div className="absolute top-20 right-1/4 w-[500px] h-[500px] bg-teal-200/20 dark:bg-teal-900/10 blur-[100px] rounded-full" />
-                {/* Subtle grid pattern */}
-                <div className="absolute inset-0 bg-[linear-gradient(to_right,#0001_1px,transparent_1px),linear-gradient(to_bottom,#0001_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#fff1_1px,transparent_1px),linear-gradient(to_bottom,#fff1_1px,transparent_1px)] bg-[size:60px_60px] opacity-30" />
-            </div>
+        <section className="relative overflow-hidden border-b border-border/60 bg-background pt-20 pb-12 md:pt-24 md:pb-14">
+            <div className="absolute inset-x-0 top-0 -z-10 h-72 bg-gradient-to-b from-primary/10 to-transparent" />
+            <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,#0000000d_1px,transparent_1px),linear-gradient(to_bottom,#0000000d_1px,transparent_1px)] bg-[size:56px_56px] opacity-35" />
 
-            <div className="container mx-auto px-6 max-w-7xl relative">
-                <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+            <div className="container relative mx-auto max-w-7xl px-6">
+                <div className="mx-auto max-w-3xl space-y-5 text-center">
+                    <motion.div
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.45 }}
+                        className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-medium text-primary"
+                    >
+                        <Sparkles className="h-4 w-4" />
+                        Smart finance for modern life
+                    </motion.div>
 
-                    {/* Left Content */}
-                    <div className="flex-1 text-center lg:text-left space-y-8 max-w-2xl lg:max-w-xl">
-                        {/* Badge */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5 }}
-                            className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-medium text-primary backdrop-blur-sm mx-auto lg:mx-0"
-                        >
-                            <Sparkles className="h-4 w-4" />
-                            <span>Smart finance for modern life</span>
-                        </motion.div>
+                    <motion.h1
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.45, delay: 0.08 }}
+                        className="text-4xl font-bold leading-[1.05] tracking-tight text-foreground sm:text-5xl"
+                    >
+                        A real dashboard for every dollar, budget, goal, and bill.
+                    </motion.h1>
 
-                        {/* Headline with gradient keywords */}
-                        <motion.h1
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 0.1 }}
-                            className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground leading-[1.1]"
-                        >
-                            Financial management for people who{' '}
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-500 dark:from-emerald-400 dark:via-teal-400 dark:to-cyan-400">
-                                actually want to save
-                            </span>
-                        </motion.h1>
+                    <motion.p
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.45, delay: 0.16 }}
+                        className="mx-auto max-w-2xl text-lg leading-relaxed text-muted-foreground"
+                    >
+                        Budget App replaces scattered spreadsheets with the same focused workspace users see after sign in: balances, income, expenses, budgets, goals, reminders, and recent activity in one view.
+                    </motion.p>
 
-                        {/* Subheadline */}
-                        <motion.p
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 0.2 }}
-                            className="text-lg text-muted-foreground leading-relaxed max-w-lg mx-auto lg:mx-0"
-                        >
-                            Budget App replaces spreadsheets, expense trackers, and goal planners with one unified workspace. Zero bloat, zero complexity, just clarity.
-                        </motion.p>
-
-                        {/* REPLACES Section */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 0.25 }}
-                            className="space-y-3"
-                        >
-                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Replaces</p>
-                            <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
-                                {['Excel Spreadsheets', 'Mint', 'YNAB', 'Personal Capital', 'EveryDollar'].map((tool) => (
-                                    <span
-                                        key={tool}
-                                        className="px-3 py-1.5 rounded-full border border-border/50 bg-muted/30 text-xs font-medium text-muted-foreground"
-                                    >
-                                        {tool}
-                                    </span>
-                                ))}
-                            </div>
-                        </motion.div>
-
-                        {/* CTAs */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 0.3 }}
-                            className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start"
-                        >
-                            {user ? (
+                    <motion.div
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.45, delay: 0.24 }}
+                        className="flex flex-col items-center justify-center gap-3 sm:flex-row"
+                    >
+                        {user ? (
+                            <Link
+                                href="/dashboard"
+                                className="flex h-12 items-center gap-2 rounded-lg bg-primary px-7 font-semibold text-primary-foreground shadow-lg shadow-primary/15 transition hover:bg-primary/90"
+                            >
+                                Go to Dashboard
+                                <ArrowRight className="h-4 w-4" />
+                            </Link>
+                        ) : (
+                            <>
                                 <Link
-                                    href="/dashboard"
-                                    className="h-12 px-7 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 flex items-center gap-2"
+                                    href="/register"
+                                    className="flex h-12 items-center gap-2 rounded-lg bg-primary px-7 font-semibold text-primary-foreground shadow-lg shadow-primary/15 transition hover:bg-primary/90"
                                 >
-                                    Go to Dashboard
+                                    Start Managing Smarter
                                     <ArrowRight className="h-4 w-4" />
                                 </Link>
-                            ) : (
-                                <>
-                                    <Link
-                                        href="/register"
-                                        className="h-12 px-7 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 flex items-center gap-2"
-                                    >
-                                        Start Managing Smarter
-                                        <ArrowRight className="h-4 w-4" />
-                                    </Link>
-                                    <button className="h-12 px-6 rounded-lg border border-border bg-background/80 backdrop-blur-sm hover:bg-muted text-foreground font-semibold transition-all flex items-center gap-2 group">
-                                        <span className="h-8 w-8 rounded-full bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                                            <Play className="h-3 w-3 ml-0.5 text-primary" fill="currentColor" />
-                                        </span>
-                                        <span>View Demo</span>
-                                    </button>
-                                </>
-                            )}
-                        </motion.div>
+                                <Link
+                                    href="/login"
+                                    className="flex h-12 items-center rounded-lg border border-border bg-background px-6 font-semibold text-foreground transition hover:bg-muted"
+                                >
+                                    Sign in
+                                </Link>
+                            </>
+                        )}
+                    </motion.div>
+                </div>
 
-                        {/* Stats - Outcome focused */}
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ duration: 0.8, delay: 0.5 }}
-                            className="pt-4 grid grid-cols-3 gap-6 text-center lg:text-left"
-                        >
-                            <div>
-                                <div className="text-3xl font-bold text-foreground">73%</div>
-                                <div className="text-xs text-muted-foreground mt-1">Less time on finances</div>
-                            </div>
-                            <div>
-                                <div className="text-3xl font-bold text-foreground">$2.4K</div>
-                                <div className="text-xs text-muted-foreground mt-1">Avg. savings increase</div>
-                            </div>
-                            <div>
-                                <div className="text-3xl font-bold text-foreground">4.9/5</div>
-                                <div className="text-xs text-muted-foreground mt-1">User satisfaction</div>
-                            </div>
-                        </motion.div>
-                    </div>
-
-                    {/* Dashboard Mockup */}
-                    <div className="flex-1 w-full max-w-[580px] lg:max-w-none relative">
-                        <motion.div
-                            initial={{ opacity: 0, y: 40, scale: 0.95 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-                            className="relative"
-                        >
-                            {/* Glow behind mockup */}
-                            <div className="absolute -inset-4 bg-gradient-to-r from-emerald-500/20 via-teal-500/20 to-cyan-500/20 blur-3xl rounded-3xl opacity-60 -z-10" />
-
-                            {/* Main Dashboard Card */}
-                            <div className="rounded-2xl border border-border/50 bg-card/95 backdrop-blur-xl shadow-2xl overflow-hidden">
-                                {/* Browser Chrome */}
-                                <div className="h-10 bg-muted/50 border-b border-border/50 flex items-center px-4 gap-3">
-                                    <div className="flex gap-1.5">
-                                        <div className="h-2.5 w-2.5 rounded-full bg-border" />
-                                        <div className="h-2.5 w-2.5 rounded-full bg-border" />
-                                        <div className="h-2.5 w-2.5 rounded-full bg-border" />
+                <motion.div
+                    initial={{ opacity: 0, y: 36, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ duration: 0.7, delay: 0.28, ease: 'easeOut' }}
+                    className="relative mx-auto mt-10 max-w-6xl"
+                >
+                    <div className="relative max-h-[680px] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl shadow-black/10 sm:max-h-[760px] lg:max-h-[820px]">
+                        <div className="grid min-h-[760px] bg-slate-50 text-slate-950 lg:grid-cols-[240px_1fr]">
+                            <aside className="hidden border-r border-slate-200 bg-white px-4 py-5 lg:flex lg:flex-col">
+                                <div className="mb-8 flex items-center gap-3">
+                                    <div className="flex h-8 w-8 items-center justify-center rounded-md bg-emerald-500 text-white">
+                                        <Wallet className="h-4 w-4" />
                                     </div>
-                                    <div className="flex-1 bg-background/50 h-6 rounded-md border border-border/30 flex items-center justify-center text-[10px] text-muted-foreground font-medium">
-                                        app.budgetwise.io/dashboard
+                                    <span className="text-sm font-semibold">Budget App</span>
+                                </div>
+
+                                <div className="space-y-7">
+                                    <SidebarNavGroup label="Overview" items={overviewNav} />
+                                    <SidebarNavGroup label="Planning" items={planningNav} />
+                                </div>
+
+                                <div className="mt-auto space-y-6 px-2 text-[13px] text-slate-700">
+                                    <div className="flex items-center gap-2">
+                                        <span className="h-3.5 w-3.5 rounded-sm border border-slate-900" />
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="h-3.5 w-3.5 rounded-full border border-slate-900" />
+                                        Settings
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-xs">L1</span>
+                                        Load Test 1
+                                    </div>
+                                </div>
+                            </aside>
+
+                            <div className="min-w-0 p-4 sm:p-6 lg:p-8">
+                                <div className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                                    <div>
+                                        <h2 className="text-2xl font-bold tracking-tight">Dashboard</h2>
+                                        <p className="text-sm text-slate-500">Welcome back! Here's your financial overview.</p>
+                                    </div>
+                                    <button className="flex h-9 w-fit items-center gap-2 rounded-md bg-emerald-500 px-4 text-sm font-medium text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:bg-emerald-600 hover:shadow-md">
+                                        <Plus className="h-4 w-4" />
+                                        Quick Add
+                                    </button>
+                                </div>
+
+                                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                                    {stats.map((stat) => {
+                                        const Icon = stat.icon;
+
+                                        return (
+                                            <motion.div
+                                                key={stat.label}
+                                                whileHover={{ y: -4 }}
+                                                transition={{ type: 'spring', stiffness: 320, damping: 24 }}
+                                                className="group rounded-lg border border-slate-200 bg-white p-5 transition duration-200 hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-950/5"
+                                            >
+                                                <div className="mb-7 flex items-center justify-between">
+                                                    <p className="text-sm font-semibold">{stat.label}</p>
+                                                    <div className={`flex h-9 w-9 items-center justify-center rounded-lg transition duration-200 group-hover:scale-110 ${stat.iconClass}`}>
+                                                        <Icon className="h-4 w-4" />
+                                                    </div>
+                                                </div>
+                                                <p className={`font-mono text-[clamp(0.875rem,1.18vw,1.25rem)] font-bold leading-none tracking-normal whitespace-nowrap tabular-nums ${stat.valueClass}`}>
+                                                    {stat.value}
+                                                </p>
+                                                <p className="mt-2 text-xs text-slate-500">{stat.detail}</p>
+                                            </motion.div>
+                                        );
+                                    })}
+                                </div>
+
+                                <div className="mt-5 grid gap-5 xl:grid-cols-[1.8fr_0.9fr]">
+                                    <div className="rounded-lg border border-slate-200 bg-white p-5 transition duration-200 hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-950/5">
+                                        <div className="mb-5 flex items-center justify-between gap-3">
+                                            <div>
+                                                <h3 className="font-semibold">6-Month Trend</h3>
+                                                <p className="text-xs text-slate-500">Income vs Expenses</p>
+                                            </div>
+                                            <span className="rounded-md border border-slate-200 px-3 py-1.5 text-xs text-slate-600">USD</span>
+                                        </div>
+                                        <AreaPreview />
+                                    </div>
+
+                                    <div className="group rounded-lg border border-slate-200 bg-white p-5 transition duration-200 hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-950/5">
+                                        <h3 className="font-semibold">Spending by Category</h3>
+                                        <p className="text-xs text-slate-500">This month</p>
+                                        <div className="py-8">
+                                            <DonutPreview />
+                                        </div>
+                                        <div className="space-y-2">
+                                            {categories.map((category) => (
+                                                <div key={category.name} className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-sm transition duration-200 hover:bg-slate-50">
+                                                    <span className={`h-2.5 w-2.5 rounded-full transition duration-200 group-hover:scale-110 ${category.color}`} />
+                                                    <span className="flex-1 truncate">{category.name}</span>
+                                                    <span className="font-mono text-slate-500">{category.percentage}</span>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
 
-                                {/* Dashboard Content */}
-                                <div className="p-6 space-y-5">
-                                    {/* Header */}
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <p className="text-xs text-muted-foreground">Welcome back</p>
-                                            <h2 className="text-xl font-bold text-foreground">Financial Overview</h2>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="text-xs text-muted-foreground">Net Worth</p>
-                                            <p className="text-xl font-bold text-foreground">$47,250</p>
-                                        </div>
+                                <div className="mt-5 rounded-lg border border-slate-200 bg-white p-5 transition duration-200 hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-950/5">
+                                    <div className="mb-7 flex items-center justify-between">
+                                        <h3 className="font-semibold">Budget Alerts</h3>
+                                        <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-500">{budgetAlerts.length}</span>
                                     </div>
-
-                                    {/* Stats Row */}
-                                    <div className="grid grid-cols-3 gap-3">
-                                        <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/50">
-                                            <p className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">Income</p>
-                                            <p className="text-lg font-bold text-foreground mt-1">$8,450</p>
-                                            <p className="text-[10px] text-emerald-600/70 dark:text-emerald-400/70">+12% vs last month</p>
-                                        </div>
-                                        <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50">
-                                            <p className="text-[10px] font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide">Expenses</p>
-                                            <p className="text-lg font-bold text-foreground mt-1">$4,180</p>
-                                            <p className="text-[10px] text-blue-600/70 dark:text-blue-400/70">-8% vs last month</p>
-                                        </div>
-                                        <div className="p-4 rounded-xl bg-teal-50 dark:bg-teal-950/30 border border-teal-100 dark:border-teal-900/50">
-                                            <p className="text-[10px] font-semibold text-teal-600 dark:text-teal-400 uppercase tracking-wide">Savings</p>
-                                            <p className="text-lg font-bold text-foreground mt-1">$4,270</p>
-                                            <p className="text-[10px] text-teal-600/70 dark:text-teal-400/70">51% savings rate</p>
-                                        </div>
-                                    </div>
-
-                                    {/* Chart Area */}
-                                    <div className="rounded-xl border border-border/50 bg-background/50 p-4">
-                                        <div className="flex justify-between items-center mb-4">
-                                            <span className="text-sm font-semibold text-foreground">Monthly Trend</span>
-                                            <div className="flex gap-3 text-[10px]">
-                                                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-emerald-500"></span> Income</span>
-                                                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-blue-500"></span> Expenses</span>
-                                            </div>
-                                        </div>
-                                        <div className="h-32 flex items-end justify-between gap-2">
-                                            {[
-                                                { income: 70, expense: 45 },
-                                                { income: 65, expense: 50 },
-                                                { income: 80, expense: 40 },
-                                                { income: 75, expense: 55 },
-                                                { income: 85, expense: 45 },
-                                                { income: 90, expense: 50 },
-                                            ].map((data, i) => (
-                                                <div key={i} className="flex-1 flex items-end gap-0.5">
-                                                    <motion.div
-                                                        initial={{ height: 0 }}
-                                                        whileInView={{ height: `${data.income}%` }}
-                                                        transition={{ duration: 0.6, delay: i * 0.1 }}
-                                                        className="flex-1 bg-emerald-500/80 rounded-t"
-                                                    />
-                                                    <motion.div
-                                                        initial={{ height: 0 }}
-                                                        whileInView={{ height: `${data.expense}%` }}
-                                                        transition={{ duration: 0.6, delay: i * 0.1 + 0.05 }}
-                                                        className="flex-1 bg-blue-500/80 rounded-t"
-                                                    />
+                                    <div className="grid gap-3 md:grid-cols-2">
+                                        {budgetAlerts.map((alert) => (
+                                            <div key={alert.category} className="flex cursor-pointer items-center gap-3 rounded-md border border-slate-200 p-3 transition duration-200 hover:-translate-y-0.5 hover:border-red-200 hover:bg-red-50/40">
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="truncate text-sm font-medium">{alert.category}</p>
+                                                    <p className="text-xs text-slate-500">{alert.status}</p>
                                                 </div>
-                                            ))}
-                                        </div>
-                                        <div className="flex justify-between mt-2 text-[9px] text-muted-foreground">
-                                            {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map(m => (
-                                                <span key={m} className="flex-1 text-center">{m}</span>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    {/* Budget Progress */}
-                                    <div className="space-y-3">
-                                        <span className="text-sm font-semibold text-foreground">Budget Status</span>
-                                        {[
-                                            { name: 'Housing', spent: 1200, total: 1500, color: 'bg-emerald-500' },
-                                            { name: 'Food & Dining', spent: 380, total: 500, color: 'bg-teal-500' },
-                                            { name: 'Transportation', spent: 150, total: 300, color: 'bg-cyan-500' },
-                                        ].map((item, i) => (
-                                            <div key={i} className="space-y-1">
-                                                <div className="flex justify-between text-[11px]">
-                                                    <span className="text-muted-foreground">{item.name}</span>
-                                                    <span className="font-medium text-foreground">${item.spent} / ${item.total}</span>
-                                                </div>
-                                                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                                                    <motion.div
-                                                        initial={{ width: 0 }}
-                                                        whileInView={{ width: `${(item.spent / item.total) * 100}%` }}
-                                                        transition={{ duration: 0.8, delay: i * 0.1 }}
-                                                        className={`h-full ${item.color} rounded-full`}
-                                                    />
-                                                </div>
+                                                <span className="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-600">{alert.percentage}</span>
                                             </div>
                                         ))}
                                     </div>
                                 </div>
                             </div>
-
-                            {/* Floating notification card */}
-                            <motion.div
-                                initial={{ opacity: 0, x: 20, y: 20 }}
-                                animate={{ opacity: 1, x: 0, y: 0 }}
-                                transition={{ duration: 0.6, delay: 0.8 }}
-                                className="absolute -bottom-4 -left-4 md:-left-8 bg-card border border-border/50 rounded-xl p-3 shadow-lg backdrop-blur-sm"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className="h-10 w-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
-                                        <TrendingUp className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-                                    </div>
-                                    <div>
-                                        <p className="text-xs font-semibold text-foreground">Savings Goal Hit!</p>
-                                        <p className="text-[10px] text-muted-foreground">Emergency fund complete</p>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        </motion.div>
+                        </div>
+                        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-white to-transparent" />
                     </div>
-                </div>
+                </motion.div>
             </div>
         </section>
     );
 }
-

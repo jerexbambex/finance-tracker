@@ -1,6 +1,18 @@
 import { motion, useInView } from 'framer-motion';
-import { TrendingUp, TrendingDown, Percent, DollarSign, PiggyBank, BarChart3 } from 'lucide-react';
-import { useRef, useEffect, useState } from 'react';
+import {
+    ArrowDownRight,
+    ArrowUpRight,
+    BarChart3,
+    CheckCircle2,
+    Clock,
+    DollarSign,
+    PiggyBank,
+    Target,
+    TrendingDown,
+    TrendingUp,
+    Wallet,
+} from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 
 function AnimatedCounter({ end, suffix = '', prefix = '' }: { end: number; suffix?: string; prefix?: string }) {
     const [count, setCount] = useState(0);
@@ -8,24 +20,28 @@ function AnimatedCounter({ end, suffix = '', prefix = '' }: { end: number; suffi
     const isInView = useInView(ref, { once: true });
 
     useEffect(() => {
-        if (isInView) {
-            const duration = 2000;
-            const steps = 60;
-            const increment = end / steps;
-            let current = 0;
-
-            const timer = setInterval(() => {
-                current += increment;
-                if (current >= end) {
-                    setCount(end);
-                    clearInterval(timer);
-                } else {
-                    setCount(Math.floor(current));
-                }
-            }, duration / steps);
-
-            return () => clearInterval(timer);
+        if (!isInView) {
+            return;
         }
+
+        const duration = 1800;
+        const steps = 60;
+        const increment = end / steps;
+        let current = 0;
+
+        const timer = window.setInterval(() => {
+            current += increment;
+
+            if (current >= end) {
+                setCount(end);
+                window.clearInterval(timer);
+                return;
+            }
+
+            setCount(end % 1 === 0 ? Math.floor(current) : Number(current.toFixed(1)));
+        }, duration / steps);
+
+        return () => window.clearInterval(timer);
     }, [isInView, end]);
 
     return (
@@ -35,24 +51,111 @@ function AnimatedCounter({ end, suffix = '', prefix = '' }: { end: number; suffi
     );
 }
 
-export default function Security() {
+const liveMetrics = [
+    { value: 50, prefix: '$', suffix: 'M+', label: 'tracked across accounts', icon: Wallet, tone: 'text-emerald-400', bg: 'bg-emerald-400/10' },
+    { value: 42, suffix: '%', label: 'average debt reduction', icon: TrendingDown, tone: 'text-teal-300', bg: 'bg-teal-400/10' },
+    { value: 12, suffix: 'K+', label: 'active budgeters', icon: BarChart3, tone: 'text-cyan-300', bg: 'bg-cyan-400/10' },
+    { value: 4.9, suffix: '/5', label: 'user confidence score', icon: CheckCircle2, tone: 'text-amber-300', bg: 'bg-amber-400/10' },
+];
+
+const resultTabs = [
+    {
+        name: 'Savings',
+        metric: '$8,420',
+        label: 'average yearly savings surfaced',
+        change: '+28% savings rate',
+        quote: 'I finally saw where the leaks were and moved the money into goals before it disappeared.',
+        points: 'M42 164 C92 148 126 138 174 118 C224 96 276 90 330 64 C380 42 430 44 486 28',
+        color: '#10b981',
+        fill: 'rgba(16, 185, 129, 0.22)',
+    },
+    {
+        name: 'Debt',
+        metric: '42%',
+        label: 'less revolving debt after 6 months',
+        change: '-$6,180 balance',
+        quote: 'The debt trend made minimum payments impossible to ignore.',
+        points: 'M42 60 C94 70 136 86 178 104 C220 122 272 124 326 142 C380 158 424 162 486 174',
+        color: '#2dd4bf',
+        fill: 'rgba(45, 212, 191, 0.2)',
+    },
+    {
+        name: 'Goals',
+        metric: '3.4x',
+        label: 'more goals funded on schedule',
+        change: '+$1,240 funded',
+        quote: 'The progress bars made my emergency fund feel achievable instead of abstract.',
+        points: 'M42 158 C88 154 122 134 168 132 C214 130 252 100 302 92 C360 82 416 54 486 44',
+        color: '#38bdf8',
+        fill: 'rgba(56, 189, 248, 0.2)',
+    },
+];
+
+const recentWins = [
+    { label: 'Emergency fund completed', meta: 'Goal reached 17 days early', value: '+$5,000', icon: Target, tone: 'text-emerald-300' },
+    { label: 'Dining budget recovered', meta: 'Spending down this month', value: '-38%', icon: ArrowDownRight, tone: 'text-teal-300' },
+    { label: 'Subscriptions cleaned up', meta: 'Recurring charges reviewed', value: '$214', icon: Clock, tone: 'text-cyan-300' },
+];
+
+function ResultChart({ points, color, fill }: { points: string; color: string; fill: string }) {
     return (
-        <section id="security" className="py-24 bg-slate-950 text-white relative overflow-hidden">
-            {/* Background Effects */}
+        <svg viewBox="0 0 528 220" className="h-56 w-full overflow-visible" role="img" aria-label="Selected result trend">
+            <defs>
+                <linearGradient id="results-chart-fill" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0%" stopColor={fill} />
+                    <stop offset="100%" stopColor="rgba(15, 23, 42, 0)" />
+                </linearGradient>
+            </defs>
+            {[36, 78, 120, 162, 204].map((y) => (
+                <line key={y} x1="42" x2="486" y1={y} y2={y} stroke="rgba(148, 163, 184, 0.16)" strokeDasharray="4 6" />
+            ))}
+            <path d={`${points} L486 210 L42 210 Z`} fill="url(#results-chart-fill)" />
+            <motion.path
+                key={points}
+                d={points}
+                fill="none"
+                stroke={color}
+                strokeLinecap="round"
+                strokeWidth="3"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 1, ease: 'easeOut' }}
+            />
+            <motion.circle
+                cx="486"
+                cy={points.endsWith('28') ? '28' : points.endsWith('174') ? '174' : '44'}
+                r="6"
+                fill={color}
+                animate={{ opacity: [0.45, 1, 0.45], scale: [0.9, 1.25, 0.9] }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            />
+            {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((month, index) => (
+                <text key={month} x={42 + index * 89} y="238" fill="rgb(148, 163, 184)" fontSize="12" textAnchor="middle">
+                    {month}
+                </text>
+            ))}
+        </svg>
+    );
+}
+
+export default function Security() {
+    const [selectedResult, setSelectedResult] = useState(resultTabs[0]);
+
+    return (
+        <section id="security" className="relative overflow-hidden bg-slate-950 py-24 text-white">
             <div className="absolute inset-0">
-                <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-emerald-600/20 blur-[150px] rounded-full" />
-                <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-teal-600/15 blur-[120px] rounded-full" />
-                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:50px_50px]" />
+                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(to_right,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:64px_64px]" />
+                <div className="absolute left-1/2 top-24 h-64 w-64 -translate-x-1/2 rounded-full bg-emerald-500/10 blur-3xl" />
+                <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-cyan-500/10 blur-3xl" />
             </div>
 
-            <div className="container mx-auto px-6 max-w-7xl relative z-10">
-                {/* Header */}
-                <div className="text-center mb-16 space-y-4">
+            <div className="container relative z-10 mx-auto max-w-7xl px-6">
+                <div className="mx-auto mb-12 max-w-3xl text-center">
                     <motion.p
                         initial={{ opacity: 0, y: 10 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        className="text-sm font-semibold text-emerald-400 uppercase tracking-wider"
+                        className="mb-4 text-sm font-semibold uppercase tracking-wider text-emerald-300"
                     >
                         Real Results
                     </motion.p>
@@ -60,178 +163,130 @@ export default function Security() {
                         initial={{ opacity: 0, y: 10 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        transition={{ delay: 0.1 }}
-                        className="text-3xl md:text-5xl font-bold tracking-tight"
+                        transition={{ delay: 0.08 }}
+                        className="text-3xl font-bold tracking-tight md:text-5xl"
                     >
-                        Numbers that speak{' '}
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400">
-                            for themselves
-                        </span>
+                        Financial wins that feel live, not theoretical.
                     </motion.h2>
                     <motion.p
                         initial={{ opacity: 0, y: 10 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        transition={{ delay: 0.2 }}
-                        className="text-slate-400 max-w-2xl mx-auto"
+                        transition={{ delay: 0.16 }}
+                        className="mx-auto mt-4 max-w-2xl text-slate-400"
                     >
-                        Our users don't just track money—they transform their financial lives.
+                        A cleaner budget is not just a report. It is a stream of visible progress: money found, debt reduced, goals funded, and habits changed.
                     </motion.p>
                 </div>
 
-                {/* Stats Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
-                    {[
-                        { value: 75, suffix: '%', label: 'Savings improvement', icon: TrendingUp, color: 'text-emerald-400' },
-                        { value: 42, suffix: '%', label: 'Debt reduction', icon: TrendingDown, color: 'text-teal-400' },
-                        { value: 12, prefix: '$', suffix: 'M+', label: 'Assets tracked', icon: DollarSign, color: 'text-cyan-400' },
-                        { value: 4.9, suffix: '/5', label: 'User rating', icon: BarChart3, color: 'text-blue-400' }
-                    ].map((stat, idx) => (
-                        <motion.div
-                            key={idx}
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: idx * 0.1 }}
-                            className="text-center p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm"
-                        >
-                            <stat.icon className={`h-6 w-6 ${stat.color} mx-auto mb-3`} />
-                            <div className="text-3xl md:text-4xl font-bold text-white mb-1">
-                                <AnimatedCounter end={stat.value} suffix={stat.suffix} prefix={stat.prefix} />
-                            </div>
-                            <p className="text-sm text-slate-400">{stat.label}</p>
-                        </motion.div>
-                    ))}
+                <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    {liveMetrics.map((metric, index) => {
+                        const Icon = metric.icon;
+
+                        return (
+                            <motion.div
+                                key={metric.label}
+                                initial={{ opacity: 0, y: 18 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: index * 0.06 }}
+                                whileHover={{ y: -4 }}
+                                className="group rounded-lg border border-white/10 bg-white/[0.04] p-5 shadow-2xl shadow-black/10 backdrop-blur transition duration-200 hover:border-emerald-300/30 hover:bg-white/[0.07]"
+                            >
+                                <div className={`mb-5 flex h-10 w-10 items-center justify-center rounded-lg ${metric.bg}`}>
+                                    <Icon className={`h-5 w-5 ${metric.tone}`} />
+                                </div>
+                                <div className="font-mono text-3xl font-bold leading-none tracking-normal text-white">
+                                    <AnimatedCounter end={metric.value} prefix={metric.prefix} suffix={metric.suffix} />
+                                </div>
+                                <p className="mt-2 text-sm text-slate-400">{metric.label}</p>
+                            </motion.div>
+                        );
+                    })}
                 </div>
 
-                {/* Dashboard Preview */}
                 <motion.div
-                    initial={{ opacity: 0, y: 40 }}
+                    initial={{ opacity: 0, y: 28 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ delay: 0.3 }}
-                    className="relative max-w-4xl mx-auto"
+                    className="overflow-hidden rounded-lg border border-white/10 bg-[#0c1017]/95 shadow-2xl shadow-emerald-950/20"
                 >
-                    {/* Glow */}
-                    <div className="absolute -inset-4 bg-gradient-to-r from-emerald-500/20 via-teal-500/20 to-cyan-500/20 blur-3xl rounded-3xl opacity-50" />
+                    <div className="flex flex-col justify-between gap-4 border-b border-white/10 px-5 py-4 md:flex-row md:items-center">
+                        <div className="flex items-center gap-3">
+                            <span className="relative flex h-2.5 w-2.5">
+                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
+                                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-300" />
+                            </span>
+                            <span className="font-mono text-sm text-slate-300">live financial wins</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {resultTabs.map((tab) => (
+                                <button
+                                    key={tab.name}
+                                    type="button"
+                                    onClick={() => setSelectedResult(tab)}
+                                    className={`h-9 rounded-md border px-3 text-sm font-medium transition ${
+                                        selectedResult.name === tab.name
+                                            ? 'border-emerald-300/40 bg-emerald-400/15 text-emerald-200'
+                                            : 'border-white/10 bg-white/[0.03] text-slate-400 hover:bg-white/[0.08] hover:text-white'
+                                    }`}
+                                >
+                                    {tab.name}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
 
-                    {/* Dashboard Card */}
-                    <div className="relative rounded-2xl border border-white/10 bg-slate-900/90 backdrop-blur-xl overflow-hidden">
-                        {/* Terminal Header */}
-                        <div className="px-4 py-3 border-b border-white/10 flex items-center gap-2">
-                            <div className="flex gap-1.5">
-                                <div className="h-2.5 w-2.5 rounded-full bg-slate-600" />
-                                <div className="h-2.5 w-2.5 rounded-full bg-slate-600" />
-                                <div className="h-2.5 w-2.5 rounded-full bg-slate-600" />
+                    <div className="grid lg:grid-cols-[1.15fr_0.85fr]">
+                        <div className="border-b border-white/10 p-5 lg:border-b-0 lg:border-r">
+                            <div className="mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
+                                <div>
+                                    <p className="text-sm text-slate-400">{selectedResult.label}</p>
+                                    <div className="mt-2 flex items-end gap-3">
+                                        <span className="font-mono text-4xl font-bold tracking-normal text-white">{selectedResult.metric}</span>
+                                        <span className="mb-1 flex items-center gap-1 rounded-full bg-emerald-400/10 px-2 py-1 text-xs font-semibold text-emerald-300">
+                                            <ArrowUpRight className="h-3 w-3" />
+                                            {selectedResult.change}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="rounded-md border border-white/10 bg-white/[0.04] px-3 py-2 text-xs text-slate-400">
+                                    Updated today
+                                </div>
                             </div>
-                            <span className="text-xs text-slate-500 ml-2 font-mono">financial-analytics.dashboard</span>
+
+                            <div className="rounded-lg border border-white/10 bg-slate-950/50 p-5 transition duration-200 hover:border-emerald-300/30">
+                                <ResultChart points={selectedResult.points} color={selectedResult.color} fill={selectedResult.fill} />
+                            </div>
                         </div>
 
-                        {/* Dashboard Content */}
-                        <div className="p-6 space-y-6">
-                            {/* Header Row */}
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <p className="text-xs text-slate-500 uppercase tracking-wider">Total Net Worth</p>
-                                    <p className="text-3xl font-bold text-white mt-1">$124,850.00</p>
-                                    <div className="flex items-center gap-1 mt-1">
-                                        <TrendingUp className="h-3 w-3 text-emerald-400" />
-                                        <span className="text-xs text-emerald-400">+18.4% this year</span>
-                                    </div>
-                                </div>
-                                <div className="flex gap-2">
-                                    <div className="px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 text-xs font-medium">Monthly</div>
-                                    <div className="px-3 py-1.5 rounded-lg bg-white/5 text-slate-400 text-xs font-medium">Yearly</div>
-                                </div>
+                        <div className="p-5">
+                            <div className="mb-5 rounded-lg border border-white/10 bg-white/[0.04] p-4">
+                                <p className="text-sm text-slate-400">Member note</p>
+                                <p className="mt-2 text-lg leading-relaxed text-white">"{selectedResult.quote}"</p>
                             </div>
 
-                            {/* Chart Area - Income vs Expense Line graph */}
-                            <div className="h-48 rounded-xl bg-slate-800/50 border border-white/5 p-6 relative overflow-hidden">
-                                <div className="w-full h-full">
-                                    <svg className="w-full h-full" viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet">
-                                        {/* Grid lines */}
-                                        <line x1="40" y1="30" x2="380" y2="30" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
-                                        <line x1="40" y1="60" x2="380" y2="60" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
-                                        <line x1="40" y1="90" x2="380" y2="90" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
-                                        <line x1="40" y1="120" x2="380" y2="120" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
-                                        
-                                        {/* Income line (green) */}
-                                        <motion.path
-                                            initial={{ pathLength: 0, opacity: 0 }}
-                                            whileInView={{ pathLength: 1, opacity: 1 }}
-                                            viewport={{ once: true }}
-                                            transition={{ duration: 1.5, ease: "easeInOut" }}
-                                            d="M 40,95 L 80,85 L 120,75 L 160,65 L 200,55 L 240,50 L 280,45 L 320,42 L 360,38 L 380,35"
-                                            fill="none"
-                                            stroke="#10b981"
-                                            strokeWidth="2.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                        />
-                                        
-                                        {/* Expense line (red) */}
-                                        <motion.path
-                                            initial={{ pathLength: 0, opacity: 0 }}
-                                            whileInView={{ pathLength: 1, opacity: 1 }}
-                                            viewport={{ once: true }}
-                                            transition={{ duration: 1.5, ease: "easeInOut", delay: 0.2 }}
-                                            d="M 40,105 L 80,100 L 120,98 L 160,95 L 200,93 L 240,91 L 280,89 L 320,88 L 360,87 L 380,86"
-                                            fill="none"
-                                            stroke="#ef4444"
-                                            strokeWidth="2.5"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                        />
-                                        
-                                        {/* Month labels */}
-                                        {['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O'].map((month, i) => (
-                                            <text
-                                                key={month + i}
-                                                x={40 + i * 38}
-                                                y="140"
-                                                fill="rgb(100, 116, 139)"
-                                                fontSize="11"
-                                                fontWeight="500"
-                                                textAnchor="middle"
-                                            >
-                                                {month}
-                                            </text>
-                                        ))}
-                                        
-                                        {/* Legend */}
-                                        <g transform="translate(280, 12)">
-                                            <line x1="0" y1="0" x2="12" y2="0" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" />
-                                            <text x="18" y="4" fill="rgb(148, 163, 184)" fontSize="11" fontWeight="500">Income</text>
-                                            <line x1="70" y1="0" x2="82" y2="0" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" />
-                                            <text x="88" y="4" fill="rgb(148, 163, 184)" fontSize="11" fontWeight="500">Expense</text>
-                                        </g>
-                                    </svg>
-                                </div>
-                            </div>
+                            <div className="space-y-3">
+                                {recentWins.map((win) => {
+                                    const Icon = win.icon;
 
-                            {/* Bottom Stats */}
-                            <div className="grid grid-cols-3 gap-4">
-                                <div className="p-4 rounded-xl bg-slate-800/50 border border-white/5">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <PiggyBank className="h-4 w-4 text-emerald-400" />
-                                        <span className="text-xs text-slate-400">Savings</span>
-                                    </div>
-                                    <p className="text-lg font-bold text-white">$32,450</p>
-                                </div>
-                                <div className="p-4 rounded-xl bg-slate-800/50 border border-white/5">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <BarChart3 className="h-4 w-4 text-teal-400" />
-                                        <span className="text-xs text-slate-400">Investments</span>
-                                    </div>
-                                    <p className="text-lg font-bold text-white">$67,200</p>
-                                </div>
-                                <div className="p-4 rounded-xl bg-slate-800/50 border border-white/5">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <Percent className="h-4 w-4 text-cyan-400" />
-                                        <span className="text-xs text-slate-400">Save Rate</span>
-                                    </div>
-                                    <p className="text-lg font-bold text-white">48%</p>
-                                </div>
+                                    return (
+                                        <motion.div
+                                            key={win.label}
+                                            whileHover={{ x: 4 }}
+                                            className="flex cursor-pointer items-center gap-3 rounded-lg border border-white/10 bg-white/[0.035] p-3 transition duration-200 hover:border-emerald-300/25 hover:bg-white/[0.07]"
+                                        >
+                                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/[0.06]">
+                                                <Icon className={`h-5 w-5 ${win.tone}`} />
+                                            </div>
+                                            <div className="min-w-0 flex-1">
+                                                <p className="truncate text-sm font-medium text-white">{win.label}</p>
+                                                <p className="truncate text-xs text-slate-500">{win.meta}</p>
+                                            </div>
+                                            <span className={`font-mono text-sm font-bold ${win.tone}`}>{win.value}</span>
+                                        </motion.div>
+                                    );
+                                })}
                             </div>
                         </div>
                     </div>
