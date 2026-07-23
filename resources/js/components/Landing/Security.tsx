@@ -5,11 +5,8 @@ import {
     BarChart3,
     CheckCircle2,
     Clock,
-    DollarSign,
-    PiggyBank,
     Target,
     TrendingDown,
-    TrendingUp,
     Wallet,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';

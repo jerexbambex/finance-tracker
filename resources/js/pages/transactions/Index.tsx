@@ -79,7 +79,10 @@ interface Props {
 }
 
 export default function Index({ transactions, categories, chartData }: Props) {
-  const { flash } = usePage().props as { flash?: { success?: string } };
+  const page = usePage();
+  const { flash } = page.props as { flash?: { success?: string } };
+  // SSR-safe: derive current query params from Inertia's url (window is undefined during server render)
+  const queryParams = new URLSearchParams(page.url.split('?')[1] ?? '');
   const [showSuccess, setShowSuccess] = useState(!!flash?.success);
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
   const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>('all');
@@ -390,7 +393,7 @@ export default function Index({ transactions, categories, chartData }: Props) {
                   <label className="text-sm font-medium mb-2 block">Search</label>
                   <Input
                     placeholder="Search description..."
-                    defaultValue={new URLSearchParams(window.location.search).get('search') || ''}
+                    defaultValue={queryParams.get('search') || ''}
                     onChange={(e) => {
                       const value = e.target.value;
                       clearTimeout(searchDebounce.current);
@@ -411,7 +414,7 @@ export default function Index({ transactions, categories, chartData }: Props) {
                   <label className="text-sm font-medium mb-2 block">From Date</label>
                   <Input
                     type="date"
-                    defaultValue={new URLSearchParams(window.location.search).get('date_from') || ''}
+                    defaultValue={queryParams.get('date_from') || ''}
                     onChange={(e) => {
                       const params = new URLSearchParams(window.location.search);
                       if (e.target.value) {
@@ -428,7 +431,7 @@ export default function Index({ transactions, categories, chartData }: Props) {
                   <label className="text-sm font-medium mb-2 block">To Date</label>
                   <Input
                     type="date"
-                    defaultValue={new URLSearchParams(window.location.search).get('date_to') || ''}
+                    defaultValue={queryParams.get('date_to') || ''}
                     onChange={(e) => {
                       const params = new URLSearchParams(window.location.search);
                       if (e.target.value) {
