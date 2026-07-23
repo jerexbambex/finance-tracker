@@ -17,7 +17,10 @@ export function currencySymbol(currency: string): string {
 }
 
 export function formatCurrency(amount: number, currency = 'USD'): string {
-    const symbol = CURRENCY_SYMBOLS[currency];
+    // Empty/missing codes (e.g. an empty chart period) would make Intl throw
+    // "RangeError: Invalid currency code", so normalise to the default first.
+    const code = currency || 'USD';
+    const symbol = CURRENCY_SYMBOLS[code];
 
     if (symbol) {
         const number = new Intl.NumberFormat('en-US', {
@@ -30,9 +33,18 @@ export function formatCurrency(amount: number, currency = 'USD'): string {
         return `${symbol} ${number}`;
     }
 
-    // Unknown currency — fall back to Intl's currency formatting.
-    return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency,
-    }).format(amount);
+    // Unknown currency — try Intl's currency formatting, but never throw: an
+    // invalid code falls back to a plain number prefixed with the raw code.
+    try {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: code,
+        }).format(amount);
+    } catch {
+        const number = new Intl.NumberFormat('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }).format(amount);
+        return `${code} ${number}`.trim();
+    }
 }

@@ -255,7 +255,7 @@ export default function Index({ transactions, categories, chartData }: Props) {
   )];
   const activeCurrency = chartCurrency && chartCurrencies.includes(chartCurrency)
     ? chartCurrency
-    : (chartCurrencies[0] ?? '');
+    : (chartCurrencies[0] ?? 'USD');
 
   const currentChartData = rawChartData.map((d) => ({
     period: d.period,
