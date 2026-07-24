@@ -37,6 +37,9 @@ Route::get('/privacy-policy', function () {
     return Inertia::render('PrivacyPolicy');
 })->name('privacy-policy');
 
+Route::get('/status', [App\Http\Controllers\StatusController::class, 'index'])->name('status');
+Route::get('/status.json', [App\Http\Controllers\StatusController::class, 'check'])->name('status.check');
+
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
