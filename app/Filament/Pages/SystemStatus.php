@@ -39,6 +39,27 @@ class SystemStatus extends Page
         $isDatabaseQueue = config('queue.default') === 'database';
 
         return [
+            Action::make('retryFailed')
+                ->label('Retry failed jobs')
+                ->icon('heroicon-o-arrow-path')
+                ->color('warning')
+                ->requiresConfirmation()
+                ->modalHeading('Retry failed jobs')
+                ->modalDescription('Re-queue every failed job so a worker picks them up again. Needs a running queue worker to process them.')
+                ->visible($isDatabaseQueue)
+                ->badge(fn () => ($count = DB::table('failed_jobs')->count()) > 0 ? $count : null)
+                ->disabled(fn () => DB::table('failed_jobs')->count() === 0)
+                ->action(function () {
+                    $count = DB::table('failed_jobs')->count();
+                    Artisan::call('queue:retry', ['id' => ['all']]);
+
+                    Notification::make()
+                        ->title('Failed jobs re-queued')
+                        ->body($count.' failed job'.($count === 1 ? '' : 's').' pushed back onto the queue.')
+                        ->success()
+                        ->send();
+                }),
+
             Action::make('flushFailed')
                 ->label('Flush failed jobs')
                 ->icon('heroicon-o-trash')
