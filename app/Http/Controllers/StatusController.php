@@ -44,6 +44,11 @@ class StatusController extends Controller
     private function payload(): array
     {
         $components = $this->health->components();
+
+        // Resolve overall from the raw check results, before augmenting rows
+        // with history (uptime/days), which HealthCheck::overall doesn't read.
+        $overall = $this->health->overall($components);
+
         $history = $this->history();
 
         $components = array_map(function (array $component) use ($history) {
@@ -60,7 +65,7 @@ class StatusController extends Controller
 
         return [
             'components' => $components,
-            'overall' => $this->health->overall($components),
+            'overall' => $overall,
             'checkedAt' => now()->toIso8601String(),
             'window' => [
                 'days' => self::WINDOW_DAYS,
