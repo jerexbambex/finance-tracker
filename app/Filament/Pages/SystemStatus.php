@@ -39,6 +39,21 @@ class SystemStatus extends Page
         $isDatabaseQueue = config('queue.default') === 'database';
 
         return [
+            Action::make('recordSnapshot')
+                ->label('Record now')
+                ->icon('heroicon-o-signal')
+                ->color('primary')
+                ->tooltip('Run the health checks and record a data point for the status page uptime history.')
+                ->action(function () {
+                    Artisan::call('status:record');
+
+                    Notification::make()
+                        ->title('Snapshot recorded')
+                        ->body('A status data point was added to the uptime history.')
+                        ->success()
+                        ->send();
+                }),
+
             Action::make('retryFailed')
                 ->label('Retry failed jobs')
                 ->icon('heroicon-o-arrow-path')
