@@ -13,7 +13,7 @@ use Illuminate\Console\Command;
  */
 class BackfillStatusChecks extends Command
 {
-    protected $signature = 'status:backfill {--days=90 : How many days back to fill} {--per-day=3 : Rows to insert per component per day}';
+    protected $signature = 'status:backfill {--days=90 : How many days back to fill} {--per-day=3 : Rows to insert per component per day} {--jitter=0 : Percent chance (0-100) a component-day gets one degraded (amber) result}';
 
     protected $description = 'Seed synthetic status history to populate empty uptime bars';
 
@@ -21,7 +21,9 @@ class BackfillStatusChecks extends Command
     {
         $days = (int) $this->option('days');
         $perDay = max(1, (int) $this->option('per-day'));
+        $jitter = max(0, min(100, (int) $this->option('jitter')));
         $keys = array_column($health->components(), 'key');
+        $degradedCount = 0;
 
         // Days that already have real data — leave those untouched.
         $filled = StatusCheck::query()
@@ -42,11 +44,18 @@ class BackfillStatusChecks extends Command
             }
 
             foreach ($keys as $key) {
+                // Optionally turn one of the day's rows amber so the bar reads
+                // degraded and the uptime % dips a little below 100.
+                $degradedSlot = $jitter > 0 && mt_rand(1, 100) <= $jitter ? mt_rand(0, $perDay - 1) : null;
+
                 for ($n = 0; $n < $perDay; $n++) {
+                    $degraded = $n === $degradedSlot;
+                    $degradedCount += $degraded ? 1 : 0;
+
                     $rows[] = [
                         'component' => $key,
-                        'status' => HealthCheck::OK,
-                        'latency_ms' => round(mt_rand(5, 60) / 10, 1),
+                        'status' => $degraded ? HealthCheck::DEGRADED : HealthCheck::OK,
+                        'latency_ms' => $degraded ? round(mt_rand(600, 1200) / 10, 1) : round(mt_rand(5, 60) / 10, 1),
                         'checked_at' => $date->copy()->startOfDay()->addHours(intdiv(24 * $n, $perDay)),
                     ];
                 }
@@ -63,7 +72,8 @@ class BackfillStatusChecks extends Command
             StatusCheck::insert($chunk);
         }
 
-        $this->info(count($rows).' synthetic row(s) inserted across '.count($keys).' component(s).');
+        $this->info(count($rows).' synthetic row(s) inserted across '.count($keys).' component(s)'
+            .($degradedCount > 0 ? ', '.$degradedCount.' degraded.' : '.'));
 
         return self::SUCCESS;
     }
