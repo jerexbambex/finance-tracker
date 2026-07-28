@@ -65,7 +65,7 @@ class StatusController extends Controller
         // with history (uptime/days), which HealthCheck::overall doesn't read.
         $overall = $this->health->overall($components);
 
-        $history = $this->history();
+        $history = $this->uptimeHistory();
 
         $components = array_map(function (array $component) use ($history) {
             $entry = $history[$component['key']] ?? ['uptime' => null, 'days' => []];
@@ -103,7 +103,7 @@ class StatusController extends Controller
      *
      * @return array<string, array{uptime: float|null, days: array}>
      */
-    private function history(): array
+    private function uptimeHistory(): array
     {
         $from = now()->subDays(self::WINDOW_DAYS - 1)->startOfDay();
 
