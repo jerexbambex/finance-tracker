@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { CheckCircle2, AlertTriangle, XCircle, RefreshCw } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -198,7 +198,16 @@ export default function StatusPage(initial: Props) {
                             </div>
                         </div>
 
-                        <p className="text-center text-sm text-muted-foreground/70 mt-8">
+                        <div className="flex justify-center mt-8">
+                            <Link
+                                href="/status/history"
+                                className="inline-flex items-center gap-2 rounded-lg border border-border/60 bg-background/50 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition"
+                            >
+                                View incident history
+                            </Link>
+                        </div>
+
+                        <p className="text-center text-sm text-muted-foreground/70 mt-6">
                             Last checked {new Date(data.checkedAt).toLocaleTimeString()} · machine-readable status at{' '}
                             <a href="/status.json" className="underline hover:text-foreground">
                                 /status.json

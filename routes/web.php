@@ -38,6 +38,7 @@ Route::get('/privacy-policy', function () {
 })->name('privacy-policy');
 
 Route::get('/status', [App\Http\Controllers\StatusController::class, 'index'])->name('status');
+Route::get('/status/history', [App\Http\Controllers\StatusController::class, 'history'])->name('status.history');
 Route::get('/status.json', [App\Http\Controllers\StatusController::class, 'check'])->name('status.check');
 
 

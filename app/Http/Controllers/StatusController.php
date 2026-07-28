@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\StatusCheck;
 use App\Services\HealthCheck;
+use App\Services\IncidentHistory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Carbon;
 use Inertia\Inertia;
@@ -24,6 +25,21 @@ class StatusController extends Controller
     public function index(): Response
     {
         return Inertia::render('status', $this->payload());
+    }
+
+    /**
+     * Incident history derived from recorded health checks (Inertia).
+     */
+    public function history(IncidentHistory $history): Response
+    {
+        return Inertia::render('status/history', [
+            'months' => $history->months(self::WINDOW_DAYS),
+            'window' => [
+                'days' => self::WINDOW_DAYS,
+                'from' => now()->subDays(self::WINDOW_DAYS - 1)->toDateString(),
+                'to' => now()->toDateString(),
+            ],
+        ]);
     }
 
     /**
