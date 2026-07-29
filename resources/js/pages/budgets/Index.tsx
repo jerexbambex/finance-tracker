@@ -64,6 +64,8 @@ export default function Index({ budgets, categories, currencies, view, available
     amount: '',
     currency: defaultCurrency,
     period_type: 'monthly',
+    period_year: '',
+    period_month: '',
   });
 
   const handleCreate = (e: React.FormEvent) => {
@@ -96,6 +98,8 @@ export default function Index({ budgets, categories, currencies, view, available
       amount: budget.amount.toString(),
       currency: budget.currency,
       period_type: budget.period_type,
+      period_year: budget.period_year.toString(),
+      period_month: budget.period_month?.toString() ?? '',
     });
     setEditOpen(true);
   };
@@ -531,7 +535,16 @@ export default function Index({ budgets, categories, currencies, view, available
             </div>
             <div>
               <Label htmlFor="edit-period">Period Type</Label>
-              <Select value={editForm.data.period_type} onValueChange={(value) => editForm.setData('period_type', value)}>
+              <Select
+                value={editForm.data.period_type}
+                onValueChange={(value) =>
+                  editForm.setData((data) => ({
+                    ...data,
+                    period_type: value,
+                    period_month: value === 'yearly' ? '' : data.period_month || String(editingBudget?.period_month ?? currentPeriod.month),
+                  }))
+                }
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -540,6 +553,9 @@ export default function Index({ budgets, categories, currencies, view, available
                   <SelectItem value="yearly">Yearly</SelectItem>
                 </SelectContent>
               </Select>
+              {editForm.errors.period_type && <p className="text-red-500 text-sm mt-1">{editForm.errors.period_type}</p>}
+              {editForm.errors.period_year && <p className="text-red-500 text-sm mt-1">{editForm.errors.period_year}</p>}
+              {editForm.errors.period_month && <p className="text-red-500 text-sm mt-1">{editForm.errors.period_month}</p>}
             </div>
             <div className="flex gap-2 justify-end">
               <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>
