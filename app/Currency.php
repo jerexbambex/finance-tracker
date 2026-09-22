@@ -43,4 +43,39 @@ enum Currency: string
             self::NGN => '₦',
         };
     }
+
+    /**
+     * Just the currency's name, no symbol — label() bundles the symbol in
+     * for dropdowns; this is for contexts (like a table's secondary line)
+     * that want the name and symbol styled separately.
+     */
+    public function currencyName(): string
+    {
+        return match ($this) {
+            self::USD => 'US Dollar',
+            self::EUR => 'Euro',
+            self::GBP => 'British Pound',
+            self::CAD => 'Canadian Dollar',
+            self::AUD => 'Australian Dollar',
+            self::JPY => 'Japanese Yen',
+            self::CNY => 'Chinese Yuan',
+            self::INR => 'Indian Rupee',
+            self::NGN => 'Nigerian Naira',
+        };
+    }
+
+    public function flag(): string
+    {
+        return match ($this) {
+            self::USD => '🇺🇸',
+            self::EUR => '🇪🇺',
+            self::GBP => '🇬🇧',
+            self::CAD => '🇨🇦',
+            self::AUD => '🇦🇺',
+            self::JPY => '🇯🇵',
+            self::CNY => '🇨🇳',
+            self::INR => '🇮🇳',
+            self::NGN => '🇳🇬',
+        };
+    }
 }
