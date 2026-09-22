@@ -23,18 +23,18 @@ class TransactionObserver
 {
     public function created(Transaction $transaction): void
     {
-        $this->adjust($transaction->account_id, $this->signedDelta($transaction->type, $transaction->transfer_direction, $this->rawCents($transaction)));
+        $this->adjust($transaction->account_id, Transaction::signedBalanceDelta($transaction->type, $transaction->transfer_direction, $this->rawCents($transaction)));
     }
 
     public function updated(Transaction $transaction): void
     {
         // getRawOriginal bypasses the accessor — we need raw cents, not dollars
-        $oldDelta = $this->signedDelta(
+        $oldDelta = Transaction::signedBalanceDelta(
             $transaction->getRawOriginal('type'),
             $transaction->getRawOriginal('transfer_direction'),
             (int) $transaction->getRawOriginal('amount'),
         );
-        $newDelta = $this->signedDelta($transaction->type, $transaction->transfer_direction, $this->rawCents($transaction));
+        $newDelta = Transaction::signedBalanceDelta($transaction->type, $transaction->transfer_direction, $this->rawCents($transaction));
 
         $this->adjust($transaction->getRawOriginal('account_id'), -$oldDelta);
         $this->adjust($transaction->account_id, $newDelta);
@@ -42,21 +42,7 @@ class TransactionObserver
 
     public function deleted(Transaction $transaction): void
     {
-        $this->adjust($transaction->account_id, -$this->signedDelta($transaction->type, $transaction->transfer_direction, $this->rawCents($transaction)));
-    }
-
-    /**
-     * Signed effect (in cents) a transaction has on its account balance.
-     * income/opening add; expense subtracts; transfer uses its leg direction.
-     */
-    private function signedDelta(?string $type, ?string $transferDirection, int $cents): int
-    {
-        return match ($type) {
-            'income', 'opening' => $cents,
-            'expense' => -$cents,
-            'transfer' => $transferDirection === 'in' ? $cents : -$cents,
-            default => 0,
-        };
+        $this->adjust($transaction->account_id, -Transaction::signedBalanceDelta($transaction->type, $transaction->transfer_direction, $this->rawCents($transaction)));
     }
 
     private function adjust(?string $accountId, int $cents): void

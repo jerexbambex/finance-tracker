@@ -41,7 +41,6 @@ Route::get('/status', [App\Http\Controllers\StatusController::class, 'index'])->
 Route::get('/status/history', [App\Http\Controllers\StatusController::class, 'history'])->name('status.history');
 Route::get('/status.json', [App\Http\Controllers\StatusController::class, 'check'])->name('status.check');
 
-
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
 
@@ -62,6 +61,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('insights/ai', [App\Http\Controllers\SpendingInsightsController::class, 'generateAiInsights'])->name('insights.ai');
     Route::get('insights/ai/status', [App\Http\Controllers\SpendingInsightsController::class, 'aiInsightsStatus'])->name('insights.ai.status');
     Route::get('cash-flow', [App\Http\Controllers\CashFlowProjectionController::class, 'index'])->name('cash-flow.index');
+    Route::get('net-worth', [App\Http\Controllers\NetWorthController::class, 'index'])->name('net-worth.index');
     Route::resource('recurring-transactions', RecurringTransactionController::class);
     Route::get('reports', [ReportsController::class, 'index'])->name('reports.index');
     Route::get('reports/pdf', [ReportsController::class, 'pdf'])->name('reports.pdf');

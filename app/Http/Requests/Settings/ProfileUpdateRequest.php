@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Settings;
 
+use App\Currency;
 use App\Models\User;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -26,6 +27,9 @@ class ProfileUpdateRequest extends FormRequest
                 'max:255',
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
+            // sometimes: existing callers (tests, any future API client) that
+            // only send name/email must keep working unchanged.
+            'base_currency' => ['sometimes', 'string', Rule::in(array_column(Currency::cases(), 'value'))],
         ];
     }
 

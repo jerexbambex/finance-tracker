@@ -35,4 +35,11 @@ return [
         ],
     ],
 
+    'exchange_rates' => [
+        // Defaults to open.er-api.com: free, keyless, updated daily, USD-based.
+        // Swap for a paid provider's URL (+ its own key baked into the URL or
+        // added in ExchangeRateProvider) without touching the rest of the app.
+        'url' => env('EXCHANGE_RATE_API_URL', 'https://open.er-api.com/v6/latest/USD'),
+    ],
+
 ];

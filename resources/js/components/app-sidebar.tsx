@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutGrid, Wallet, ArrowUpDown, PieChart, Target, Folder, Settings, TrendingUp, BarChart3, Bell, Repeat, LineChart } from 'lucide-react';
+import { LayoutGrid, Wallet, ArrowUpDown, PieChart, Target, Folder, Settings, TrendingUp, BarChart3, Bell, Repeat, LineChart, Landmark } from 'lucide-react';
 
 import AppearanceToggleDropdown from '@/components/appearance-dropdown';
 import { NavFooter } from '@/components/nav-footer';
@@ -34,6 +34,11 @@ export function AppSidebar() {
             title: 'Accounts',
             href: '/accounts',
             icon: Wallet,
+        },
+        {
+            title: 'Net Worth',
+            href: '/net-worth',
+            icon: Landmark,
         },
         {
             title: 'Transactions',

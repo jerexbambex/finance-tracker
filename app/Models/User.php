@@ -30,6 +30,7 @@ class User extends Authenticatable implements FilamentUser
         'email',
         'password',
         'email_verified_at',
+        'base_currency',
     ];
 
     /**
@@ -101,6 +102,11 @@ class User extends Authenticatable implements FilamentUser
     public function savedFilters()
     {
         return $this->hasMany(SavedFilter::class);
+    }
+
+    public function netWorthSnapshots()
+    {
+        return $this->hasMany(NetWorthSnapshot::class);
     }
 
     public function canAccessPanel(Panel $panel): bool

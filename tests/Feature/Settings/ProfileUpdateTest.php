@@ -33,6 +33,37 @@ test('profile information can be updated', function () {
     expect($user->email_verified_at)->toBeNull();
 });
 
+test('base currency can be updated', function () {
+    $user = User::factory()->create(['base_currency' => 'USD']);
+
+    $this
+        ->actingAs($user)
+        ->patch(route('profile.update'), [
+            'name' => $user->name,
+            'email' => $user->email,
+            'base_currency' => 'NGN',
+        ])
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('profile.edit'));
+
+    expect($user->refresh()->base_currency)->toBe('NGN');
+});
+
+test('an unknown base currency is rejected', function () {
+    $user = User::factory()->create(['base_currency' => 'USD']);
+
+    $this
+        ->actingAs($user)
+        ->patch(route('profile.update'), [
+            'name' => $user->name,
+            'email' => $user->email,
+            'base_currency' => 'XYZ',
+        ])
+        ->assertSessionHasErrors('base_currency');
+
+    expect($user->refresh()->base_currency)->toBe('USD');
+});
+
 test('email verification status is unchanged when the email address is unchanged', function () {
     $user = User::factory()->create();
 

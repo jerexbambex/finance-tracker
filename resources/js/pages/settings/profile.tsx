@@ -21,12 +21,19 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
+interface CurrencyOption {
+    value: string;
+    label: string;
+}
+
 export default function Profile({
     mustVerifyEmail,
     status,
+    currencies,
 }: {
     mustVerifyEmail: boolean;
     status?: string;
+    currencies: CurrencyOption[];
 }) {
     const { auth } = usePage<SharedData>().props;
 
@@ -88,6 +95,31 @@ export default function Profile({
                                     <InputError
                                         className="mt-2"
                                         message={errors.email}
+                                    />
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label htmlFor="base_currency">Net worth currency</Label>
+
+                                    <select
+                                        id="base_currency"
+                                        name="base_currency"
+                                        defaultValue={auth.user.base_currency}
+                                        className="border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] md:text-sm"
+                                    >
+                                        {currencies.map((currency) => (
+                                            <option key={currency.value} value={currency.value}>
+                                                {currency.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <p className="text-sm text-muted-foreground">
+                                        Balances in other currencies are converted into this one on your Net Worth page.
+                                    </p>
+
+                                    <InputError
+                                        className="mt-2"
+                                        message={errors.base_currency}
                                     />
                                 </div>
 

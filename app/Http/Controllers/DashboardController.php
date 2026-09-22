@@ -4,17 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Currency;
 use App\Models\Category;
+use App\Services\CurrencyConverter;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
-    public function __invoke(Request $request)
+    public function __invoke(Request $request, CurrencyConverter $converter)
     {
         $user = auth()->user();
 
         $accounts = $user->accounts()->where('is_active', true)->get();
         $balancesByCurrency = $accounts->groupBy('currency')->map(fn ($accts) => $accts->sum('balance'));
+
+        $baseCurrency = $user->base_currency ?: 'USD';
+        $netWorth = $converter->sumTo($balancesByCurrency->all(), $baseCurrency);
 
         $recentTransactions = $user->transactions()
             ->with(['account', 'category'])
@@ -142,6 +146,15 @@ class DashboardController extends Controller
         return Inertia::render('dashboard', [
             'accounts' => $accounts,
             'balancesByCurrency' => $balancesByCurrency,
+            'netWorth' => [
+                'total' => round($netWorth['total'], 2),
+                'baseCurrency' => $baseCurrency,
+                'excludedCurrencies' => $netWorth['excluded'],
+                // More than one currency in play, or one that couldn't be
+                // converted, is when the converted figure adds information
+                // beyond the per-currency breakdown already shown.
+                'showConverted' => count($balancesByCurrency) > 1,
+            ],
             'recentTransactions' => $recentTransactions,
             'incomeByCurrency' => $incomeByCurrency,
             'expensesByCurrency' => $expensesByCurrency,

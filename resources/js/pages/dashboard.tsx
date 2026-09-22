@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { ArrowUpRight, ArrowDownRight, TrendingUp, Wallet, Clock } from 'lucide-react';
 import { useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, PieChart, Pie, Cell } from 'recharts';
@@ -84,9 +84,17 @@ interface Reminder {
     category?: { name: string; color?: string };
 }
 
+interface NetWorth {
+    total: number;
+    baseCurrency: string;
+    excludedCurrencies: string[];
+    showConverted: boolean;
+}
+
 interface Props {
     accounts: Account[];
     balancesByCurrency: Record<string, number>;
+    netWorth: NetWorth;
     recentTransactions: Transaction[];
     incomeByCurrency: Record<string, number>;
     expensesByCurrency: Record<string, number>;
@@ -100,7 +108,7 @@ interface Props {
     currencies: Record<string, { symbol: string; label: string }>;
 }
 
-export default function Dashboard({ accounts, balancesByCurrency, recentTransactions, incomeByCurrency, expensesByCurrency, categorySpending, monthlyTrend, budgets, budgetAlerts, goals, categories, upcomingReminders }: Props) {
+export default function Dashboard({ accounts, balancesByCurrency, netWorth, recentTransactions, incomeByCurrency, expensesByCurrency, categorySpending, monthlyTrend, budgets, budgetAlerts, goals, categories, upcomingReminders }: Props) {
     const primaryCurrency = Object.keys(balancesByCurrency)[0] ?? 'USD';
 
     const trendCurrencies = [...new Set(
@@ -176,9 +184,25 @@ export default function Dashboard({ accounts, balancesByCurrency, recentTransact
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold font-mono tabular-nums">{formatCurrencyGroup(balancesByCurrency)}</div>
-                            <p className="text-xs text-muted-foreground mt-1">
-                                {accounts.length} account{accounts.length !== 1 ? 's' : ''}
-                            </p>
+                            {netWorth.showConverted && (
+                                <p className="text-xs text-muted-foreground mt-1 font-mono tabular-nums">
+                                    ≈ {formatCurrency(netWorth.total, netWorth.baseCurrency)} net worth
+                                    {netWorth.excludedCurrencies.length > 0 && ' *'}
+                                </p>
+                            )}
+                            <div className="flex items-center justify-between mt-1">
+                                <p className="text-xs text-muted-foreground">
+                                    {accounts.length} account{accounts.length !== 1 ? 's' : ''}
+                                </p>
+                                <Link href="/net-worth" className="text-xs text-primary hover:underline">
+                                    View trend →
+                                </Link>
+                            </div>
+                            {netWorth.excludedCurrencies.length > 0 && (
+                                <p className="text-[10px] text-muted-foreground mt-1">
+                                    * excludes {netWorth.excludedCurrencies.join(', ')} — no exchange rate on file
+                                </p>
+                            )}
                         </CardContent>
                     </Card>
 

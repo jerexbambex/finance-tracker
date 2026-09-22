@@ -52,6 +52,23 @@ class Transaction extends Model implements HasMedia
         $this->attributes['amount'] = (int) round($value * 100);
     }
 
+    /**
+     * Signed effect (in cents) a transaction of this shape has on its
+     * account's balance: income/opening add, expense subtracts, transfer
+     * uses its leg direction. This is the single source of truth for that
+     * rule — TransactionObserver applies it live, NetWorthReconstructor
+     * replays it over history, and they must never disagree.
+     */
+    public static function signedBalanceDelta(?string $type, ?string $transferDirection, int $cents): int
+    {
+        return match ($type) {
+            'income', 'opening' => $cents,
+            'expense' => -$cents,
+            'transfer' => $transferDirection === 'in' ? $cents : -$cents,
+            default => 0,
+        };
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);
