@@ -2,7 +2,7 @@
 
 ## 📋 What Was Done
 
-I analyzed both reference sites (Laravel AI and Plane.so) and redesigned your Budget App landing page with inspiration from their best design patterns.
+I analyzed both reference sites (Laravel AI and Plane.so) and redesigned your Penniepal landing page with inspiration from their best design patterns.
 
 ---
 
@@ -22,7 +22,7 @@ I analyzed both reference sites (Laravel AI and Plane.so) and redesigned your Bu
 
 ### 1. **Hero Section**
 - ✅ New headline: "Financial management for people who **actually want to save**"
-- ✅ Updated value prop: "Budget App replaces spreadsheets, expense trackers, and goal planners with one unified workspace"
+- ✅ Updated value prop: "Penniepal replaces spreadsheets, expense trackers, and goal planners with one unified workspace"
 - ✅ Added "REPLACES" section showing: Excel, Mint, YNAB, Personal Capital, EveryDollar
 
 ### 2. **Stats Section**

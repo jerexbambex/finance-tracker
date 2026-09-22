@@ -102,7 +102,7 @@ function IncidentRow({ incident }: { incident: Incident }) {
 export default function StatusHistoryPage({ months }: Props) {
     return (
         <>
-            <Head title="Incident History - BudgetApp" />
+            <Head title="Incident History - Penniepal" />
 
             <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/20 selection:text-primary relative overflow-hidden">
                 <div className="absolute top-0 inset-x-0 h-screen overflow-hidden -z-10 pointer-events-none">

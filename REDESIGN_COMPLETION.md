@@ -4,7 +4,7 @@
 
 ### 1. Hero Section Updates
 - **Changed headline** from "Master your money with clarity and confidence" to "Financial management for people who actually want to save"
-- **Updated value proposition** to emphasize replacing multiple tools: "Budget App replaces spreadsheets, expense trackers, and goal planners with one unified workspace"
+- **Updated value proposition** to emphasize replacing multiple tools: "Penniepal replaces spreadsheets, expense trackers, and goal planners with one unified workspace"
 - **Added "REPLACES" section** showing: Excel Spreadsheets, Mint, YNAB, Personal Capital, EveryDollar
 - **Replaced trust indicators with outcome-focused stats:**
   - 73% Less time on finances
@@ -27,7 +27,7 @@
 ### 4. Testimonials Enhancement
 - **Expanded from 3 to 6 testimonials** with specific outcomes
 - **New testimonials include:**
-  - "I've tried Mint, YNAB, and Personal Capital. Budget App is the only one I actually stuck with."
+  - "I've tried Mint, YNAB, and Personal Capital. Penniepal is the only one I actually stuck with."
   - "Finally hit my emergency fund goal after 3 months..."
   - "My wife and I can finally see our shared expenses..."
   - "As a freelancer with irregular income..."
@@ -70,7 +70,7 @@
 
 ## 📊 Key Improvements
 
-1. **Clearer Positioning**: Immediately shows what Budget App replaces
+1. **Clearer Positioning**: Immediately shows what Penniepal replaces
 2. **Better Engagement**: Interactive tabs increase time on page
 3. **Stronger Social Proof**: 6 detailed testimonials vs 3 generic ones
 4. **More Relatable**: Use case tabs help users see themselves using it

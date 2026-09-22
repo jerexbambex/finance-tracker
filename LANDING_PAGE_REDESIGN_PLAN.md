@@ -59,7 +59,7 @@ create budgets, and achieve your goals with beautiful, intuitive tools."
 
 #### After:
 ```
-"Budget App replaces spreadsheets, expense trackers, and goal planners 
+"Penniepal replaces spreadsheets, expense trackers, and goal planners 
 with one unified workspace. Zero bloat, zero complexity—just clarity."
 ```
 
@@ -73,7 +73,7 @@ with one unified workspace. Zero bloat, zero complexity—just clarity."
 
 ### 3. "Replaces" Section (NEW)
 
-Added a new section showing competitor tools that Budget App replaces:
+Added a new section showing competitor tools that Penniepal replaces:
 
 ```
 REPLACES
@@ -181,7 +181,7 @@ Added interactive tabbed section with three personas:
 - More diverse user roles
 
 **Examples:**
-- "I've tried Mint, YNAB, and Personal Capital. Budget App is the only one I actually stuck with."
+- "I've tried Mint, YNAB, and Personal Capital. Penniepal is the only one I actually stuck with."
 - "Finally hit my emergency fund goal after 3 months. The visual progress tracking kept me motivated."
 - "My wife and I can finally see our shared expenses without awkward money conversations."
 
@@ -317,7 +317,7 @@ const [activeTab, setActiveTab] = useState<'personal' | 'freelance' | 'family'>(
 
 The redesign is successful if:
 
-1. ✅ **Clearer positioning** - Users immediately understand what Budget App replaces
+1. ✅ **Clearer positioning** - Users immediately understand what Penniepal replaces
 2. ✅ **Better engagement** - Interactive tabs increase time on page
 3. ✅ **Stronger social proof** - 6 detailed testimonials vs 3 generic ones
 4. ✅ **More relatable** - Use case tabs help users see themselves using it

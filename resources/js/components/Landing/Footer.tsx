@@ -43,7 +43,7 @@ export default function Footer() {
                             <div className="h-8 w-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center font-bold text-xl">
                                 B
                             </div>
-                            <span className="font-bold text-xl tracking-tight">BudgetApp</span>
+                            <span className="font-bold text-xl tracking-tight">Penniepal</span>
                         </div>
                         <p className="text-muted-foreground mb-6 max-w-xs">
                             The intelligent financial operating system for your personal wealth.
@@ -95,7 +95,7 @@ export default function Footer() {
                 </div>
 
                 <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
-                    <p>© 2024 BudgetApp Inc. All rights reserved.</p>
+                    <p>© 2024 Penniepal Inc. All rights reserved.</p>
                     <div className="flex gap-8">
                         <span>Made with ❤️ for financial freedom.</span>
                     </div>

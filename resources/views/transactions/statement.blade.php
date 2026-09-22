@@ -50,7 +50,7 @@
 </head>
 <body>
     <div class="header">
-        <span class="brand">Budget App</span>
+        <span class="brand">Penniepal</span>
         <h1>Transaction Statement</h1>
         <p class="meta">
             {{ $rangeLabel }}

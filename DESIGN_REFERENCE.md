@@ -1,6 +1,6 @@
 # Design Reference Guide - Laravel AI & Plane.so
 
-This document captures the key design elements and patterns from both reference sites that inspired the Budget App landing page redesign.
+This document captures the key design elements and patterns from both reference sites that inspired the Penniepal landing page redesign.
 
 ---
 
@@ -35,9 +35,9 @@ Colors:
 **Subheading:**
 > "Laravel AI SDK gives you the power to build complete AI‑native applications in a single first‑party package."
 
-**Pattern Applied to Budget App:**
+**Pattern Applied to Penniepal:**
 - "Financial management for people who actually want to save"
-- "Budget App replaces spreadsheets, expense trackers, and goal planners with one unified workspace"
+- "Penniepal replaces spreadsheets, expense trackers, and goal planners with one unified workspace"
 
 ---
 
@@ -65,7 +65,7 @@ Visual Elements:
 - "As eloquent as Laravel"
 - "Testing tools included"
 
-**Pattern Applied to Budget App:**
+**Pattern Applied to Penniepal:**
 - "One workspace with batteries included"
 - Feature cards with icons and descriptions
 - Hover effects on cards
@@ -84,7 +84,7 @@ Elements:
 - Line numbers and comments
 ```
 
-**Pattern Applied to Budget App:**
+**Pattern Applied to Penniepal:**
 - Dashboard preview with browser chrome
 - Three-dot window controls (red, yellow, green)
 - Address bar with lock icon
@@ -163,7 +163,7 @@ Typography:
 **Alternative Headlines:**
 > "Project management for teams that won't slow down for their software"
 
-**Pattern Applied to Budget App:**
+**Pattern Applied to Penniepal:**
 - "Financial management for people who actually want to save"
 - Direct, personality-driven copy
 - Challenges the status quo
@@ -189,7 +189,7 @@ Visual Style:
 - Replaces: Notion, Google Docs, Confluence, Coda
 - Replaces: ChatGPT, Claude, Rovo, ClickUp Brain
 
-**Pattern Applied to Budget App:**
+**Pattern Applied to Penniepal:**
 ```
 REPLACES
 [Excel Spreadsheets] [Mint] [YNAB] [Personal Capital] [EveryDollar]
@@ -221,7 +221,7 @@ Interaction:
 4. **Agile** - "Ship predictably when your team stops context-switching"
 5. **Design** - "Move designs forward without waiting days for feedback"
 
-**Pattern Applied to Budget App:**
+**Pattern Applied to Penniepal:**
 1. **Personal Finance** - "Stop wondering where your money went"
 2. **Freelancers** - "Manage irregular income like a pro"
 3. **Families** - "Get everyone on the same financial page"
@@ -250,7 +250,7 @@ Visual Style:
 - "75% lesser status meetings"
 - "83% fewer internal Slack threads"
 
-**Pattern Applied to Budget App:**
+**Pattern Applied to Penniepal:**
 - "73% Less time on finances"
 - "$ 2.4K Average savings increase"
 - "4.9/5 User satisfaction"
@@ -277,8 +277,8 @@ Content Style:
 > "I'm honestly just running away from Jira and its thousand-plugin circus. What I really want is simple: subtasks that behave like actual children of a task, not thousands of separate issues flooding my board like they do in Jira. I loveeee Plane where subtasks stay neatly under their parent, have their own work logs, and let me choose different subtask types so easily."
 > — Lucas, Recovering Jira survivor
 
-**Pattern Applied to Budget App:**
-> "I've tried Mint, YNAB, and Personal Capital. Budget App is the only one I actually stuck with. The UI is gorgeous and it just works."
+**Pattern Applied to Penniepal:**
+> "I've tried Mint, YNAB, and Personal Capital. Penniepal is the only one I actually stuck with. The UI is gorgeous and it just works."
 > — Alex Dore, Freelance Designer
 
 ---
@@ -309,7 +309,7 @@ CSS:
 }
 ```
 
-**Pattern Applied to Budget App:**
+**Pattern Applied to Penniepal:**
 - Feature grid with varying sizes
 - Smart Budgeting: 2x2 (large)
 - Goal Tracking: 1x1
@@ -339,7 +339,7 @@ Visual Style:
 > "Why are you still putting up with legacy tools?"
 > [Switch to Plane] [Talk to Sales]
 
-**Pattern Applied to Budget App:**
+**Pattern Applied to Penniepal:**
 > "Why are you still using spreadsheets?"
 > "Start managing money the way it should be. Free forever, no credit card required."
 > [Get Started Free] [Sign In]
@@ -517,7 +517,7 @@ Text: Black / White
 Borders: Strong, visible borders
 ```
 
-### Budget App (Current)
+### Penniepal (Current)
 ```
 Primary: Orange/Red (customizable)
 Background: White / Black
@@ -621,7 +621,7 @@ Borders: Subtle to medium
 5. ✅ Strong visual hierarchy with borders
 6. ✅ Confident, action-oriented copy
 
-### Applied to Budget App:
+### Applied to Penniepal:
 1. ✅ Direct, personality-driven headlines
 2. ✅ Clear positioning against alternatives
 3. ✅ Persona-specific content (Personal/Freelance/Family)
@@ -631,4 +631,4 @@ Borders: Subtle to medium
 
 ---
 
-**This reference guide captures the design DNA of both sites and shows how their best patterns were adapted for Budget App's landing page redesign.**
+**This reference guide captures the design DNA of both sites and shows how their best patterns were adapted for Penniepal's landing page redesign.**

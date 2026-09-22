@@ -8,7 +8,7 @@ export default function CookieConsent() {
 
     useEffect(() => {
         // Check if user has already consented
-        const consent = localStorage.getItem('budgetapp_cookie_consent');
+        const consent = localStorage.getItem('penniepal_cookie_consent');
         if (!consent) {
             // Slight delay to not overwhelm the user immediately
             const timer = setTimeout(() => setIsVisible(true), 1500);
@@ -17,12 +17,12 @@ export default function CookieConsent() {
     }, []);
 
     const handleAccept = () => {
-        localStorage.setItem('budgetapp_cookie_consent', 'accepted');
+        localStorage.setItem('penniepal_cookie_consent', 'accepted');
         setIsVisible(false);
     };
 
     const handleDecline = () => {
-        localStorage.setItem('budgetapp_cookie_consent', 'declined');
+        localStorage.setItem('penniepal_cookie_consent', 'declined');
         setIsVisible(false);
     };
 

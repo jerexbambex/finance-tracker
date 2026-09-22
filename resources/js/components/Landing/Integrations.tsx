@@ -52,7 +52,7 @@ export default function Integrations() {
                             ))}
                         </div>
                         <div className="text-center mt-8 p-4 bg-primary/10 rounded-xl border border-primary/20">
-                            <code className="text-sm font-mono text-primary">npm install @budget-app/sdk</code>
+                            <code className="text-sm font-mono text-primary">npm install @penniepal/sdk</code>
                         </div>
                     </div>
                 </div>

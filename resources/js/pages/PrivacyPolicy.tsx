@@ -8,7 +8,7 @@ import Navbar from '@/components/Landing/Navbar';
 export default function PrivacyPolicy() {
     return (
         <>
-            <Head title="Privacy Policy - BudgetApp" />
+            <Head title="Privacy Policy - Penniepal" />
 
             <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/20 selection:text-primary relative overflow-hidden">
                 {/* Background Ambient Effects */}
@@ -57,7 +57,7 @@ export default function PrivacyPolicy() {
                                     </div>
                                     <div className="md:w-3/4 space-y-4 text-muted-foreground">
                                         <p>
-                                            When you use BudgetApp, we only collect what's necessary to provide you with a world-class financial experience. This includes:
+                                            When you use Penniepal, we only collect what's necessary to provide you with a world-class financial experience. This includes:
                                         </p>
                                         <ul className="space-y-3 list-none pl-0">
                                             <li className="flex gap-3">
@@ -88,7 +88,7 @@ export default function PrivacyPolicy() {
                                     </div>
                                     <div className="md:w-3/4 space-y-4 text-muted-foreground">
                                         <p>
-                                            Your data is your property. We only process it to make BudgetApp work for you:
+                                            Your data is your property. We only process it to make Penniepal work for you:
                                         </p>
                                         <div className="grid sm:grid-cols-2 gap-4 mt-4">
                                             <div className="bg-muted/50 rounded-xl p-4 border border-border/50">
@@ -173,11 +173,11 @@ export default function PrivacyPolicy() {
                         <div className="mt-12 text-center">
                             <h3 className="text-xl font-semibold text-foreground mb-4">Have privacy concerns?</h3>
                             <a
-                                href="mailto:privacy@budgetapp.com"
+                                href="mailto:privacy@penniepal.com"
                                 className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-card border border-border hover:border-emerald-500/50 hover:bg-muted/50 transition-all text-muted-foreground hover:text-foreground group shadow-sm"
                             >
                                 <Mail className="w-5 h-5 text-emerald-500 group-hover:scale-110 transition-transform" />
-                                privacy@budgetapp.com
+                                privacy@penniepal.com
                             </a>
                         </div>
 

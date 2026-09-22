@@ -35,7 +35,7 @@ export default function Navbar() {
                         <Wallet className="h-5 w-5" strokeWidth={2} />
                     </div>
                     <span className="text-xl font-bold tracking-tight text-foreground">
-                        Budget App
+                        Penniepal
                     </span>
                 </Link>
 

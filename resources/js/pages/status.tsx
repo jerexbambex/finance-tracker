@@ -132,7 +132,7 @@ export default function StatusPage(initial: Props) {
 
     return (
         <>
-            <Head title="System Status - BudgetApp" />
+            <Head title="System Status - Penniepal" />
 
             <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/20 selection:text-primary relative overflow-hidden">
                 <div className="absolute top-0 inset-x-0 h-screen overflow-hidden -z-10 pointer-events-none">

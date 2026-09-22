@@ -1,4 +1,4 @@
-# Budget App
+# Penniepal
 
 A modern personal finance management application built with Laravel and React.
 

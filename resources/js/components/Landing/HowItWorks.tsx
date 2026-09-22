@@ -67,7 +67,7 @@ export default function HowItWorks() {
                             transition={{ delay: 0.12 }}
                             className="mt-5 max-w-xl text-lg leading-relaxed text-muted-foreground"
                         >
-                            Onboarding should feel like making progress, not filling out forms. Budget App guides users through the few details needed to make the dashboard useful right away.
+                            Onboarding should feel like making progress, not filling out forms. Penniepal guides users through the few details needed to make the dashboard useful right away.
                         </motion.p>
 
                         <div className="mt-8 space-y-4">

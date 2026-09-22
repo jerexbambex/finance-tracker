@@ -232,7 +232,7 @@ export default function Hero() {
                         transition={{ duration: 0.45, delay: 0.16 }}
                         className="mx-auto max-w-2xl text-lg leading-relaxed text-muted-foreground"
                     >
-                        Budget App replaces scattered spreadsheets with the same focused workspace users see after sign in: balances, income, expenses, budgets, goals, reminders, and recent activity in one view.
+                        Penniepal replaces scattered spreadsheets with the same focused workspace users see after sign in: balances, income, expenses, budgets, goals, reminders, and recent activity in one view.
                     </motion.p>
 
                     <motion.div
@@ -282,7 +282,7 @@ export default function Hero() {
                                     <div className="flex h-8 w-8 items-center justify-center rounded-md bg-emerald-500 text-white">
                                         <Wallet className="h-4 w-4" />
                                     </div>
-                                    <span className="text-sm font-semibold dark:text-slate-100">Budget App</span>
+                                    <span className="text-sm font-semibold dark:text-slate-100">Penniepal</span>
                                 </div>
 
                                 <div className="space-y-7">

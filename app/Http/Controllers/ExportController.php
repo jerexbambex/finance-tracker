@@ -148,7 +148,7 @@ class ExportController extends Controller
     public function allData()
     {
         $user = auth()->user();
-        $filename = 'budget_app_backup_'.now()->format('Y-m-d_His').'.json';
+        $filename = 'penniepal_backup_'.now()->format('Y-m-d_His').'.json';
 
         $callback = function () use ($user) {
             $out = fopen('php://output', 'w');

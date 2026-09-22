@@ -35,3 +35,16 @@ createInertiaApp({
 
 // This will set light / dark mode on load...
 initializeTheme();
+
+// Register the service worker for installability + faster repeat asset
+// loads. Production only — in dev it would fight Vite's own HMR/asset
+// serving. It never caches page/API data (see public/sw.js), so this is
+// purely a UX/perf layer, not an offline-data feature.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {
+            // Installability/perf is a nice-to-have, not load-bearing —
+            // a failed registration shouldn't surface to the user.
+        });
+    });
+}

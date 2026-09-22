@@ -76,7 +76,7 @@
 </head>
 <body>
     <div class="header">
-        <span class="brand">Budget App</span>
+        <span class="brand">Penniepal</span>
         <h1>Financial Report</h1>
         <p class="range">{{ $rangeLabel }}</p>
         <p class="generated">Generated {{ $generatedAt->format('M j, Y \a\t g:i A') }}</p>
