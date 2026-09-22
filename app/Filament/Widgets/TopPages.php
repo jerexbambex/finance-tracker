@@ -17,18 +17,24 @@ class TopPages extends TableWidget
 
     public function table(Table $table): Table
     {
+        // Filament's table appends its own ORDER BY (a primary-key tiebreak
+        // for stable sorting, plus whatever column a user clicks to sort by)
+        // on top of whatever query() returns. Against a bare GROUP BY query
+        // that tiebreak — `order by ... page_visits.id` — isn't itself
+        // aggregated or in the GROUP BY, which MySQL's default
+        // ONLY_FULL_GROUP_BY mode rejects outright (SQLite, which the test
+        // suite runs on, has no such restriction and stays quiet about it).
+        // Wrapping the aggregate as a subquery sidesteps this: at the outer
+        // level `id`/`visits`/`visitors` are just plain columns of an
+        // already-computed result, so any ORDER BY Filament adds is valid
+        // regardless of what it orders by.
+        $aggregate = PageVisit::query()
+            ->selectRaw('MIN(id) as id, path, route_name, COUNT(*) as visits, COUNT(DISTINCT visitor_hash) as visitors')
+            ->where('visited_at', '>=', now()->subDays(30))
+            ->groupBy('path', 'route_name');
+
         return $table
-            ->query(
-                // MIN(id) doubles as this grouped row's primary key — Filament's
-                // table needs one per row (for the row's Livewire key), and a
-                // GROUP BY query has no natural single id otherwise.
-                PageVisit::query()
-                    ->selectRaw('MIN(id) as id, path, route_name, COUNT(*) as visits, COUNT(DISTINCT visitor_hash) as visitors')
-                    ->where('visited_at', '>=', now()->subDays(30))
-                    ->groupBy('path', 'route_name')
-                    ->orderByDesc('visits')
-                    ->limit(15)
-            )
+            ->query(PageVisit::query()->fromSub($aggregate, 'page_visits')->orderByDesc('visits')->limit(15))
             ->heading('Top Pages (last 30 days)')
             ->paginated(false)
             ->columns([
