@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\PageVisit;
 use App\Models\StatusCheck;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -29,4 +30,11 @@ Schedule::command('status:record')->everyFiveMinutes()->withoutOverlapping();
 // Keep ~90 days of history; drop anything older.
 Schedule::call(function () {
     StatusCheck::where('checked_at', '<', now()->subDays(95))->delete();
+})->daily();
+
+// Same retention for the page-visit log the admin visitors widgets read —
+// it's an event log (one row per page view), not a value worth keeping
+// indefinitely.
+Schedule::call(function () {
+    PageVisit::where('visited_at', '<', now()->subDays(90))->delete();
 })->daily();
