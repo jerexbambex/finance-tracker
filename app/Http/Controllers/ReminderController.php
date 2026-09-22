@@ -5,12 +5,13 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\ScopesOwnership;
 use App\Models\Category;
 use App\Models\Reminder;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class ReminderController extends Controller
 {
-    use ScopesOwnership;
+    use AuthorizesRequests, ScopesOwnership;
 
     public function index()
     {
@@ -47,6 +48,20 @@ class ReminderController extends Controller
         })->where('is_active', true)->get();
 
         return Inertia::render('reminders/Create', [
+            'categories' => $categories,
+        ]);
+    }
+
+    public function edit(Reminder $reminder)
+    {
+        $this->authorize('update', $reminder);
+
+        $categories = Category::where(function ($q) {
+            $q->whereNull('user_id')->orWhere('user_id', auth()->id());
+        })->where('is_active', true)->get();
+
+        return Inertia::render('reminders/Edit', [
+            'reminder' => $reminder,
             'categories' => $categories,
         ]);
     }

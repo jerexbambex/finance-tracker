@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Bell, Check, Plus, Trash2 } from 'lucide-react';
+import { Bell, Check, Pencil, Plus, Trash2 } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -87,6 +87,11 @@ export default function Index({ reminders }: Props) {
             <Check className="h-4 w-4" />
           </Button>
         )}
+        <Link href={`/reminders/${reminder.id}/edit`}>
+          <Button size="sm" variant="outline">
+            <Pencil className="h-4 w-4" />
+          </Button>
+        </Link>
         <Button
           size="sm"
           variant="ghost"
