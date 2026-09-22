@@ -1,6 +1,6 @@
-import { Head, useForm, router, Link } from '@inertiajs/react';
-import { Wallet, TrendingDown, AlertCircle, ChevronLeft, ChevronRight, Lightbulb } from 'lucide-react';
-import { useState } from 'react';
+import { Head, useForm, router, Link, usePage } from '@inertiajs/react';
+import { Wallet, TrendingDown, AlertCircle, CheckCircle, ChevronLeft, ChevronRight, Lightbulb, Copy, RefreshCw } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell } from 'recharts';
 
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency } from '@/lib/formatCurrency';
 
@@ -24,6 +25,7 @@ interface Budget {
   period_year: number;
   period_month: number | null;
   currency: string;
+  auto_rollover: boolean;
 }
 
 interface Category {
@@ -43,9 +45,15 @@ interface Props {
   view: 'all' | 'period';
   availableYears: number[];
   currentPeriod: { year: number; month: number };
+  previousPeriod: { year: number; month: number; label: string; count: number };
 }
 
-export default function Index({ budgets, categories, currencies, view, availableYears, currentPeriod }: Props) {
+export default function Index({ budgets, categories, currencies, view, availableYears, currentPeriod, previousPeriod }: Props) {
+  const { flash } = usePage().props as { flash?: { success?: string } };
+  // Track the dismissed message rather than a visibility flag, so a fresh
+  // flash with the same text still shows without syncing state in an effect.
+  const [dismissed, setDismissed] = useState<string | null>(null);
+  const showSuccess = !!flash?.success && dismissed !== flash.success;
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
@@ -57,6 +65,7 @@ export default function Index({ budgets, categories, currencies, view, available
     amount: '',
     currency: defaultCurrency,
     period_type: 'monthly',
+    auto_rollover: true as boolean,
   });
 
   const editForm = useForm({
@@ -66,6 +75,7 @@ export default function Index({ budgets, categories, currencies, view, available
     period_type: 'monthly',
     period_year: '',
     period_month: '',
+    auto_rollover: true as boolean,
   });
 
   const handleCreate = (e: React.FormEvent) => {
@@ -100,8 +110,30 @@ export default function Index({ budgets, categories, currencies, view, available
       period_type: budget.period_type,
       period_year: budget.period_year.toString(),
       period_month: budget.period_month?.toString() ?? '',
+      auto_rollover: budget.auto_rollover,
     });
     setEditOpen(true);
+  };
+
+  useEffect(() => {
+    const message = flash?.success;
+    if (!message) {
+      return;
+    }
+
+    const timer = setTimeout(() => setDismissed(message), 4000);
+    return () => clearTimeout(timer);
+  }, [flash?.success]);
+
+  // Pull the previous month's budgets into the period being viewed. Categories
+  // already budgeted here are left alone, so this is safe to click twice.
+  const copyFromPrevious = () => {
+    router.post('/budgets/copy', {
+      from_year: previousPeriod.year,
+      from_month: previousPeriod.month,
+      to_year: currentPeriod.year,
+      to_month: currentPeriod.month,
+    }, { preserveScroll: true });
   };
 
   const navigatePeriod = (direction: 'prev' | 'next') => {
@@ -168,6 +200,12 @@ export default function Index({ budgets, categories, currencies, view, available
           <div className="flex-1">
             <CardTitle className="text-xl">{budget.category.name}</CardTitle>
             <p className="text-xs text-muted-foreground capitalize mt-1">{budget.period_type}</p>
+            {!budget.auto_rollover && (
+              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                <RefreshCw className="h-3 w-3" />
+                Won&apos;t carry forward
+              </p>
+            )}
           </div>
           <Button variant="ghost" size="sm" onClick={() => openEditModal(budget)}>
             Edit
@@ -228,6 +266,13 @@ export default function Index({ budgets, categories, currencies, view, available
       
       <div className="py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {showSuccess && (
+            <div className="mb-4 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-2 dark:bg-green-950/30 dark:border-green-900">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              <p className="text-green-800 dark:text-green-300">{flash?.success}</p>
+            </div>
+          )}
+
           <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
               <h1 className="text-2xl sm:text-3xl font-bold">Budgets</h1>
@@ -285,6 +330,12 @@ export default function Index({ budgets, categories, currencies, view, available
               )}
             </div>
             <div className="flex gap-2">
+              {view === 'period' && previousPeriod.count > 0 && (
+                <Button variant="outline" onClick={copyFromPrevious}>
+                  <Copy className="h-4 w-4 mr-2" />
+                  Copy from {previousPeriod.label}
+                </Button>
+              )}
               <Link href="/budgets/recommendations">
                 <Button variant="outline">
                   <Lightbulb className="h-4 w-4 mr-2" />
@@ -407,7 +458,15 @@ export default function Index({ budgets, categories, currencies, view, available
                 <p className="text-gray-500 mb-4">
                   {view === 'period' ? 'No budgets set for this period' : 'No budgets yet'}
                 </p>
-                <Button onClick={() => setCreateOpen(true)}>Create Your First Budget</Button>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {view === 'period' && previousPeriod.count > 0 && (
+                    <Button variant="outline" onClick={copyFromPrevious}>
+                      <Copy className="h-4 w-4 mr-2" />
+                      Copy {previousPeriod.count} budget{previousPeriod.count === 1 ? '' : 's'} from {previousPeriod.label}
+                    </Button>
+                  )}
+                  <Button onClick={() => setCreateOpen(true)}>Create Your First Budget</Button>
+                </div>
               </CardContent>
             </Card>
           )}
@@ -473,6 +532,19 @@ export default function Index({ budgets, categories, currencies, view, available
                   <SelectItem value="yearly">Yearly</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="flex items-start justify-between gap-4 rounded-lg border border-border/55 p-3">
+              <div>
+                <Label htmlFor="create-auto-rollover" className="cursor-pointer">Carry forward each period</Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Recreate this budget automatically when a new period starts.
+                </p>
+              </div>
+              <Switch
+                id="create-auto-rollover"
+                checked={createForm.data.auto_rollover}
+                onCheckedChange={(checked) => createForm.setData('auto_rollover', checked)}
+              />
             </div>
             <div className="flex gap-2 justify-end">
               <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>
@@ -556,6 +628,19 @@ export default function Index({ budgets, categories, currencies, view, available
               {editForm.errors.period_type && <p className="text-red-500 text-sm mt-1">{editForm.errors.period_type}</p>}
               {editForm.errors.period_year && <p className="text-red-500 text-sm mt-1">{editForm.errors.period_year}</p>}
               {editForm.errors.period_month && <p className="text-red-500 text-sm mt-1">{editForm.errors.period_month}</p>}
+            </div>
+            <div className="flex items-start justify-between gap-4 rounded-lg border border-border/55 p-3">
+              <div>
+                <Label htmlFor="edit-auto-rollover" className="cursor-pointer">Carry forward each period</Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Recreate this budget automatically when a new period starts.
+                </p>
+              </div>
+              <Switch
+                id="edit-auto-rollover"
+                checked={editForm.data.auto_rollover}
+                onCheckedChange={(checked) => editForm.setData('auto_rollover', checked)}
+              />
             </div>
             <div className="flex gap-2 justify-end">
               <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>

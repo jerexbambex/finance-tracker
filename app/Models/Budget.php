@@ -18,10 +18,14 @@ class Budget extends Model
         'period_year',
         'period_month',
         'is_active',
+        'auto_rollover',
+        'rolled_over_at',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'auto_rollover' => 'boolean',
+        'rolled_over_at' => 'datetime',
         'period_year' => 'integer',
         'period_month' => 'integer',
     ];

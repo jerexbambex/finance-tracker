@@ -51,6 +51,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('transactions/bulk-categorize', [App\Http\Controllers\TransactionController::class, 'bulkCategorize'])->name('transactions.bulk-categorize');
     Route::post('saved-filters', [App\Http\Controllers\TransactionController::class, 'saveFilter'])->name('filters.save');
     Route::delete('saved-filters/{filter}', [App\Http\Controllers\TransactionController::class, 'deleteFilter'])->name('filters.delete');
+    Route::post('budgets/copy', [BudgetController::class, 'copy'])->name('budgets.copy');
     Route::get('budgets/recommendations', [App\Http\Controllers\BudgetRecommendationController::class, 'index'])->name('budgets.recommendations');
     Route::post('budgets/recommendations/apply', [App\Http\Controllers\BudgetRecommendationController::class, 'apply'])->name('budgets.recommendations.apply');
     Route::resource('budgets', BudgetController::class);

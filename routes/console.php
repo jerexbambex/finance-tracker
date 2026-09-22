@@ -10,6 +10,10 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('transactions:process-recurring')->daily();
+
+// Carry budgets into the new period. Runs daily (not only on the 1st) so a
+// missed night still recovers; the rolled_over_at stamp keeps it idempotent.
+Schedule::command('budgets:rollover')->dailyAt('00:10')->withoutOverlapping();
 Schedule::command('reminders:send')->dailyAt('09:00');
 
 // Uptime history for the public status page.

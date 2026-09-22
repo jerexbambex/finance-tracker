@@ -6,6 +6,7 @@ use App\Currency;
 use App\Http\Controllers\Concerns\ScopesOwnership;
 use App\Models\Budget;
 use App\Models\Category;
+use App\Services\BudgetRollover;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -50,6 +51,7 @@ class BudgetController extends Controller
                 'period_type' => $budget->period_type,
                 'period_year' => $budget->period_year,
                 'period_month' => $budget->period_month,
+                'auto_rollover' => $budget->auto_rollover,
                 'spent' => $spent,
                 'percentage' => $budget->amount > 0 ? ($spent / $budget->amount) * 100 : 0,
             ];
@@ -69,8 +71,23 @@ class BudgetController extends Controller
             ->sortDesc()
             ->values();
 
+        // What a "copy from previous month" would pull from, so the button can
+        // name the source period and hide itself when there is nothing to copy.
+        $previous = \Illuminate\Support\Carbon::create($currentYear, $currentMonth, 1)->subMonthNoOverflow();
+        $previousPeriod = [
+            'year' => $previous->year,
+            'month' => $previous->month,
+            'label' => $previous->format('F Y'),
+            'count' => auth()->user()->budgets()
+                ->where('period_type', 'monthly')
+                ->where('period_year', $previous->year)
+                ->where('period_month', $previous->month)
+                ->count(),
+        ];
+
         return Inertia::render('budgets/Index', [
             'budgets' => $budgets,
+            'previousPeriod' => $previousPeriod,
             'categories' => $categories,
             'view' => $view,
             'availableYears' => $availableYears,
@@ -109,6 +126,7 @@ class BudgetController extends Controller
             'period_type' => 'required|string|in:monthly,yearly',
             'period_year' => 'nullable|integer|min:2020',
             'period_month' => 'nullable|integer|min:1|max:12',
+            'auto_rollover' => 'boolean',
         ]);
 
         // Default to current year/month if not provided
@@ -168,12 +186,55 @@ class BudgetController extends Controller
             'period_type' => 'required|string|in:monthly,yearly',
             'period_year' => 'required|integer|min:2020',
             'period_month' => 'required_if:period_type,monthly|nullable|integer|min:1|max:12',
+            'auto_rollover' => 'boolean',
         ]);
 
         // Don't multiply here - the mutator handles it
         $budget->update($validated);
 
         return redirect()->route('budgets.index');
+    }
+
+    /**
+     * Copy a whole period's budgets into another period, so a new month does
+     * not start empty. Categories already budgeted in the target are skipped.
+     */
+    public function copy(Request $request, BudgetRollover $rollover)
+    {
+        $validated = $request->validate([
+            'from_year' => 'required|integer|min:2020',
+            'from_month' => 'nullable|integer|min:1|max:12',
+            'to_year' => 'required|integer|min:2020',
+            'to_month' => 'nullable|integer|min:1|max:12',
+        ]);
+
+        $fromMonth = $validated['from_month'] ?? null;
+        $toMonth = $validated['to_month'] ?? null;
+
+        // Monthly budgets can only be copied into a month, yearly into a year.
+        if (($fromMonth === null) !== ($toMonth === null)) {
+            return back()->withErrors([
+                'to_month' => 'Source and target periods must both be monthly or both yearly.',
+            ]);
+        }
+
+        if ($validated['from_year'] === $validated['to_year'] && $fromMonth === $toMonth) {
+            return back()->withErrors([
+                'to_month' => 'Pick a target period different from the source.',
+            ]);
+        }
+
+        $created = $rollover->copy(
+            auth()->user(),
+            $validated['from_year'],
+            $fromMonth,
+            $validated['to_year'],
+            $toMonth,
+        );
+
+        return back()->with('success', $created === 0
+            ? 'Nothing new to copy from that period.'
+            : "Copied {$created} budget".($created === 1 ? '' : 's').'.');
     }
 
     public function destroy(Budget $budget)
