@@ -15,6 +15,7 @@ class Goal extends Model
         'description',
         'target_amount',
         'current_amount',
+        'currency',
         'target_date',
         'category',
         'is_completed',

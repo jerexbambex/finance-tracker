@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 
@@ -14,20 +15,28 @@ interface Goal {
   description: string | null;
   target_amount: number;
   current_amount: number;
+  currency: string;
   target_date: string | null;
   category: string | null;
 }
 
-interface Props {
-  goal: Goal;
+interface CurrencyOption {
+  value: string;
+  label: string;
 }
 
-export default function Edit({ goal }: Props) {
+interface Props {
+  goal: Goal;
+  currencies: CurrencyOption[];
+}
+
+export default function Edit({ goal, currencies }: Props) {
   const { data, setData, put, processing, errors } = useForm({
     name: goal.name,
     description: goal.description || '',
     target_amount: goal.target_amount.toString(),
     current_amount: goal.current_amount.toString(),
+    currency: goal.currency,
     target_date: goal.target_date || '',
     category: goal.category || '',
   });
@@ -115,6 +124,21 @@ export default function Edit({ goal }: Props) {
                     onChange={(e) => setData('current_amount', e.target.value)}
                     placeholder="0.00"
                   />
+                </div>
+
+                <div>
+                  <Label htmlFor="currency">Currency</Label>
+                  <Select value={data.currency} onValueChange={(value) => setData('currency', value)}>
+                    <SelectTrigger id="currency">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {currencies.map((c) => (
+                        <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.currency && <p className="text-red-500 text-sm mt-1">{errors.currency}</p>}
                 </div>
 
                 <div>

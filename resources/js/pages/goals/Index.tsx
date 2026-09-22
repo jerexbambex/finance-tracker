@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency } from '@/lib/formatCurrency';
@@ -25,22 +26,31 @@ interface Goal {
   percentage: number;
 }
 
-interface Props {
-  goals: Goal[];
+interface CurrencyOption {
+  value: string;
+  label: string;
 }
 
-export default function Index({ goals }: Props) {
+interface Props {
+  goals: Goal[];
+  currencies: CurrencyOption[];
+}
+
+export default function Index({ goals, currencies }: Props) {
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
   const [contributeOpen, setContributeOpen] = useState(false);
   const [contributingGoal, setContributingGoal] = useState<Goal | null>(null);
 
+  const defaultCurrency = currencies[0]?.value ?? 'USD';
+
   const createForm = useForm({
     name: '',
     description: '',
     target_amount: '',
     current_amount: '0',
+    currency: defaultCurrency,
     target_date: '',
     category: '',
   });
@@ -49,6 +59,7 @@ export default function Index({ goals }: Props) {
     name: '',
     description: '',
     target_amount: '',
+    currency: defaultCurrency,
     target_date: '',
     category: '',
   });
@@ -101,6 +112,7 @@ export default function Index({ goals }: Props) {
       name: goal.name,
       description: goal.description || '',
       target_amount: goal.target_amount.toString(),
+      currency: goal.currency,
       target_date: goal.target_date || '',
       category: goal.category || '',
     });
@@ -129,9 +141,32 @@ export default function Index({ goals }: Props) {
 
   const activeGoals = goals.filter(g => !g.is_completed);
   const completedGoals = goals.filter(g => g.is_completed);
-  const totalTarget = goals.reduce((sum, g) => sum + g.target_amount, 0);
-  const totalSaved = goals.reduce((sum, g) => sum + g.current_amount, 0);
-  const overallProgress = totalTarget > 0 ? (totalSaved / totalTarget) * 100 : 0;
+
+  // Goals can be in different currencies, so a single summed number would
+  // silently mix them — group by currency instead, same as the dashboard
+  // does for account balances.
+  const groupByCurrency = (amounts: { currency: string; value: number }[]) =>
+    amounts.reduce<Record<string, number>>((acc, { currency, value }) => ({
+      ...acc,
+      [currency]: (acc[currency] ?? 0) + value,
+    }), {});
+
+  const totalTargetByCurrency = groupByCurrency(goals.map(g => ({ currency: g.currency, value: g.target_amount })));
+  const totalSavedByCurrency = groupByCurrency(goals.map(g => ({ currency: g.currency, value: g.current_amount })));
+
+  const formatCurrencyGroup = (amounts: Record<string, number>) =>
+    Object.entries(amounts).map(([currency, amount]) => formatCurrency(amount, currency)).join(', ') || formatCurrency(0);
+
+  // Overall progress is only meaningful within a single currency; with more
+  // than one in play, show each currency's own progress instead of one
+  // number that would blend unrelated totals.
+  const currenciesInPlay = Object.keys(totalTargetByCurrency);
+  const progressByCurrency = currenciesInPlay.map((currency) => ({
+    currency,
+    percentage: totalTargetByCurrency[currency] > 0
+      ? ((totalSavedByCurrency[currency] ?? 0) / totalTargetByCurrency[currency]) * 100
+      : 0,
+  }));
 
   return (
     <AppLayout>
@@ -185,6 +220,20 @@ export default function Index({ goals }: Props) {
                     <p className="text-xs text-muted-foreground mt-1">Recorded as your first contribution.</p>
                   </div>
                   <div>
+                    <Label htmlFor="create-currency">Currency</Label>
+                    <Select value={createForm.data.currency} onValueChange={(value) => createForm.setData('currency', value)}>
+                      <SelectTrigger id="create-currency">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {currencies.map((c) => (
+                          <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {createForm.errors.currency && <p className="text-red-500 text-sm mt-1">{createForm.errors.currency}</p>}
+                  </div>
+                  <div>
                     <Label htmlFor="create-date">Target Date (Optional)</Label>
                     <Input
                       id="create-date"
@@ -232,7 +281,7 @@ export default function Index({ goals }: Props) {
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="text-sm font-medium text-muted-foreground">Total Target</div>
-                      <div className="text-2xl font-bold font-mono tabular-nums mt-2">{formatCurrency(totalTarget)}</div>
+                      <div className="text-2xl font-bold font-mono tabular-nums mt-2">{formatCurrencyGroup(totalTargetByCurrency)}</div>
                     </div>
                     <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
                       <Target className="h-6 w-6 text-blue-600" />
@@ -245,7 +294,7 @@ export default function Index({ goals }: Props) {
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="text-sm font-medium text-muted-foreground">Total Saved</div>
-                      <div className="text-2xl font-bold font-mono tabular-nums text-green-600 mt-2">{formatCurrency(totalSaved)}</div>
+                      <div className="text-2xl font-bold font-mono tabular-nums text-green-600 mt-2">{formatCurrencyGroup(totalSavedByCurrency)}</div>
                     </div>
                     <div className="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
                       <TrendingUp className="h-6 w-6 text-green-600" />
@@ -258,7 +307,13 @@ export default function Index({ goals }: Props) {
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="text-sm font-medium text-muted-foreground">Overall Progress</div>
-                      <div className="text-2xl font-bold font-mono tabular-nums mt-2">{overallProgress.toFixed(0)}%</div>
+                      <div className="text-2xl font-bold font-mono tabular-nums mt-2 space-x-2">
+                        {progressByCurrency.map(({ currency, percentage }) => (
+                          <span key={currency}>
+                            {percentage.toFixed(0)}%{progressByCurrency.length > 1 && <span className="text-xs text-muted-foreground ml-0.5">{currency}</span>}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                     <div className="h-12 w-12 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
                       <Calendar className="h-6 w-6 text-purple-600" />
@@ -401,6 +456,20 @@ export default function Index({ goals }: Props) {
               {editForm.errors.target_amount && <p className="text-red-500 text-sm mt-1">{editForm.errors.target_amount}</p>}
             </div>
             <div>
+              <Label htmlFor="edit-currency">Currency</Label>
+              <Select value={editForm.data.currency} onValueChange={(value) => editForm.setData('currency', value)}>
+                <SelectTrigger id="edit-currency">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {currencies.map((c) => (
+                    <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {editForm.errors.currency && <p className="text-red-500 text-sm mt-1">{editForm.errors.currency}</p>}
+            </div>
+            <div>
               <Label htmlFor="edit-date">Target Date (Optional)</Label>
               <Input
                 id="edit-date"
@@ -446,7 +515,9 @@ export default function Index({ goals }: Props) {
           </DialogHeader>
           <form onSubmit={handleContribute} className="space-y-4">
             <div>
-              <Label htmlFor="contribute-amount">Amount</Label>
+              <Label htmlFor="contribute-amount">
+                Amount{contributingGoal && ` (${contributingGoal.currency})`}
+              </Label>
               <Input
                 id="contribute-amount"
                 type="number"

@@ -133,6 +133,7 @@ class DashboardController extends Controller
                 'percentage' => $goal->getPercentageComplete(),
                 'current_amount' => $goal->current_amount,
                 'target_amount' => $goal->target_amount,
+                'currency' => $goal->currency,
             ]);
 
         $upcomingReminders = $user->reminders()

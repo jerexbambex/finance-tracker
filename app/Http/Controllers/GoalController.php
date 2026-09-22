@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Currency;
 use App\Models\Goal;
 use App\Models\GoalContribution;
 use App\Notifications\GoalAchievedNotification;
@@ -26,7 +27,7 @@ class GoalController extends Controller
                     'description' => $goal->description,
                     'target_amount' => $goal->target_amount,
                     'current_amount' => $goal->current_amount,
-                    'currency' => $goal->currency ?? 'USD',
+                    'currency' => $goal->currency,
                     'target_date' => $goal->target_date,
                     'category' => $goal->category,
                     'is_completed' => $goal->is_completed,
@@ -36,12 +37,23 @@ class GoalController extends Controller
 
         return Inertia::render('goals/Index', [
             'goals' => $goals,
+            'currencies' => $this->currencyOptions(),
         ]);
     }
 
     public function create()
     {
-        return Inertia::render('goals/Create');
+        return Inertia::render('goals/Create', [
+            'currencies' => $this->currencyOptions(),
+        ]);
+    }
+
+    private function currencyOptions()
+    {
+        return collect(Currency::cases())->map(fn ($c) => [
+            'value' => $c->value,
+            'label' => $c->label(),
+        ]);
     }
 
     public function store(Request $request)
@@ -51,6 +63,7 @@ class GoalController extends Controller
             'description' => 'nullable|string',
             'target_amount' => 'required|numeric|min:0.01',
             'current_amount' => 'nullable|numeric|min:0',
+            'currency' => 'required|string|size:3',
             'target_date' => 'nullable|date',
             'category' => 'nullable|string|max:100',
         ]);
@@ -84,6 +97,7 @@ class GoalController extends Controller
 
         return Inertia::render('goals/Edit', [
             'goal' => $goal,
+            'currencies' => $this->currencyOptions(),
         ]);
     }
 
@@ -97,6 +111,7 @@ class GoalController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'target_amount' => 'required|numeric|min:0.01',
+            'currency' => 'required|string|size:3',
             'target_date' => 'nullable|date',
             'category' => 'nullable|string|max:100',
         ]);

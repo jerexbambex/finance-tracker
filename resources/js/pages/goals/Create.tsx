@@ -5,15 +5,26 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 
-export default function Create() {
+interface CurrencyOption {
+  value: string;
+  label: string;
+}
+
+interface Props {
+  currencies: CurrencyOption[];
+}
+
+export default function Create({ currencies }: Props) {
   const { data, setData, post, processing, errors } = useForm({
     name: '',
     description: '',
     target_amount: '',
     current_amount: '0',
+    currency: currencies[0]?.value ?? 'USD',
     target_date: '',
     category: '',
   });
@@ -101,6 +112,21 @@ export default function Create() {
                     onChange={(e) => setData('current_amount', e.target.value)}
                     placeholder="0.00"
                   />
+                </div>
+
+                <div>
+                  <Label htmlFor="currency">Currency</Label>
+                  <Select value={data.currency} onValueChange={(value) => setData('currency', value)}>
+                    <SelectTrigger id="currency">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {currencies.map((c) => (
+                        <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.currency && <p className="text-red-500 text-sm mt-1">{errors.currency}</p>}
                 </div>
 
                 <div>

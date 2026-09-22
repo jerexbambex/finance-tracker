@@ -49,6 +49,7 @@ it('creating a goal with a starting amount records it as a contribution', functi
         'name' => 'Vacation',
         'target_amount' => '2000.00',
         'current_amount' => '500.00',
+        'currency' => 'USD',
         'category' => 'Travel',
     ]);
 
@@ -61,7 +62,7 @@ it('creating a goal with a starting amount records it as a contribution', functi
 it('editing a goal does not change its contribution-derived current_amount', function () {
     $user = User::factory()->create();
     $this->actingAs($user)->post('/goals', [
-        'name' => 'Car', 'target_amount' => '5000.00', 'current_amount' => '1000.00',
+        'name' => 'Car', 'target_amount' => '5000.00', 'current_amount' => '1000.00', 'currency' => 'USD',
     ]);
     $goal = $user->goals()->first();
     expect($goal->fresh()->current_amount)->toEqual(1000);
@@ -70,6 +71,7 @@ it('editing a goal does not change its contribution-derived current_amount', fun
     $this->actingAs($user)->put("/goals/{$goal->id}", [
         'name' => 'New Car',
         'target_amount' => '5000.00',
+        'currency' => 'USD',
         'current_amount' => '9999.00', // should be ignored
     ]);
 
@@ -81,7 +83,7 @@ it('editing a goal does not change its contribution-derived current_amount', fun
 it('lowering the target below progress marks the goal complete', function () {
     $user = User::factory()->create();
     $this->actingAs($user)->post('/goals', [
-        'name' => 'Fund', 'target_amount' => '5000.00', 'current_amount' => '1000.00',
+        'name' => 'Fund', 'target_amount' => '5000.00', 'current_amount' => '1000.00', 'currency' => 'USD',
     ]);
     $goal = $user->goals()->first();
     expect($goal->fresh()->is_completed)->toBeFalse();
@@ -89,6 +91,7 @@ it('lowering the target below progress marks the goal complete', function () {
     $this->actingAs($user)->put("/goals/{$goal->id}", [
         'name' => 'Fund',
         'target_amount' => '800.00', // now below the 1000 already saved
+        'currency' => 'USD',
     ]);
 
     expect($goal->fresh()->is_completed)->toBeTrue();

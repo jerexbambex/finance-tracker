@@ -53,6 +53,7 @@ interface Goal {
     percentage: number;
     current_amount: number;
     target_amount: number;
+    currency: string;
 }
 
 interface Category {
@@ -123,7 +124,12 @@ export default function Dashboard({ accounts, balancesByCurrency, netWorth, rece
 
     const categoryTotal = categorySpending.reduce((sum, c) => sum + c.amount, 0);
     const hasChartSide = categorySpending.length > 0 || goals.length > 0;
-    const goalsSavedTotal = goals.reduce((sum, g) => sum + g.current_amount, 0);
+    // Goals can be in different currencies, so a single summed number would
+    // silently mix them.
+    const goalsSavedByCurrency = goals.reduce<Record<string, number>>(
+        (acc, g) => ({ ...acc, [g.currency]: (acc[g.currency] ?? 0) + g.current_amount }),
+        {},
+    );
 
     // Compact currency for the trend Y-axis so labels don't get clipped (e.g. "CA$3.4K", "₦3.4K")
     const formatAxisCurrency = (value: number) => {
@@ -390,7 +396,7 @@ export default function Dashboard({ accounts, balancesByCurrency, netWorth, rece
                                                         <span className="text-sm font-medium truncate">{goal.name}</span>
                                                         <span className="flex items-baseline gap-2 flex-shrink-0">
                                                             <span className="font-mono tabular-nums text-xs text-muted-foreground">
-                                                                {formatCurrency(goal.current_amount)}
+                                                                {formatCurrency(goal.current_amount, goal.currency)}
                                                             </span>
                                                             <span className="font-mono tabular-nums text-sm font-semibold">
                                                                 {goal.percentage.toFixed(0)}%
@@ -411,7 +417,7 @@ export default function Dashboard({ accounts, balancesByCurrency, netWorth, rece
                                         </div>
                                         <div className="mt-5 flex items-center justify-between border-t border-border/60 pt-4">
                                             <span className="text-sm text-muted-foreground">Total Saved</span>
-                                            <span className="font-mono tabular-nums text-lg font-bold">{formatCurrency(goalsSavedTotal)}</span>
+                                            <span className="font-mono tabular-nums text-lg font-bold">{formatCurrencyGroup(goalsSavedByCurrency)}</span>
                                         </div>
                                     </CardContent>
                                 </Card>
