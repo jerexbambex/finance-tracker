@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -43,6 +44,17 @@ class HandleInertiaRequests extends Middleware
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'unreadNotifications' => $request->user() ? $request->user()->unreadNotifications()->count() : 0,
+            // Backs the mobile quick-add FAB, which renders on every
+            // authenticated page (not just the dashboard), so it needs its
+            // options shared globally rather than passed per-controller.
+            // Trimmed to just the fields the form uses, since this now runs
+            // on every request.
+            'quickAdd' => $request->user() ? [
+                'accounts' => $request->user()->accounts()->where('is_active', true)->get(['id', 'name']),
+                'categories' => Category::where(function ($q) use ($request) {
+                    $q->whereNull('user_id')->orWhere('user_id', $request->user()->id);
+                })->where('is_active', true)->get(['id', 'name', 'type']),
+            ] : null,
             'impersonating' => $request->user() && $request->user()->isImpersonated()
                 ? ['name' => $request->user()->name, 'email' => $request->user()->email]
                 : null,
