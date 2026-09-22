@@ -6,6 +6,7 @@ import { AppContent } from '@/components/app-content';
 import { AppShell } from '@/components/app-shell';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
+import GlobalSearch from '@/components/global-search/GlobalSearch';
 import QuickAddFab from '@/components/quick-add/QuickAddFab';
 import { type BreadcrumbItem } from '@/types';
 
@@ -40,6 +41,7 @@ export default function AppSidebarLayout({
                 <AppSidebarHeader breadcrumbs={breadcrumbs} />
                 {children}
             </AppContent>
+            <GlobalSearch />
             <QuickAddFab />
         </AppShell>
     );

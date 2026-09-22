@@ -62,6 +62,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('insights/ai/status', [App\Http\Controllers\SpendingInsightsController::class, 'aiInsightsStatus'])->name('insights.ai.status');
     Route::get('cash-flow', [App\Http\Controllers\CashFlowProjectionController::class, 'index'])->name('cash-flow.index');
     Route::get('net-worth', [App\Http\Controllers\NetWorthController::class, 'index'])->name('net-worth.index');
+    Route::get('search', [App\Http\Controllers\SearchController::class, 'index'])->name('search');
     Route::resource('recurring-transactions', RecurringTransactionController::class);
     Route::get('reports', [ReportsController::class, 'index'])->name('reports.index');
     Route::get('reports/pdf', [ReportsController::class, 'pdf'])->name('reports.pdf');
