@@ -1,8 +1,5 @@
 import { Link } from '@inertiajs/react';
-
 import {
-    SidebarGroup,
-    SidebarGroupLabel,
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
@@ -14,29 +11,30 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
     const { urlIsActive } = useActiveUrl();
 
     return (
-        <SidebarGroup className="px-2 py-0">
-            <SidebarGroupLabel>Platform</SidebarGroupLabel>
-            <SidebarMenu>
-                {items.map((item) => (
+        <SidebarMenu>
+            {items.map((item) => {
+                const active = urlIsActive(item.href);
+                return (
                     <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton
                             asChild
-                            isActive={urlIsActive(item.href)}
+                            isActive={active}
                             tooltip={{ children: item.title }}
+                            className="transition-all duration-150 rounded-lg text-xs font-medium"
                         >
-                            <Link href={item.href} prefetch>
-                                {item.icon && <item.icon />}
-                                <span>{item.title}</span>
-                                {item.badge && (
-                                    <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
+                            <Link href={item.href} prefetch className="flex items-center gap-2.5">
+                                {item.icon && <item.icon className="h-4 w-4 shrink-0" />}
+                                <span className="truncate">{item.title}</span>
+                                {item.badge !== undefined && item.badge > 0 && (
+                                    <span className="ml-auto flex h-4 min-w-4 items-center justify-center rounded-full bg-primary/15 px-1 font-mono text-[10px] font-bold text-primary">
                                         {item.badge}
                                     </span>
                                 )}
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
-                ))}
-            </SidebarMenu>
-        </SidebarGroup>
+                );
+            })}
+        </SidebarMenu>
     );
 }

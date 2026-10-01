@@ -1,5 +1,19 @@
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutGrid, Wallet, ArrowUpDown, PieChart, Target, Folder, Settings, TrendingUp, BarChart3, Bell, Repeat, LineChart, Landmark } from 'lucide-react';
+import {
+    LayoutGrid,
+    Wallet,
+    ArrowUpDown,
+    PieChart,
+    Target,
+    Folder,
+    Settings,
+    TrendingUp,
+    BarChart3,
+    Bell,
+    Repeat,
+    LineChart,
+    Landmark,
+} from 'lucide-react';
 
 import AppearanceToggleDropdown from '@/components/appearance-dropdown';
 import { NavFooter } from '@/components/nav-footer';
@@ -118,13 +132,17 @@ export function AppSidebar() {
                 </SidebarMenu>
             </SidebarHeader>
 
-            <SidebarContent>
+            <SidebarContent className="space-y-2">
                 <SidebarGroup>
-                    <SidebarGroupLabel>Overview</SidebarGroupLabel>
+                    <SidebarGroupLabel className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+                        Main Navigation
+                    </SidebarGroupLabel>
                     <NavMain items={overviewItems} />
                 </SidebarGroup>
                 <SidebarGroup>
-                    <SidebarGroupLabel>Planning</SidebarGroupLabel>
+                    <SidebarGroupLabel className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+                        Planning & Limits
+                    </SidebarGroupLabel>
                     <NavMain items={planningItems} />
                 </SidebarGroup>
             </SidebarContent>

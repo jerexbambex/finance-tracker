@@ -1,19 +1,19 @@
 import { Head, useForm, router, Link, usePage } from '@inertiajs/react';
-import { Wallet, TrendingDown, AlertCircle, CheckCircle, ChevronLeft, ChevronRight, Lightbulb, Copy, RefreshCw } from 'lucide-react';
+import { Wallet, TrendingDown, AlertCircle, CheckCircle, ChevronLeft, ChevronRight, Lightbulb, Copy, RefreshCw, Plus, PieChart as PieIcon, AlertTriangle } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency } from '@/lib/formatCurrency';
+import { KravioCard } from '@/components/dashboard/KravioCard';
+import { KravioKPICard } from '@/components/dashboard/KravioKPICard';
 
 interface Budget {
   id: string;
@@ -50,8 +50,6 @@ interface Props {
 
 export default function Index({ budgets, categories, currencies, view, availableYears, currentPeriod, previousPeriod }: Props) {
   const { flash } = usePage().props as { flash?: { success?: string } };
-  // Track the dismissed message rather than a visibility flag, so a fresh
-  // flash with the same text still shows without syncing state in an effect.
   const [dismissed, setDismissed] = useState<string | null>(null);
   const showSuccess = !!flash?.success && dismissed !== flash.success;
   const [createOpen, setCreateOpen] = useState(false);
@@ -117,16 +115,11 @@ export default function Index({ budgets, categories, currencies, view, available
 
   useEffect(() => {
     const message = flash?.success;
-    if (!message) {
-      return;
-    }
-
+    if (!message) return;
     const timer = setTimeout(() => setDismissed(message), 4000);
     return () => clearTimeout(timer);
   }, [flash?.success]);
 
-  // Pull the previous month's budgets into the period being viewed. Categories
-  // already budgeted here are left alone, so this is safe to click twice.
   const copyFromPrevious = () => {
     router.post('/budgets/copy', {
       from_year: previousPeriod.year,
@@ -157,11 +150,8 @@ export default function Index({ budgets, categories, currencies, view, available
     router.get('/budgets', { view: 'period', year: newYear, month: newMonth });
   };
 
-
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-  // Years the user has budgets for (from the server), newest first
-  const yearOptions = availableYears;
+  const fullMonthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
   const totalBudgeted = budgets.reduce((sum, b) => sum + b.amount, 0);
   const totalSpent = budgets.reduce((sum, b) => sum + b.spent, 0);
@@ -172,16 +162,14 @@ export default function Index({ budgets, categories, currencies, view, available
     category: b.category.name,
     budgeted: b.amount,
     spent: b.spent,
+    currency: b.currency,
   }));
-
-  const fullMonthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
   const periodLabel = (b: Budget) =>
     b.period_type === 'yearly'
       ? `${b.period_year} · Yearly`
       : `${fullMonthNames[(b.period_month ?? 1) - 1]} ${b.period_year}`;
 
-  // Group budgets by period for the "All" view (preserves controller ordering)
   const groupedBudgets: { label: string; items: Budget[] }[] = [];
   const groupIndex: Record<string, number> = {};
   budgets.forEach((b) => {
@@ -193,364 +181,411 @@ export default function Index({ budgets, categories, currencies, view, available
     groupedBudgets[groupIndex[label]].items.push(b);
   });
 
-  const renderBudgetCard = (budget: Budget) => (
-    <Card key={budget.id} className="transition-colors">
-      <CardHeader className="pb-3">
-        <div className="flex justify-between items-start">
-          <div className="flex-1">
-            <CardTitle className="text-xl">{budget.category.name}</CardTitle>
-            <p className="text-xs text-muted-foreground capitalize mt-1">{budget.period_type}</p>
-            {!budget.auto_rollover && (
-              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                <RefreshCw className="h-3 w-3" />
-                Won&apos;t carry forward
+  const renderBudgetCard = (budget: Budget, idx: number) => {
+    const isExceeded = budget.percentage >= 100;
+    const isWarning = budget.percentage >= 80 && !isExceeded;
+
+    return (
+      <KravioCard
+        key={budget.id}
+        pattern
+        className="group/b animate-rise transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+        innerClassName="p-4 sm:p-5 flex flex-col justify-between h-full bg-gradient-to-br from-card to-muted/20"
+        style={{ animationDelay: `${80 + idx * 40}ms` }}
+      >
+        <div>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <span
+                  className="h-2.5 w-2.5 rounded-full shrink-0"
+                  style={{ backgroundColor: budget.category.color || 'var(--primary)' }}
+                />
+                <h3 className="font-semibold text-sm text-foreground truncate group-hover/b:text-primary transition-colors">
+                  {budget.category.name}
+                </h3>
+              </div>
+              <p className="text-[11px] text-muted-foreground capitalize mt-0.5">
+                {budget.period_type}
+                {!budget.auto_rollover && ' • No rollover'}
               </p>
-            )}
-          </div>
-          <Button variant="ghost" size="sm" onClick={() => openEditModal(budget)}>
-            Edit
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex justify-between items-baseline">
-          <div>
-            <p className="text-3xl font-bold font-mono tabular-nums">{formatCurrency(budget.spent, budget.currency)}</p>
-            <p className="text-sm text-muted-foreground">of {formatCurrency(budget.amount, budget.currency)}</p>
-          </div>
-          <div className={`text-right ${budget.percentage >= 100 ? 'text-red-600' : budget.percentage >= 80 ? 'text-yellow-600' : 'text-green-600'}`}>
-            <p className="text-2xl font-bold font-mono tabular-nums">{budget.percentage.toFixed(0)}%</p>
-            <p className="text-xs">used</p>
-          </div>
-        </div>
+            </div>
 
-        <div className="space-y-2">
-          <Progress
-            value={Math.min(budget.percentage, 100)}
-            className={`h-2 ${budget.percentage >= 100 ? '[&>div]:bg-red-600' : budget.percentage >= 80 ? '[&>div]:bg-yellow-600' : '[&>div]:bg-green-600'}`}
-          />
-          <div className="flex justify-between items-center text-sm">
-            <span className={budget.percentage >= 100 ? 'text-red-600 font-semibold' : 'text-muted-foreground'}>
-              {budget.percentage >= 100 ? (
-                <>Over by {formatCurrency(budget.spent - budget.amount, budget.currency)}</>
-              ) : (
-                <>{formatCurrency(budget.amount - budget.spent, budget.currency)} left</>
-              )}
+            <span
+              className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-bold font-mono ${
+                isExceeded
+                  ? 'bg-rose-500/10 text-rose-600 border border-rose-500/20'
+                  : isWarning
+                  ? 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
+                  : 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+              }`}
+            >
+              {budget.percentage.toFixed(0)}%
             </span>
-            {budget.percentage >= 80 && budget.percentage < 100 && (
-              <span className="text-yellow-600 text-xs font-medium">⚠️ Near limit</span>
-            )}
-            {budget.percentage >= 100 && (
-              <span className="text-red-600 text-xs font-medium">⚠️ Exceeded</span>
-            )}
+          </div>
+
+          <div className="mt-4 flex items-baseline justify-between gap-2">
+            <div>
+              <p className="font-mono text-2xl font-bold text-foreground tabular-nums">
+                {formatCurrency(budget.spent, budget.currency)}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                of {formatCurrency(budget.amount, budget.currency)} allocated
+              </p>
+            </div>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="mt-3.5 space-y-1.5">
+            <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${
+                  isExceeded
+                    ? 'bg-rose-500'
+                    : isWarning
+                    ? 'bg-amber-500'
+                    : 'bg-emerald-500'
+                }`}
+                style={{ width: `${Math.min(budget.percentage, 100)}%` }}
+              />
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span className={`text-[11px] font-medium ${isExceeded ? 'text-rose-600' : 'text-muted-foreground'}`}>
+                {isExceeded ? (
+                  <>Over by {formatCurrency(budget.spent - budget.amount, budget.currency)}</>
+                ) : (
+                  <>{formatCurrency(budget.amount - budget.spent, budget.currency)} remaining</>
+                )}
+              </span>
+              {isExceeded && (
+                <span className="text-[10px] text-rose-600 font-bold uppercase tracking-wider flex items-center gap-0.5">
+                  <AlertTriangle className="h-3 w-3" /> Exceeded
+                </span>
+              )}
+            </div>
           </div>
         </div>
-      </CardContent>
-    </Card>
-  );
 
-  const chartConfig = {
-    budgeted: {
-      label: "Budgeted",
-      color: "var(--chart-2)",
-    },
-    spent: {
-      label: "Spent",
-      color: "var(--chart-1)",
-    },
-  } satisfies ChartConfig;
+        <div className="mt-4 pt-3 border-t border-border/30 flex items-center justify-between">
+          <Button variant="ghost" size="sm" className="h-7 text-xs px-2" onClick={() => openEditModal(budget)}>
+            Edit Budget
+          </Button>
+          <Link
+            href={`/transactions?category=${encodeURIComponent(budget.category.name)}`}
+            className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-0.5"
+          >
+            Transactions →
+          </Link>
+        </div>
+      </KravioCard>
+    );
+  };
 
   return (
     <AppLayout>
       <Head title="Budgets" />
-      
-      <div className="py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {showSuccess && (
-            <div className="mb-4 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-2 dark:bg-green-950/30 dark:border-green-900">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              <p className="text-green-800 dark:text-green-300">{flash?.success}</p>
-            </div>
-          )}
 
-          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-              <h1 className="text-2xl sm:text-3xl font-bold">Budgets</h1>
-              <div className="inline-flex rounded-lg border border-border/55 p-0.5">
-                <Button
-                  variant={view === 'all' ? 'secondary' : 'ghost'}
-                  size="sm"
-                  onClick={() => router.get('/budgets', { view: 'all' }, { preserveScroll: true })}
-                >
-                  All Budgets
-                </Button>
-                <Button
-                  variant={view === 'period' ? 'secondary' : 'ghost'}
-                  size="sm"
-                  onClick={() => router.get('/budgets', { view: 'period', year: currentPeriod.year, month: currentPeriod.month }, { preserveScroll: true })}
-                >
-                  By Month
-                </Button>
-              </div>
-              {view === 'period' && (
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="icon" onClick={() => navigatePeriod('prev')}>
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <Select
-                    value={String(currentPeriod.month)}
-                    onValueChange={(m) => router.get('/budgets', { view: 'period', year: currentPeriod.year, month: Number(m) }, { preserveScroll: true })}
-                  >
-                    <SelectTrigger className="w-[110px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {monthNames.map((name, i) => (
-                        <SelectItem key={i} value={String(i + 1)}>{name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Select
-                    value={String(currentPeriod.year)}
-                    onValueChange={(y) => router.get('/budgets', { view: 'period', year: Number(y), month: currentPeriod.month }, { preserveScroll: true })}
-                  >
-                    <SelectTrigger className="w-[90px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {yearOptions.map((y) => (
-                        <SelectItem key={y} value={String(y)}>{y}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button variant="outline" size="icon" onClick={() => navigatePeriod('next')}>
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              )}
-            </div>
-            <div className="flex gap-2">
-              {view === 'period' && previousPeriod.count > 0 && (
-                <Button variant="outline" onClick={copyFromPrevious}>
-                  <Copy className="h-4 w-4 mr-2" />
-                  Copy from {previousPeriod.label}
-                </Button>
-              )}
-              <Link href="/budgets/recommendations">
-                <Button variant="outline">
-                  <Lightbulb className="h-4 w-4 mr-2" />
-                  Get Recommendations
-                </Button>
-              </Link>
-              <Button onClick={() => setCreateOpen(true)}>Create Budget</Button>
-            </div>
+      <div className="flex-1 space-y-6 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+        {showSuccess && (
+          <div className="animate-rise rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-3.5 flex items-center gap-2.5 text-xs text-emerald-700 dark:text-emerald-300">
+            <CheckCircle className="h-4 w-4 shrink-0 text-emerald-600" />
+            <p className="font-medium">{flash?.success}</p>
+          </div>
+        )}
+
+        {/* ── Kravio Header Toolbar ────────────────────────────────────── */}
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between animate-rise">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">Budgets & Limits</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+              Set spending thresholds, monitor monthly usage, and prevent budget overruns.
+            </p>
           </div>
 
-          {budgets.length > 0 && (
-            <>
-              <div className="grid gap-4 md:grid-cols-3 mb-6">
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-sm font-medium text-muted-foreground">Total Budgeted</div>
-                        <div className="text-2xl font-bold font-mono tabular-nums mt-2">{formatCurrency(totalBudgeted)}</div>
-                      </div>
-                      <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
-                        <Wallet className="h-6 w-6 text-blue-600" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-sm font-medium text-muted-foreground">Total Spent</div>
-                        <div className="text-2xl font-bold font-mono tabular-nums text-red-600 mt-2">{formatCurrency(totalSpent)}</div>
-                      </div>
-                      <div className="h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
-                        <TrendingDown className="h-6 w-6 text-red-600" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-sm font-medium text-muted-foreground">Remaining</div>
-                        <div className={`text-2xl font-bold font-mono tabular-nums mt-2 ${totalRemaining >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {formatCurrency(totalRemaining)}
-                        </div>
-                      </div>
-                      <div className={`h-12 w-12 rounded-full flex items-center justify-center ${overBudgetCount > 0 ? 'bg-red-100 dark:bg-red-900/20' : 'bg-green-100 dark:bg-green-900/20'}`}>
-                        <AlertCircle className={`h-6 w-6 ${overBudgetCount > 0 ? 'text-red-600' : 'text-green-600'}`} />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {/* View Switcher: All vs By Month */}
+            <div className="flex items-center rounded-lg border border-border/70 bg-muted/40 p-0.5 text-xs">
+              <button
+                type="button"
+                onClick={() => router.get('/budgets', { view: 'all' }, { preserveScroll: true })}
+                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all ${
+                  view === 'all'
+                    ? 'bg-card text-foreground shadow-xs font-semibold'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                All Budgets
+              </button>
+              <button
+                type="button"
+                onClick={() => router.get('/budgets', { view: 'period', year: currentPeriod.year, month: currentPeriod.month }, { preserveScroll: true })}
+                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all ${
+                  view === 'period'
+                    ? 'bg-card text-foreground shadow-xs font-semibold'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                By Month
+              </button>
+            </div>
 
-              {view === 'period' && (
-              <Card className="mb-6">
-                <CardHeader>
-                  <CardTitle>Budget vs Actual Spending</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ChartContainer config={chartConfig} className="h-[300px] w-full">
-                    <BarChart accessibilityLayer data={chartData}>
-                      <CartesianGrid vertical={false} />
-                      <XAxis 
-                        dataKey="category" 
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={10}
-                      />
-                      <YAxis 
-                        tickLine={false}
-                        axisLine={false}
-                        tickFormatter={(value) => `$${value}`}
-                      />
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                      <Bar dataKey="budgeted" fill="var(--color-budgeted)" radius={4} />
-                      <Bar dataKey="spent" radius={4}>
-                        {chartData.map((entry, index) => (
-                          <Cell 
-                            key={`cell-${index}`} 
-                            fill={entry.spent > entry.budgeted ? 'var(--chart-4)' : 'var(--chart-1)'}
-                          />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ChartContainer>
-                </CardContent>
-              </Card>
-              )}
-            </>
-          )}
+            {/* Period Navigation */}
+            {view === 'period' && (
+              <div className="flex items-center gap-1.5">
+                <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg" onClick={() => navigatePeriod('prev')}>
+                  <ChevronLeft className="h-3.5 w-3.5" />
+                </Button>
+                <Select
+                  value={String(currentPeriod.month)}
+                  onValueChange={(m) => router.get('/budgets', { view: 'period', year: currentPeriod.year, month: Number(m) }, { preserveScroll: true })}
+                >
+                  <SelectTrigger className="h-8 w-24 text-xs font-medium">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {monthNames.map((name, i) => (
+                      <SelectItem key={i} value={String(i + 1)} className="text-xs">{name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={String(currentPeriod.year)}
+                  onValueChange={(y) => router.get('/budgets', { view: 'period', year: Number(y), month: currentPeriod.month }, { preserveScroll: true })}
+                >
+                  <SelectTrigger className="h-8 w-20 text-xs font-medium">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableYears.map((y) => (
+                      <SelectItem key={y} value={String(y)} className="text-xs">{y}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg" onClick={() => navigatePeriod('next')}>
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            )}
 
-          {budgets.length > 0 ? (
-            view === 'all' ? (
-              <div className="space-y-8">
-                {groupedBudgets.map((group) => (
-                  <div key={group.label}>
-                    <div className="mb-3 flex items-center gap-3">
-                      <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{group.label}</h2>
-                      <span className="text-xs text-muted-foreground">{group.items.length} budget{group.items.length !== 1 ? 's' : ''}</span>
-                      <div className="h-px flex-1 bg-border/55" />
-                    </div>
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                      {group.items.map(renderBudgetCard)}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {budgets.map(renderBudgetCard)}
-              </div>
-            )
-          ) : (
-            <Card>
-              <CardContent className="text-center py-12">
-                <Wallet className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                <p className="text-gray-500 mb-4">
-                  {view === 'period' ? 'No budgets set for this period' : 'No budgets yet'}
-                </p>
-                <div className="flex flex-wrap gap-2 justify-center">
-                  {view === 'period' && previousPeriod.count > 0 && (
-                    <Button variant="outline" onClick={copyFromPrevious}>
-                      <Copy className="h-4 w-4 mr-2" />
-                      Copy {previousPeriod.count} budget{previousPeriod.count === 1 ? '' : 's'} from {previousPeriod.label}
-                    </Button>
-                  )}
-                  <Button onClick={() => setCreateOpen(true)}>Create Your First Budget</Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+            {/* Action Buttons */}
+            {view === 'period' && previousPeriod.count > 0 && (
+              <Button variant="outline" size="sm" className="h-8 text-xs" onClick={copyFromPrevious}>
+                <Copy className="h-3.5 w-3.5 mr-1" />
+                Copy {previousPeriod.label}
+              </Button>
+            )}
+
+            <Link href="/budgets/recommendations">
+              <Button variant="outline" size="sm" className="h-8 text-xs">
+                <Lightbulb className="h-3.5 w-3.5 mr-1 text-amber-500" />
+                Suggestions
+              </Button>
+            </Link>
+
+            <Button size="sm" className="h-8 text-xs font-semibold" onClick={() => setCreateOpen(true)}>
+              <Plus className="mr-1 h-3.5 w-3.5" />
+              Create Budget
+            </Button>
+          </div>
         </div>
+
+        {/* ── Kravio KPI Metric Strip ──────────────────────────────────── */}
+        {budgets.length > 0 && (
+          <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
+            <KravioKPICard
+              index={0}
+              title="Total Budget Allocated"
+              value={formatCurrency(totalBudgeted)}
+              icon={Wallet}
+              iconColorClass="bg-primary/10 text-primary"
+              subtitle={`${budgets.length} active budget categories`}
+            />
+            <KravioKPICard
+              index={1}
+              title="Total Spent"
+              value={formatCurrency(totalSpent)}
+              icon={TrendingDown}
+              iconColorClass="bg-rose-500/10 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400"
+              subtitle={`${totalBudgeted > 0 ? ((totalSpent / totalBudgeted) * 100).toFixed(0) : 0}% of budget utilized`}
+            />
+            <KravioKPICard
+              index={2}
+              title="Remaining Balance"
+              value={formatCurrency(totalRemaining)}
+              icon={AlertCircle}
+              iconColorClass={totalRemaining >= 0 ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600'}
+              subtitle={overBudgetCount > 0 ? `${overBudgetCount} budgets exceeded limit` : 'All budgets healthy'}
+            />
+          </div>
+        )}
+
+        {/* ── Budget vs Actual Chart (in Period View) ─────────────────── */}
+        {view === 'period' && chartData.length > 0 && (
+          <KravioCard pattern className="animate-rise [animation-delay:160ms]" innerClassName="p-4 sm:p-6">
+            <div className="flex items-center justify-between pb-3 border-b border-border/40">
+              <div>
+                <h3 className="text-sm font-semibold text-foreground">Budgeted vs. Actual Spending</h3>
+                <p className="text-xs text-muted-foreground">Category comparison for active period</p>
+              </div>
+              <div className="flex items-center gap-3 text-xs">
+                <span className="flex items-center gap-1.5 text-muted-foreground">
+                  <span className="h-2 w-2 rounded-full bg-slate-400" />
+                  Budget
+                </span>
+                <span className="flex items-center gap-1.5 text-emerald-600">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                  Spent
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-4 h-[240px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/40" />
+                  <XAxis dataKey="category" tickLine={false} axisLine={false} className="text-xs font-medium fill-muted-foreground" />
+                  <YAxis tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} className="text-xs font-mono fill-muted-foreground" />
+                  <Tooltip
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const b = payload[0].payload;
+                        return (
+                          <div className="rounded-lg border border-border/70 bg-card p-2.5 shadow-md text-xs">
+                            <p className="font-semibold text-foreground mb-1">{b.category}</p>
+                            <p className="text-muted-foreground">Budget: <span className="font-mono font-medium">{formatCurrency(b.budgeted, b.currency)}</span></p>
+                            <p className="text-foreground">Spent: <span className="font-mono font-bold">{formatCurrency(b.spent, b.currency)}</span></p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Bar dataKey="budgeted" name="Budget" fill="#94a3b8" opacity={0.6} radius={[4, 4, 0, 0]} maxBarSize={28} />
+                  <Bar dataKey="spent" name="Spent" radius={[4, 4, 0, 0]} maxBarSize={28}>
+                    {chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.spent > entry.budgeted ? '#ef4444' : '#10b981'} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </KravioCard>
+        )}
+
+        {/* ── Budget Cards Grid ────────────────────────────────────────── */}
+        {budgets.length > 0 ? (
+          view === 'all' ? (
+            <div className="space-y-8">
+              {groupedBudgets.map((group) => (
+                <div key={group.label} className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{group.label}</h2>
+                    <span className="text-xs text-muted-foreground">({group.items.length} budgets)</span>
+                    <div className="h-px flex-1 bg-border/40" />
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {group.items.map((b, i) => renderBudgetCard(b, i))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {budgets.map((b, i) => renderBudgetCard(b, i))}
+            </div>
+          )
+        ) : (
+          <KravioCard pattern className="text-center py-12">
+            <PieIcon className="h-12 w-12 mx-auto text-muted-foreground/60 mb-3" />
+            <h3 className="text-sm font-semibold text-foreground">No budgets for this period</h3>
+            <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
+              Create category budgets to set spending boundaries and receive automated alerts.
+            </p>
+            <div className="mt-4 flex items-center justify-center gap-2">
+              <Button size="sm" onClick={() => setCreateOpen(true)}>
+                <Plus className="mr-1.5 h-3.5 w-3.5" />
+                Create Budget
+              </Button>
+              <Link href="/budgets/recommendations">
+                <Button variant="outline" size="sm">
+                  <Lightbulb className="mr-1.5 h-3.5 w-3.5 text-amber-500" />
+                  AI Recommendations
+                </Button>
+              </Link>
+            </div>
+          </KravioCard>
+        )}
       </div>
 
+      {/* Create Dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[480px]">
           <DialogHeader>
-            <DialogTitle>Create New Budget</DialogTitle>
+            <DialogTitle>Create Budget</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleCreate} className="space-y-4">
-            <div>
-              <Label htmlFor="create-category">Category</Label>
+          <form onSubmit={handleCreate} className="space-y-4 pt-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="create-category" className="text-xs font-semibold">Category</Label>
               <Select value={createForm.data.category_id} onValueChange={(value) => createForm.setData('category_id', value)}>
-                <SelectTrigger>
+                <SelectTrigger className="h-9 text-xs">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.name}
-                    </SelectItem>
+                  {categories.map((c) => (
+                    <SelectItem key={c.id} value={c.id} className="text-xs">{c.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              {createForm.errors.category_id && <p className="text-red-500 text-sm mt-1">{createForm.errors.category_id}</p>}
+              {createForm.errors.category_id && <p className="text-destructive text-xs">{createForm.errors.category_id}</p>}
             </div>
-            <div>
-              <Label htmlFor="create-amount">Budget Amount</Label>
-              <Input
-                id="create-amount"
-                type="number"
-                step="0.01"
-                value={createForm.data.amount}
-                onChange={(e) => createForm.setData('amount', e.target.value)}
-                placeholder="0.00"
-              />
-              {createForm.errors.amount && <p className="text-red-500 text-sm mt-1">{createForm.errors.amount}</p>}
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="create-amount" className="text-xs font-semibold">Budget Limit</Label>
+                <Input
+                  id="create-amount"
+                  type="number"
+                  step="0.01"
+                  value={createForm.data.amount}
+                  onChange={(e) => createForm.setData('amount', e.target.value)}
+                  placeholder="0.00"
+                  className="h-9 text-xs font-mono"
+                />
+                {createForm.errors.amount && <p className="text-destructive text-xs">{createForm.errors.amount}</p>}
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="create-currency" className="text-xs font-semibold">Currency</Label>
+                <Select value={createForm.data.currency} onValueChange={(value) => createForm.setData('currency', value)}>
+                  <SelectTrigger className="h-9 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {currencies.map((curr) => (
+                      <SelectItem key={curr.value} value={curr.value} className="text-xs">{curr.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div>
-              <Label>Currency</Label>
-              <Select value={createForm.data.currency} onValueChange={(value) => createForm.setData('currency', value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {currencies.map((c) => (
-                    <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {createForm.errors.currency && <p className="text-red-500 text-sm mt-1">{createForm.errors.currency}</p>}
-            </div>
-            <div>
-              <Label htmlFor="create-period">Period Type</Label>
-              <Select value={createForm.data.period_type} onValueChange={(value) => createForm.setData('period_type', value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="monthly">Monthly</SelectItem>
-                  <SelectItem value="yearly">Yearly</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-start justify-between gap-4 rounded-lg border border-border/55 p-3">
+
+            <div className="flex items-center justify-between rounded-lg border border-border/70 p-3">
               <div>
-                <Label htmlFor="create-auto-rollover" className="cursor-pointer">Carry forward each period</Label>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Recreate this budget automatically when a new period starts.
-                </p>
+                <Label htmlFor="create-rollover" className="text-xs font-semibold">Auto-Rollover</Label>
+                <p className="text-[11px] text-muted-foreground">Carry unused budget balance into next month</p>
               </div>
               <Switch
-                id="create-auto-rollover"
+                id="create-rollover"
                 checked={createForm.data.auto_rollover}
                 onCheckedChange={(checked) => createForm.setData('auto_rollover', checked)}
               />
             </div>
-            <div className="flex gap-2 justify-end">
-              <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>
+
+            <div className="flex gap-2 justify-end pt-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => setCreateOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={createForm.processing}>
+              <Button type="submit" size="sm" disabled={createForm.processing}>
                 {createForm.processing ? 'Creating...' : 'Create Budget'}
               </Button>
             </div>
@@ -558,96 +593,57 @@ export default function Index({ budgets, categories, currencies, view, available
         </DialogContent>
       </Dialog>
 
+      {/* Edit Dialog */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[480px]">
           <DialogHeader>
             <DialogTitle>Edit Budget</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleEdit} className="space-y-4">
-            <div>
-              <Label htmlFor="edit-category">Category</Label>
+          <form onSubmit={handleEdit} className="space-y-4 pt-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-category" className="text-xs font-semibold">Category</Label>
               <Select value={editForm.data.category_id} onValueChange={(value) => editForm.setData('category_id', value)}>
-                <SelectTrigger>
-                  <SelectValue />
+                <SelectTrigger className="h-9 text-xs">
+                  <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.name}
-                    </SelectItem>
+                  {categories.map((c) => (
+                    <SelectItem key={c.id} value={c.id} className="text-xs">{c.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              {editForm.errors.category_id && <p className="text-red-500 text-sm mt-1">{editForm.errors.category_id}</p>}
             </div>
-            <div>
-              <Label htmlFor="edit-amount">Budget Amount</Label>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-amount" className="text-xs font-semibold">Budget Limit</Label>
               <Input
                 id="edit-amount"
                 type="number"
                 step="0.01"
                 value={editForm.data.amount}
                 onChange={(e) => editForm.setData('amount', e.target.value)}
+                className="h-9 text-xs font-mono"
               />
-              {editForm.errors.amount && <p className="text-red-500 text-sm mt-1">{editForm.errors.amount}</p>}
             </div>
-            <div>
-              <Label>Currency</Label>
-              <Select value={editForm.data.currency} onValueChange={(value) => editForm.setData('currency', value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {currencies.map((c) => (
-                    <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {editForm.errors.currency && <p className="text-red-500 text-sm mt-1">{editForm.errors.currency}</p>}
-            </div>
-            <div>
-              <Label htmlFor="edit-period">Period Type</Label>
-              <Select
-                value={editForm.data.period_type}
-                onValueChange={(value) =>
-                  editForm.setData((data) => ({
-                    ...data,
-                    period_type: value,
-                    period_month: value === 'yearly' ? '' : data.period_month || String(editingBudget?.period_month ?? currentPeriod.month),
-                  }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="monthly">Monthly</SelectItem>
-                  <SelectItem value="yearly">Yearly</SelectItem>
-                </SelectContent>
-              </Select>
-              {editForm.errors.period_type && <p className="text-red-500 text-sm mt-1">{editForm.errors.period_type}</p>}
-              {editForm.errors.period_year && <p className="text-red-500 text-sm mt-1">{editForm.errors.period_year}</p>}
-              {editForm.errors.period_month && <p className="text-red-500 text-sm mt-1">{editForm.errors.period_month}</p>}
-            </div>
-            <div className="flex items-start justify-between gap-4 rounded-lg border border-border/55 p-3">
+
+            <div className="flex items-center justify-between rounded-lg border border-border/70 p-3">
               <div>
-                <Label htmlFor="edit-auto-rollover" className="cursor-pointer">Carry forward each period</Label>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Recreate this budget automatically when a new period starts.
-                </p>
+                <Label htmlFor="edit-rollover" className="text-xs font-semibold">Auto-Rollover</Label>
+                <p className="text-[11px] text-muted-foreground">Carry unused budget balance into next month</p>
               </div>
               <Switch
-                id="edit-auto-rollover"
+                id="edit-rollover"
                 checked={editForm.data.auto_rollover}
                 onCheckedChange={(checked) => editForm.setData('auto_rollover', checked)}
               />
             </div>
-            <div className="flex gap-2 justify-end">
-              <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>
+
+            <div className="flex gap-2 justify-end pt-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => setEditOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={editForm.processing}>
-                {editForm.processing ? 'Updating...' : 'Update Budget'}
+              <Button type="submit" size="sm" disabled={editForm.processing}>
+                {editForm.processing ? 'Saving...' : 'Save Changes'}
               </Button>
             </div>
           </form>

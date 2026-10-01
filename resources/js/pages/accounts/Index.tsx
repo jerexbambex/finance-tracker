@@ -1,5 +1,5 @@
 import { Head, useForm, Link, router, usePage } from '@inertiajs/react';
-import { Wallet, CreditCard, TrendingUp, CheckCircle } from 'lucide-react';
+import { Wallet, CreditCard, TrendingUp, CheckCircle, Plus, Landmark, Building2, ArrowUpRight, ArrowDownRight, Layers, ArrowLeftRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 import {
@@ -14,7 +14,6 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,6 +21,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency } from '@/lib/formatCurrency';
+import { KravioCard } from '@/components/dashboard/KravioCard';
+import { KravioKPICard } from '@/components/dashboard/KravioKPICard';
 
 interface Account {
   id: string;
@@ -111,231 +112,305 @@ export default function Index({ accounts, currencies = [] }: Props) {
     setEditOpen(true);
   };
 
-
   const getAccountTypeLabel = (type: string) => {
-    return type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+    const found = accountTypes.find((t) => t.value === type);
+    return found ? found.label : type;
   };
 
-  const balancesByCurrency = accounts.reduce<Record<string, number>>((acc, account) => ({
+  const getAccountIcon = (type: string) => {
+    switch (type.toLowerCase()) {
+      case 'credit_card':
+      case 'credit':
+        return CreditCard;
+      case 'bank':
+      case 'checking':
+      case 'savings':
+        return Landmark;
+      case 'investment':
+        return Building2;
+      default:
+        return Wallet;
+    }
+  };
+
+  // Calculate totals per currency
+  const balancesByCurrency = accounts.reduce<Record<string, number>>((acc, a) => ({
     ...acc,
-    [account.currency]: (acc[account.currency] ?? 0) + account.balance,
+    [a.currency]: (acc[a.currency] ?? 0) + a.balance,
   }), {});
-  const activeAccounts = accounts.filter(acc => acc.is_active).length;
-  const accountsByType = accounts.reduce((acc: Record<string, number>, account) => {
-    acc[account.type] = (acc[account.type] || 0) + 1;
+
+  const activeAccounts = accounts.filter((a) => a.is_active).length;
+  const accountsByType = accounts.reduce((acc, a) => {
+    acc[a.type] = (acc[a.type] || 0) + 1;
     return acc;
-  }, {});
+  }, {} as Record<string, number>);
 
   return (
     <AppLayout>
       <Head title="Accounts" />
-      
-      <div className="py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {showSuccess && (
-            <div className="mb-4 bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-900/30 rounded-lg p-4 flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              <p className="text-green-800 dark:text-green-300">{flash?.success}</p>
-            </div>
-          )}
-          
-          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
-            <h1 className="text-2xl sm:text-3xl font-bold">Accounts</h1>
-            <div className="flex gap-2">
-              <Link href="/transfers/create">
-                <Button variant="outline">Transfer</Button>
-              </Link>
-              <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-                <DialogTrigger asChild>
-                  <Button>Add Account</Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Create New Account</DialogTitle>
-                  </DialogHeader>
-                <form onSubmit={handleCreate} className="space-y-4">
-                  <div>
-                    <Label htmlFor="create-name">Account Name</Label>
+
+      <div className="flex-1 space-y-6 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+        {showSuccess && (
+          <div className="animate-rise rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-3.5 flex items-center gap-2.5 text-xs text-emerald-700 dark:text-emerald-300">
+            <CheckCircle className="h-4 w-4 shrink-0 text-emerald-600" />
+            <p className="font-medium">{flash?.success}</p>
+          </div>
+        )}
+
+        {/* ── Kravio Header ────────────────────────────────────────────── */}
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 animate-rise">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">Accounts & Wallets</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+              Manage all connected bank accounts, credit cards, and digital wallets.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Link href="/transfers/create">
+              <Button variant="outline" size="sm" className="h-8 text-xs">
+                <ArrowLeftRight className="mr-1.5 h-3.5 w-3.5" />
+                Transfer
+              </Button>
+            </Link>
+
+            <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" className="h-8 text-xs font-semibold">
+                  <Plus className="mr-1.5 h-3.5 w-3.5" />
+                  Add Account
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[480px]">
+                <DialogHeader>
+                  <DialogTitle>Create New Account</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleCreate} className="space-y-4 pt-2">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="create-name" className="text-xs font-semibold">Account Name</Label>
                     <Input
                       id="create-name"
                       value={createForm.data.name}
                       onChange={(e) => createForm.setData('name', e.target.value)}
                       placeholder="e.g., Main Checking"
+                      className="h-9 text-xs"
                     />
-                    {createForm.errors.name && <p className="text-red-500 text-sm mt-1">{createForm.errors.name}</p>}
+                    {createForm.errors.name && <p className="text-destructive text-xs">{createForm.errors.name}</p>}
                   </div>
-                  <div>
-                    <Label htmlFor="create-type">Account Type</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="create-type" className="text-xs font-semibold">Account Type</Label>
                     <Select value={createForm.data.type} onValueChange={(value) => createForm.setData('type', value)}>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-9 text-xs">
                         <SelectValue placeholder="Select account type" />
                       </SelectTrigger>
                       <SelectContent>
                         {accountTypes.map((type) => (
-                          <SelectItem key={type.value} value={type.value}>
+                          <SelectItem key={type.value} value={type.value} className="text-xs">
                             {type.label}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                    {createForm.errors.type && <p className="text-red-500 text-sm mt-1">{createForm.errors.type}</p>}
+                    {createForm.errors.type && <p className="text-destructive text-xs">{createForm.errors.type}</p>}
                   </div>
-                  <div>
-                    <Label htmlFor="create-balance">Initial Balance</Label>
-                    <Input
-                      id="create-balance"
-                      type="number"
-                      step="0.01"
-                      value={createForm.data.balance}
-                      onChange={(e) => createForm.setData('balance', e.target.value)}
-                      placeholder="0.00"
-                    />
-                    {createForm.errors.balance && <p className="text-red-500 text-sm mt-1">{createForm.errors.balance}</p>}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="create-balance" className="text-xs font-semibold">Initial Balance</Label>
+                      <Input
+                        id="create-balance"
+                        type="number"
+                        step="0.01"
+                        value={createForm.data.balance}
+                        onChange={(e) => createForm.setData('balance', e.target.value)}
+                        placeholder="0.00"
+                        className="h-9 text-xs font-mono"
+                      />
+                      {createForm.errors.balance && <p className="text-destructive text-xs">{createForm.errors.balance}</p>}
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="create-currency" className="text-xs font-semibold">Currency</Label>
+                      <Select value={createForm.data.currency} onValueChange={(value) => createForm.setData('currency', value)}>
+                        <SelectTrigger className="h-9 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {currencies.map((currency) => (
+                            <SelectItem key={currency.value} value={currency.value} className="text-xs">
+                              {currency.symbol} {currency.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                  <div>
-                    <Label htmlFor="create-currency">Currency</Label>
-                    <Select value={createForm.data.currency} onValueChange={(value) => createForm.setData('currency', value)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {currencies.map((currency) => (
-                          <SelectItem key={currency.value} value={currency.value}>
-                            {currency.symbol} {currency.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="create-description">Description (Optional)</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="create-description" className="text-xs font-semibold">Description (Optional)</Label>
                     <Textarea
                       id="create-description"
                       value={createForm.data.description}
                       onChange={(e) => createForm.setData('description', e.target.value)}
                       placeholder="Additional notes"
-                      rows={3}
+                      rows={2}
+                      className="text-xs"
                     />
                   </div>
-                  <div className="flex gap-2 justify-end">
-                    <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>
+                  <div className="flex gap-2 justify-end pt-2">
+                    <Button type="button" variant="outline" size="sm" onClick={() => setCreateOpen(false)}>
                       Cancel
                     </Button>
-                    <Button type="submit" disabled={createForm.processing}>
+                    <Button type="submit" size="sm" disabled={createForm.processing}>
                       {createForm.processing ? 'Creating...' : 'Create Account'}
                     </Button>
                   </div>
                 </form>
               </DialogContent>
-              </Dialog>
-            </div>
+            </Dialog>
           </div>
-
-          {accounts.length > 0 && (
-            <div className="grid gap-4 md:grid-cols-3 mb-6">
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-sm font-medium text-muted-foreground">Total Balance</div>
-                      <div className="mt-2 space-y-0.5">
-                        {Object.entries(balancesByCurrency).map(([currency, amount]) => (
-                          <div key={currency} className="text-2xl font-bold font-mono tabular-nums">{formatCurrency(amount, currency)}</div>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
-                      <Wallet className="h-6 w-6 text-blue-600" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-sm font-medium text-muted-foreground">Active Accounts</div>
-                      <div className="text-2xl font-bold font-mono tabular-nums mt-2">{activeAccounts}</div>
-                    </div>
-                    <div className="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
-                      <TrendingUp className="h-6 w-6 text-green-600" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-sm font-medium text-muted-foreground">Account Types</div>
-                      <div className="text-2xl font-bold font-mono tabular-nums mt-2">{Object.keys(accountsByType).length}</div>
-                    </div>
-                    <div className="h-12 w-12 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
-                      <CreditCard className="h-6 w-6 text-purple-600" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {accounts.map((account) => (
-              <Card key={account.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <CardTitle className="text-lg">{account.name}</CardTitle>
-                    <Badge variant={account.is_active ? 'default' : 'secondary'}>
-                      {account.is_active ? 'Active' : 'Inactive'}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    {getAccountTypeLabel(account.type)}
-                  </p>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="text-2xl font-bold font-mono tabular-nums">
-                      {formatCurrency(account.balance, account.currency)}
-                    </div>
-                    {account.description && (
-                      <p className="text-sm text-gray-500">{account.description}</p>
-                    )}
-                    <div className="flex gap-2 mt-4">
-                      <Button variant="outline" size="sm" onClick={() => openEditModal(account)}>
-                        Edit
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => setDeleteAccount(account)}
-                      >
-                        Delete
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {accounts.length === 0 && (
-            <Card>
-              <CardContent className="text-center py-12">
-                <Wallet className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                <p className="text-gray-500 mb-4">No accounts found</p>
-                <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-                  <DialogTrigger asChild>
-                    <Button>Create Your First Account</Button>
-                  </DialogTrigger>
-                </Dialog>
-              </CardContent>
-            </Card>
-          )}
         </div>
+
+        {/* ── Kravio KPI Metric Strip ──────────────────────────────────── */}
+        {accounts.length > 0 && (
+          <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
+            <KravioKPICard
+              index={0}
+              title="Combined Balance"
+              value={Object.entries(balancesByCurrency).map(([c, a]) => formatCurrency(a, c)).join(', ') || '$0.00'}
+              icon={Wallet}
+              iconColorClass="bg-primary/10 text-primary"
+              subtitle="Sum across active currencies"
+            />
+            <KravioKPICard
+              index={1}
+              title="Active Accounts"
+              value={activeAccounts.toString()}
+              icon={TrendingUp}
+              iconColorClass="bg-emerald-500/10 text-emerald-600"
+              subtitle={`${accounts.length - activeAccounts} inactive`}
+            />
+            <KravioKPICard
+              index={2}
+              title="Account Types"
+              value={Object.keys(accountsByType).length.toString()}
+              icon={CreditCard}
+              iconColorClass="bg-purple-500/10 text-purple-600"
+              subtitle="Checking, Savings, Credit, etc."
+            />
+          </div>
+        )}
+
+        {/* ── Kravio Account Cards Grid ─────────────────────────────────── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {accounts.map((account, idx) => {
+            const Icon = getAccountIcon(account.type);
+            const isOverdrawn = account.balance < 0;
+
+            return (
+              <KravioCard
+                key={account.id}
+                pattern
+                className="group/acc animate-rise transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                innerClassName="p-4 sm:p-5 flex flex-col justify-between h-full bg-gradient-to-br from-card to-muted/20"
+                style={{ animationDelay: `${100 + idx * 40}ms` }}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover/acc:bg-primary group-hover/acc:text-primary-foreground transition-colors shadow-2xs">
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <Link href={`/accounts/${account.id}`} className="font-semibold text-sm text-foreground truncate hover:text-primary transition-colors block">
+                        {account.name}
+                      </Link>
+                      <span className="text-[11px] text-muted-foreground block truncate">
+                        {getAccountTypeLabel(account.type)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <Badge
+                    variant={account.is_active ? 'default' : 'secondary'}
+                    className="text-[10px] px-2 py-0 font-medium"
+                  >
+                    {account.is_active ? 'Active' : 'Inactive'}
+                  </Badge>
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-border/40 flex items-baseline justify-between gap-2">
+                  <div>
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider block">Balance</span>
+                    <span className={`font-mono text-xl font-bold tracking-tight tabular-nums ${isOverdrawn ? 'text-rose-600' : 'text-foreground'}`}>
+                      {formatCurrency(account.balance, account.currency)}
+                    </span>
+                  </div>
+                  <Badge variant="outline" className="font-mono text-[11px]">
+                    {account.currency}
+                  </Badge>
+                </div>
+
+                {account.description && (
+                  <p className="mt-2 text-xs text-muted-foreground line-clamp-1">
+                    {account.description}
+                  </p>
+                )}
+
+                <div className="mt-4 flex items-center justify-between gap-2 border-t border-border/30 pt-3">
+                  <span className="text-[11px] text-muted-foreground">
+                    {account.transactions_count} transaction{account.transactions_count !== 1 ? 's' : ''}
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={() => openEditModal(account)}>
+                      Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 px-2 text-xs text-destructive hover:text-destructive"
+                      onClick={() => setDeleteAccount(account)}
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                </div>
+              </KravioCard>
+            );
+          })}
+
+          {/* Quick Create Card */}
+          <button
+            type="button"
+            onClick={() => setCreateOpen(true)}
+            className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border/80 bg-muted/20 p-6 text-center transition-all duration-200 hover:border-primary/50 hover:bg-muted/40 group min-h-[180px]"
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-background border border-border/70 text-muted-foreground group-hover:text-primary group-hover:border-primary/40 transition-colors shadow-xs">
+              <Plus className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-foreground group-hover:text-primary transition-colors">
+                Connect Another Account
+              </p>
+              <p className="text-[11px] text-muted-foreground">Bank, Credit Card, or Cash Wallet</p>
+            </div>
+          </button>
+        </div>
+
+        {accounts.length === 0 && (
+          <KravioCard pattern className="text-center py-12">
+            <Wallet className="h-12 w-12 mx-auto text-muted-foreground/60 mb-3" />
+            <h3 className="text-sm font-semibold text-foreground">No accounts linked yet</h3>
+            <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
+              Add your first account to start recording transactions, monitoring budgets, and tracking your net worth.
+            </p>
+            <div className="mt-4">
+              <Button size="sm" onClick={() => setCreateOpen(true)}>
+                <Plus className="mr-1.5 h-3.5 w-3.5" />
+                Create First Account
+              </Button>
+            </div>
+          </KravioCard>
+        )}
       </div>
 
+      {/* Delete Modal */}
       <AlertDialog open={!!deleteAccount} onOpenChange={(open) => !open && setDeleteAccount(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -366,67 +441,55 @@ export default function Index({ accounts, currencies = [] }: Props) {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Edit Modal */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[480px]">
           <DialogHeader>
             <DialogTitle>Edit Account</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleEdit} className="space-y-4">
-            <div>
-              <Label htmlFor="edit-name">Account Name</Label>
+          <form onSubmit={handleEdit} className="space-y-4 pt-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-name" className="text-xs font-semibold">Account Name</Label>
               <Input
                 id="edit-name"
                 value={editForm.data.name}
                 onChange={(e) => editForm.setData('name', e.target.value)}
+                className="h-9 text-xs"
               />
-              {editForm.errors.name && <p className="text-red-500 text-sm mt-1">{editForm.errors.name}</p>}
+              {editForm.errors.name && <p className="text-destructive text-xs">{editForm.errors.name}</p>}
             </div>
-            <div>
-              <Label htmlFor="edit-type">Account Type</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-type" className="text-xs font-semibold">Account Type</Label>
               <Select value={editForm.data.type} onValueChange={(value) => editForm.setData('type', value)}>
-                <SelectTrigger>
+                <SelectTrigger className="h-9 text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {accountTypes.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
+                    <SelectItem key={type.value} value={type.value} className="text-xs">
                       {type.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              {editForm.errors.type && <p className="text-red-500 text-sm mt-1">{editForm.errors.type}</p>}
+              {editForm.errors.type && <p className="text-destructive text-xs">{editForm.errors.type}</p>}
             </div>
-            <div>
-              <Label htmlFor="edit-currency">Currency</Label>
-              <Select value={editForm.data.currency} onValueChange={(value) => editForm.setData('currency', value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {currencies.map((currency) => (
-                    <SelectItem key={currency.value} value={currency.value}>
-                      {currency.symbol} {currency.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="edit-description">Description (Optional)</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-description" className="text-xs font-semibold">Description (Optional)</Label>
               <Textarea
                 id="edit-description"
                 value={editForm.data.description}
                 onChange={(e) => editForm.setData('description', e.target.value)}
-                rows={3}
+                rows={2}
+                className="text-xs"
               />
             </div>
-            <div className="flex gap-2 justify-end">
-              <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>
+            <div className="flex gap-2 justify-end pt-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => setEditOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={editForm.processing}>
-                {editForm.processing ? 'Updating...' : 'Update Account'}
+              <Button type="submit" size="sm" disabled={editForm.processing}>
+                {editForm.processing ? 'Saving...' : 'Save Changes'}
               </Button>
             </div>
           </form>

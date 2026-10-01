@@ -1,17 +1,18 @@
 import { Head, useForm } from '@inertiajs/react';
-import { Target, TrendingUp, Calendar } from 'lucide-react';
+import { Target, TrendingUp, Calendar, Plus, CheckCircle2, Check, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency } from '@/lib/formatCurrency';
+import { KravioCard } from '@/components/dashboard/KravioCard';
+import { KravioKPICard } from '@/components/dashboard/KravioKPICard';
 
 interface Goal {
   id: string;
@@ -121,14 +122,9 @@ export default function Index({ goals, currencies }: Props) {
 
   const openContributeModal = (goal: Goal) => {
     setContributingGoal(goal);
-    contributeForm.setData({
-      amount: '',
-      note: '',
-      contribution_date: new Date().toISOString().split('T')[0],
-    });
+    contributeForm.reset();
     setContributeOpen(true);
   };
-
 
   const formatDate = (date?: string) => {
     if (!date) return null;
@@ -142,9 +138,6 @@ export default function Index({ goals, currencies }: Props) {
   const activeGoals = goals.filter(g => !g.is_completed);
   const completedGoals = goals.filter(g => g.is_completed);
 
-  // Goals can be in different currencies, so a single summed number would
-  // silently mix them — group by currency instead, same as the dashboard
-  // does for account balances.
   const groupByCurrency = (amounts: { currency: string; value: number }[]) =>
     amounts.reduce<Record<string, number>>((acc, { currency, value }) => ({
       ...acc,
@@ -154,49 +147,55 @@ export default function Index({ goals, currencies }: Props) {
   const totalTargetByCurrency = groupByCurrency(goals.map(g => ({ currency: g.currency, value: g.target_amount })));
   const totalSavedByCurrency = groupByCurrency(goals.map(g => ({ currency: g.currency, value: g.current_amount })));
 
-  const formatCurrencyGroup = (amounts: Record<string, number>) =>
-    Object.entries(amounts).map(([currency, amount]) => formatCurrency(amount, currency)).join(', ') || formatCurrency(0);
-
-  // Overall progress is only meaningful within a single currency; with more
-  // than one in play, show each currency's own progress instead of one
-  // number that would blend unrelated totals.
   const currenciesInPlay = Object.keys(totalTargetByCurrency);
-  const progressByCurrency = currenciesInPlay.map((currency) => ({
-    currency,
-    percentage: totalTargetByCurrency[currency] > 0
-      ? ((totalSavedByCurrency[currency] ?? 0) / totalTargetByCurrency[currency]) * 100
-      : 0,
-  }));
+  const [activeGoalCurrency, setActiveGoalCurrency] = useState<string>(currenciesInPlay[0] || 'USD');
+
+  const selectedTarget = totalTargetByCurrency[activeGoalCurrency] ?? 0;
+  const selectedSaved = totalSavedByCurrency[activeGoalCurrency] ?? 0;
+  const selectedPercentage = selectedTarget > 0 ? (selectedSaved / selectedTarget) * 100 : 0;
+  const goalsInActiveCurrency = goals.filter((g) => g.currency === activeGoalCurrency);
+  const completedInActiveCurrency = goalsInActiveCurrency.filter((g) => g.percentage >= 100);
 
   return (
     <AppLayout>
       <Head title="Goals" />
-      
-      <div className="py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
-            <h1 className="text-2xl sm:text-3xl font-bold">Financial Goals</h1>
-            <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-              <DialogTrigger asChild>
-                <Button>Create Goal</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Create New Goal</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleCreate} className="space-y-4">
-                  <div>
-                    <Label htmlFor="create-name">Goal Name</Label>
-                    <Input
-                      id="create-name"
-                      value={createForm.data.name}
-                      onChange={(e) => createForm.setData('name', e.target.value)}
-                      placeholder="e.g., Emergency Fund"
-                    />
-                    {createForm.errors.name && <p className="text-red-500 text-sm mt-1">{createForm.errors.name}</p>}
-                  </div>
-                  <div>
-                    <Label htmlFor="create-target">Target Amount</Label>
+
+      <div className="flex-1 space-y-6 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+        {/* ── Kravio Header ────────────────────────────────────────────── */}
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 animate-rise">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">Savings Goals</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+              Set milestones, allocate savings targets, and track long-term progress.
+            </p>
+          </div>
+
+          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="h-8 text-xs font-semibold">
+                <Plus className="mr-1.5 h-3.5 w-3.5" />
+                Create Goal
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[480px]">
+              <DialogHeader>
+                <DialogTitle>Create Savings Goal</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleCreate} className="space-y-4 pt-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="create-name" className="text-xs font-semibold">Goal Name</Label>
+                  <Input
+                    id="create-name"
+                    value={createForm.data.name}
+                    onChange={(e) => createForm.setData('name', e.target.value)}
+                    placeholder="e.g., Emergency Fund"
+                    className="h-9 text-xs"
+                  />
+                  {createForm.errors.name && <p className="text-destructive text-xs">{createForm.errors.name}</p>}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="create-target" className="text-xs font-semibold">Target Amount</Label>
                     <Input
                       id="create-target"
                       type="number"
@@ -204,11 +203,27 @@ export default function Index({ goals, currencies }: Props) {
                       value={createForm.data.target_amount}
                       onChange={(e) => createForm.setData('target_amount', e.target.value)}
                       placeholder="0.00"
+                      className="h-9 text-xs font-mono"
                     />
-                    {createForm.errors.target_amount && <p className="text-red-500 text-sm mt-1">{createForm.errors.target_amount}</p>}
+                    {createForm.errors.target_amount && <p className="text-destructive text-xs">{createForm.errors.target_amount}</p>}
                   </div>
-                  <div>
-                    <Label htmlFor="create-current">Starting Amount (Optional)</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="create-currency" className="text-xs font-semibold">Currency</Label>
+                    <Select value={createForm.data.currency} onValueChange={(value) => createForm.setData('currency', value)}>
+                      <SelectTrigger id="create-currency" className="h-9 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {currencies.map((c) => (
+                          <SelectItem key={c.value} value={c.value} className="text-xs">{c.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="create-current" className="text-xs font-semibold">Starting Amount</Label>
                     <Input
                       id="create-current"
                       type="number"
@@ -216,308 +231,257 @@ export default function Index({ goals, currencies }: Props) {
                       value={createForm.data.current_amount}
                       onChange={(e) => createForm.setData('current_amount', e.target.value)}
                       placeholder="0.00"
+                      className="h-9 text-xs font-mono"
                     />
-                    <p className="text-xs text-muted-foreground mt-1">Recorded as your first contribution.</p>
                   </div>
-                  <div>
-                    <Label htmlFor="create-currency">Currency</Label>
-                    <Select value={createForm.data.currency} onValueChange={(value) => createForm.setData('currency', value)}>
-                      <SelectTrigger id="create-currency">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {currencies.map((c) => (
-                          <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {createForm.errors.currency && <p className="text-red-500 text-sm mt-1">{createForm.errors.currency}</p>}
-                  </div>
-                  <div>
-                    <Label htmlFor="create-date">Target Date (Optional)</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="create-date" className="text-xs font-semibold">Target Date</Label>
                     <Input
                       id="create-date"
                       type="date"
                       value={createForm.data.target_date}
                       onChange={(e) => createForm.setData('target_date', e.target.value)}
+                      className="h-9 text-xs"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="create-category">Category (Optional)</Label>
-                    <Input
-                      id="create-category"
-                      value={createForm.data.category}
-                      onChange={(e) => createForm.setData('category', e.target.value)}
-                      placeholder="e.g., Savings, Vacation"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="create-description">Description (Optional)</Label>
-                    <Textarea
-                      id="create-description"
-                      value={createForm.data.description}
-                      onChange={(e) => createForm.setData('description', e.target.value)}
-                      placeholder="Additional notes"
-                      rows={3}
-                    />
-                  </div>
-                  <div className="flex gap-2 justify-end">
-                    <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button type="submit" disabled={createForm.processing}>
-                      {createForm.processing ? 'Creating...' : 'Create Goal'}
-                    </Button>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
-
-          {goals.length > 0 && (
-            <div className="grid gap-4 md:grid-cols-3 mb-6">
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-sm font-medium text-muted-foreground">Total Target</div>
-                      <div className="text-2xl font-bold font-mono tabular-nums mt-2">{formatCurrencyGroup(totalTargetByCurrency)}</div>
-                    </div>
-                    <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
-                      <Target className="h-6 w-6 text-blue-600" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-sm font-medium text-muted-foreground">Total Saved</div>
-                      <div className="text-2xl font-bold font-mono tabular-nums text-green-600 mt-2">{formatCurrencyGroup(totalSavedByCurrency)}</div>
-                    </div>
-                    <div className="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
-                      <TrendingUp className="h-6 w-6 text-green-600" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-sm font-medium text-muted-foreground">Overall Progress</div>
-                      <div className="text-2xl font-bold font-mono tabular-nums mt-2 space-x-2">
-                        {progressByCurrency.map(({ currency, percentage }) => (
-                          <span key={currency}>
-                            {percentage.toFixed(0)}%{progressByCurrency.length > 1 && <span className="text-xs text-muted-foreground ml-0.5">{currency}</span>}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="h-12 w-12 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
-                      <Calendar className="h-6 w-6 text-purple-600" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          {activeGoals.length > 0 && (
-            <>
-              <h2 className="text-xl font-semibold mb-4">Active Goals</h2>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
-                {activeGoals.map((goal) => (
-                  <Card key={goal.id} className="hover:shadow-lg transition-shadow">
-                    <CardHeader className="pb-3">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <CardTitle className="text-lg">{goal.name}</CardTitle>
-                          {goal.category && (
-                            <p className="text-xs text-muted-foreground mt-1">{goal.category}</p>
-                          )}
-                        </div>
-                        <Button variant="ghost" size="sm" onClick={() => openEditModal(goal)}>
-                          Edit
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {goal.description && (
-                        <p className="text-sm text-muted-foreground">{goal.description}</p>
-                      )}
-                      
-                      <div>
-                        <div className="flex justify-between items-baseline mb-2">
-                          <span className="text-2xl font-bold font-mono tabular-nums">{formatCurrency(goal.current_amount, goal.currency)}</span>
-                          <span className="text-sm text-muted-foreground">of {formatCurrency(goal.target_amount, goal.currency)}</span>
-                        </div>
-                        <Progress value={Math.min(goal.percentage, 100)} className="h-2" />
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {goal.percentage.toFixed(0)}% complete
-                        </p>
-                      </div>
-
-                      {goal.target_date && (
-                        <p className="text-sm text-muted-foreground flex items-center gap-1">
-                          <Calendar className="h-4 w-4" />
-                          Target: {formatDate(goal.target_date)}
-                        </p>
-                      )}
-
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="w-full"
-                        onClick={() => openContributeModal(goal)}
-                      >
-                        Update Progress
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </>
-          )}
-
-          {completedGoals.length > 0 && (
-            <>
-              <h2 className="text-xl font-semibold mb-4 text-green-600">Completed Goals 🎉</h2>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {completedGoals.map((goal) => (
-                  <Card key={goal.id} className="border-green-500 bg-green-50 dark:bg-green-900/10">
-                    <CardHeader className="pb-3">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <CardTitle className="text-lg">{goal.name}</CardTitle>
-                          {goal.category && (
-                            <p className="text-xs text-muted-foreground mt-1">{goal.category}</p>
-                          )}
-                        </div>
-                        <span className="text-green-600 font-semibold text-sm">✓ Done</span>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold font-mono tabular-nums text-green-600">
-                        {formatCurrency(goal.current_amount, goal.currency)}
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Target: {formatCurrency(goal.target_amount, goal.currency)}
-                      </p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </>
-          )}
-
-          {goals.length === 0 && (
-            <Card>
-              <CardContent className="text-center py-12">
-                <Target className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground mb-4">No goals set yet</p>
-                <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-                  <DialogTrigger asChild>
-                    <Button>Create Your First Goal</Button>
-                  </DialogTrigger>
-                </Dialog>
-              </CardContent>
-            </Card>
-          )}
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="create-category" className="text-xs font-semibold">Category (Optional)</Label>
+                  <Input
+                    id="create-category"
+                    value={createForm.data.category}
+                    onChange={(e) => createForm.setData('category', e.target.value)}
+                    placeholder="e.g., Emergency, Travel, Investment"
+                    className="h-9 text-xs"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="create-description" className="text-xs font-semibold">Description (Optional)</Label>
+                  <Textarea
+                    id="create-description"
+                    value={createForm.data.description}
+                    onChange={(e) => createForm.setData('description', e.target.value)}
+                    placeholder="Notes or reasons for this goal"
+                    rows={2}
+                    className="text-xs"
+                  />
+                </div>
+                <div className="flex gap-2 justify-end pt-2">
+                  <Button type="button" variant="outline" size="sm" onClick={() => setCreateOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" size="sm" disabled={createForm.processing}>
+                    {createForm.processing ? 'Creating...' : 'Create Goal'}
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
-      </div>
 
-      {/* Edit Modal */}
-      <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Goal</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleEdit} className="space-y-4">
-            <div>
-              <Label htmlFor="edit-name">Goal Name</Label>
-              <Input
-                id="edit-name"
-                value={editForm.data.name}
-                onChange={(e) => editForm.setData('name', e.target.value)}
-              />
-              {editForm.errors.name && <p className="text-red-500 text-sm mt-1">{editForm.errors.name}</p>}
+        {/* ── Kravio KPI Metric Strip ──────────────────────────────────── */}
+        {goals.length > 0 && (
+          <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
+            <KravioKPICard
+              index={0}
+              title={`Target Amount (${activeGoalCurrency})`}
+              value={formatCurrency(selectedTarget, activeGoalCurrency)}
+              icon={Target}
+              iconColorClass="bg-primary/10 text-primary"
+              headerRight={
+                currenciesInPlay.length > 1 ? (
+                  <Select value={activeGoalCurrency} onValueChange={setActiveGoalCurrency}>
+                    <SelectTrigger className="h-6 px-2 text-[11px] rounded-md font-mono bg-background/80 border-border/70">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent align="end" className="text-xs">
+                      {currenciesInPlay.map((c) => (
+                        <SelectItem key={c} value={c} className="text-xs font-mono">
+                          {c} ({formatCurrency(totalTargetByCurrency[c] ?? 0, c)})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : undefined
+              }
+              subtitle={`${goalsInActiveCurrency.length} milestone${goalsInActiveCurrency.length !== 1 ? 's' : ''} in ${activeGoalCurrency}`}
+            />
+            <KravioKPICard
+              index={1}
+              title={`Total Accumulated (${activeGoalCurrency})`}
+              value={formatCurrency(selectedSaved, activeGoalCurrency)}
+              icon={TrendingUp}
+              iconColorClass="bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400"
+              delta={{
+                value: `${selectedPercentage.toFixed(0)}%`,
+                isPositive: selectedPercentage >= 50,
+                label: 'overall funding rate',
+              }}
+            />
+            <KravioKPICard
+              index={2}
+              title={`Milestones (${activeGoalCurrency})`}
+              value={`${completedInActiveCurrency.length} of ${goalsInActiveCurrency.length}`}
+              icon={Calendar}
+              iconColorClass="bg-purple-500/10 text-purple-600"
+              subtitle={
+                completedInActiveCurrency.length === goalsInActiveCurrency.length && goalsInActiveCurrency.length > 0
+                  ? 'All goals funded 🎉'
+                  : `${goalsInActiveCurrency.length - completedInActiveCurrency.length} in progress`
+              }
+            />
+          </div>
+        )}
+
+        {/* ── Active Goals Cards ───────────────────────────────────────── */}
+        {activeGoals.length > 0 && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Active Goals</h2>
+              <span className="text-xs text-muted-foreground">({activeGoals.length})</span>
+              <div className="h-px flex-1 bg-border/40" />
             </div>
-            <div>
-              <Label htmlFor="edit-target">Target Amount</Label>
-              <Input
-                id="edit-target"
-                type="number"
-                step="0.01"
-                value={editForm.data.target_amount}
-                onChange={(e) => editForm.setData('target_amount', e.target.value)}
-              />
-              {editForm.errors.target_amount && <p className="text-red-500 text-sm mt-1">{editForm.errors.target_amount}</p>}
+
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {activeGoals.map((goal, idx) => {
+                const pct = Math.min(goal.percentage, 100);
+                return (
+                  <KravioCard
+                    key={goal.id}
+                    pattern
+                    className="group/g animate-rise transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                    innerClassName="p-4 sm:p-5 flex flex-col justify-between h-full bg-gradient-to-br from-card to-muted/20"
+                    style={{ animationDelay: `${80 + idx * 40}ms` }}
+                  >
+                    <div>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <h3 className="font-semibold text-sm text-foreground truncate group-hover/g:text-primary transition-colors">
+                            {goal.name}
+                          </h3>
+                          {goal.category && (
+                            <span className="text-[11px] text-muted-foreground block truncate mt-0.5">
+                              {goal.category}
+                            </span>
+                          )}
+                        </div>
+
+                        <span className="inline-flex items-center rounded-md bg-primary/10 border border-primary/20 px-2 py-0.5 text-[11px] font-bold font-mono text-primary">
+                          {pct.toFixed(0)}%
+                        </span>
+                      </div>
+
+                      {goal.description && (
+                        <p className="mt-2 text-xs text-muted-foreground line-clamp-2">
+                          {goal.description}
+                        </p>
+                      )}
+
+                      <div className="mt-4 flex items-baseline justify-between gap-2">
+                        <div>
+                          <span className="font-mono text-xl font-bold text-foreground tabular-nums">
+                            {formatCurrency(goal.current_amount, goal.currency)}
+                          </span>
+                          <span className="text-xs text-muted-foreground block">
+                            of {formatCurrency(goal.target_amount, goal.currency)} target
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Progress Bar */}
+                      <div className="mt-3 space-y-1">
+                        <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-primary to-teal-400 transition-all duration-500"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        {goal.target_date && (
+                          <p className="text-[11px] text-muted-foreground flex items-center gap-1 pt-1">
+                            <Calendar className="h-3 w-3" />
+                            Target: {formatDate(goal.target_date)}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="mt-4 pt-3 border-t border-border/30 flex items-center justify-between gap-2">
+                      <Button variant="outline" size="sm" className="h-7 text-xs px-2.5 font-medium" onClick={() => openContributeModal(goal)}>
+                        + Add Funds
+                      </Button>
+                      <Button variant="ghost" size="sm" className="h-7 text-xs px-2 text-muted-foreground hover:text-foreground" onClick={() => openEditModal(goal)}>
+                        Edit
+                      </Button>
+                    </div>
+                  </KravioCard>
+                );
+              })}
             </div>
-            <div>
-              <Label htmlFor="edit-currency">Currency</Label>
-              <Select value={editForm.data.currency} onValueChange={(value) => editForm.setData('currency', value)}>
-                <SelectTrigger id="edit-currency">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {currencies.map((c) => (
-                    <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {editForm.errors.currency && <p className="text-red-500 text-sm mt-1">{editForm.errors.currency}</p>}
+          </div>
+        )}
+
+        {/* ── Completed Goals ──────────────────────────────────────────── */}
+        {completedGoals.length > 0 && (
+          <div className="space-y-3 pt-4">
+            <div className="flex items-center gap-3">
+              <h2 className="text-xs font-semibold text-emerald-600 uppercase tracking-wider flex items-center gap-1.5">
+                <Sparkles className="h-3.5 w-3.5" />
+                Completed Goals ({completedGoals.length})
+              </h2>
+              <div className="h-px flex-1 bg-border/40" />
             </div>
-            <div>
-              <Label htmlFor="edit-date">Target Date (Optional)</Label>
-              <Input
-                id="edit-date"
-                type="date"
-                value={editForm.data.target_date}
-                onChange={(e) => editForm.setData('target_date', e.target.value)}
-              />
+
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {completedGoals.map((goal) => (
+                <KravioCard
+                  key={goal.id}
+                  pattern
+                  className="border-emerald-500/30"
+                  innerClassName="p-4 sm:p-5 flex flex-col justify-between h-full bg-emerald-500/[0.03]"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h3 className="font-semibold text-sm text-foreground">{goal.name}</h3>
+                      <p className="text-xs font-mono font-bold text-emerald-600 mt-1">
+                        {formatCurrency(goal.target_amount, goal.currency)} reached 🎉
+                      </p>
+                    </div>
+                    <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/30 text-[10px]">
+                      <Check className="mr-1 h-3 w-3" /> Completed
+                    </Badge>
+                  </div>
+                </KravioCard>
+              ))}
             </div>
-            <div>
-              <Label htmlFor="edit-category">Category (Optional)</Label>
-              <Input
-                id="edit-category"
-                value={editForm.data.category}
-                onChange={(e) => editForm.setData('category', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-description">Description (Optional)</Label>
-              <Textarea
-                id="edit-description"
-                value={editForm.data.description}
-                onChange={(e) => editForm.setData('description', e.target.value)}
-                rows={3}
-              />
-            </div>
-            <div className="flex gap-2 justify-end">
-              <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>
-                Cancel
+          </div>
+        )}
+
+        {goals.length === 0 && (
+          <KravioCard pattern className="text-center py-12">
+            <Target className="h-12 w-12 mx-auto text-muted-foreground/60 mb-3" />
+            <h3 className="text-sm font-semibold text-foreground">No savings goals yet</h3>
+            <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
+              Create your first target to start saving toward emergencies, investments, vacations, or major purchases.
+            </p>
+            <div className="mt-4">
+              <Button size="sm" onClick={() => setCreateOpen(true)}>
+                <Plus className="mr-1.5 h-3.5 w-3.5" />
+                Create First Goal
               </Button>
-              <Button type="submit" disabled={editForm.processing}>
-                {editForm.processing ? 'Updating...' : 'Update Goal'}
-              </Button>
             </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+          </KravioCard>
+        )}
+      </div>
 
       {/* Contribute Modal */}
       <Dialog open={contributeOpen} onOpenChange={setContributeOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[420px]">
           <DialogHeader>
-            <DialogTitle>Add Contribution</DialogTitle>
+            <DialogTitle>Add Contribution to {contributingGoal?.name}</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleContribute} className="space-y-4">
-            <div>
-              <Label htmlFor="contribute-amount">
-                Amount{contributingGoal && ` (${contributingGoal.currency})`}
-              </Label>
+          <form onSubmit={handleContribute} className="space-y-4 pt-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="contribute-amount" className="text-xs font-semibold">Contribution Amount ({contributingGoal?.currency})</Label>
               <Input
                 id="contribute-amount"
                 type="number"
@@ -525,36 +489,115 @@ export default function Index({ goals, currencies }: Props) {
                 value={contributeForm.data.amount}
                 onChange={(e) => contributeForm.setData('amount', e.target.value)}
                 placeholder="0.00"
+                className="h-9 text-xs font-mono"
+                autoFocus
               />
-              {contributeForm.errors.amount && (
-                <p className="text-red-500 text-sm mt-1">{contributeForm.errors.amount}</p>
-              )}
+              {contributeForm.errors.amount && <p className="text-destructive text-xs">{contributeForm.errors.amount}</p>}
             </div>
-            <div>
-              <Label htmlFor="contribute-date">Date</Label>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="contribute-date" className="text-xs font-semibold">Date</Label>
               <Input
                 id="contribute-date"
                 type="date"
                 value={contributeForm.data.contribution_date}
                 onChange={(e) => contributeForm.setData('contribution_date', e.target.value)}
+                className="h-9 text-xs"
               />
             </div>
-            <div>
-              <Label htmlFor="contribute-note">Note (Optional)</Label>
-              <Textarea
+
+            <div className="space-y-1.5">
+              <Label htmlFor="contribute-note" className="text-xs font-semibold">Note (Optional)</Label>
+              <Input
                 id="contribute-note"
                 value={contributeForm.data.note}
                 onChange={(e) => contributeForm.setData('note', e.target.value)}
-                placeholder="Add a note about this contribution"
-                rows={2}
+                placeholder="e.g., Monthly bonus savings"
+                className="h-9 text-xs"
               />
             </div>
-            <div className="flex gap-2 justify-end">
-              <Button type="button" variant="outline" onClick={() => setContributeOpen(false)}>
+
+            <div className="flex gap-2 justify-end pt-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => setContributeOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={contributeForm.processing}>
-                {contributeForm.processing ? 'Adding...' : 'Add Contribution'}
+              <Button type="submit" size="sm" disabled={contributeForm.processing}>
+                {contributeForm.processing ? 'Recording...' : 'Add Funds'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Modal */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle>Edit Goal</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleEdit} className="space-y-4 pt-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-name" className="text-xs font-semibold">Goal Name</Label>
+              <Input
+                id="edit-name"
+                value={editForm.data.name}
+                onChange={(e) => editForm.setData('name', e.target.value)}
+                className="h-9 text-xs"
+              />
+              {editForm.errors.name && <p className="text-destructive text-xs">{editForm.errors.name}</p>}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-target" className="text-xs font-semibold">Target Amount</Label>
+              <Input
+                id="edit-target"
+                type="number"
+                step="0.01"
+                value={editForm.data.target_amount}
+                onChange={(e) => editForm.setData('target_amount', e.target.value)}
+                className="h-9 text-xs font-mono"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-date" className="text-xs font-semibold">Target Date</Label>
+                <Input
+                  id="edit-date"
+                  type="date"
+                  value={editForm.data.target_date}
+                  onChange={(e) => editForm.setData('target_date', e.target.value)}
+                  className="h-9 text-xs"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-category" className="text-xs font-semibold">Category</Label>
+                <Input
+                  id="edit-category"
+                  value={editForm.data.category}
+                  onChange={(e) => editForm.setData('category', e.target.value)}
+                  className="h-9 text-xs"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-description" className="text-xs font-semibold">Description</Label>
+              <Textarea
+                id="edit-description"
+                value={editForm.data.description}
+                onChange={(e) => editForm.setData('description', e.target.value)}
+                rows={2}
+                className="text-xs"
+              />
+            </div>
+
+            <div className="flex gap-2 justify-end pt-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => setEditOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" size="sm" disabled={editForm.processing}>
+                {editForm.processing ? 'Saving...' : 'Save Changes'}
               </Button>
             </div>
           </form>

@@ -1,14 +1,13 @@
 import { Head, useForm, Link } from '@inertiajs/react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ArrowLeft, ArrowLeftRight, AlertCircle } from 'lucide-react';
 
+import { KravioCard, KravioCardPattern } from '@/components/dashboard/KravioCard';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency } from '@/lib/formatCurrency';
-
 
 interface Account {
   id: string;
@@ -32,86 +31,97 @@ export default function Create({ accounts }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    post('/transfers', {
-      onSuccess: () => {
-        // Redirect happens automatically via Inertia
-      },
-    });
+    post('/transfers');
   };
 
-
-  const fromAccount = accounts.find(a => a.id === data.from_account_id);
-  const toAccount = accounts.find(a => a.id === data.to_account_id);
+  const fromAccount = accounts.find((a) => a.id === data.from_account_id);
+  const toAccount = accounts.find((a) => a.id === data.to_account_id);
   const currencyMismatch = !!fromAccount && !!toAccount && fromAccount.currency !== toAccount.currency;
 
   return (
     <AppLayout>
-      <Head title="Transfer Between Accounts" />
-      
-      <div className="py-12">
-        <div className="max-w-2xl mx-auto sm:px-6 lg:px-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Transfer Between Accounts</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                  <div>
-                    <Label htmlFor="from_account_id">From Account</Label>
-                    <Select value={data.from_account_id} onValueChange={(value) => setData('from_account_id', value)}>
-                      <SelectTrigger className={errors.from_account_id ? 'border-red-500' : ''}>
-                        <SelectValue placeholder="Select account" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {accounts.map((account) => (
-                          <SelectItem key={account.id} value={account.id}>
-                            {account.name} ({formatCurrency(account.balance, account.currency)})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {errors.from_account_id && <p className="text-red-500 text-sm mt-1">{errors.from_account_id}</p>}
-                  </div>
+      <Head title="Transfer Funds" />
 
-                  <div className="flex justify-center">
-                    <ArrowRight className="h-6 w-6 text-muted-foreground" />
-                  </div>
+      <div className="py-6 sm:py-8 space-y-6">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+          <div className="flex items-center gap-3">
+            <Link
+              href="/accounts"
+              className="p-1.5 rounded-lg border border-border/70 hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">Transfer Between Accounts</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                Move balances safely between your configured accounts with instant double-entry recording.
+              </p>
+            </div>
+          </div>
 
-                  <div>
-                    <Label htmlFor="to_account_id">To Account</Label>
-                    <Select value={data.to_account_id} onValueChange={(value) => setData('to_account_id', value)}>
-                      <SelectTrigger className={errors.to_account_id ? 'border-red-500' : ''}>
-                        <SelectValue placeholder="Select account" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {accounts.map((account) => (
-                          <SelectItem key={account.id} value={account.id}>
-                            {account.name} ({formatCurrency(account.balance, account.currency)})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {errors.to_account_id && <p className="text-red-500 text-sm mt-1">{errors.to_account_id}</p>}
+          <KravioCard className="p-6 sm:p-8" pattern>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-[1fr,auto,1fr] gap-3 items-center">
+                <div className="space-y-1.5">
+                  <Label htmlFor="from_account_id" className="text-xs font-medium text-muted-foreground">Source Account</Label>
+                  <Select value={data.from_account_id} onValueChange={(value) => setData('from_account_id', value)}>
+                    <SelectTrigger className={`h-10 rounded-xl text-xs bg-background/80 ${errors.from_account_id ? 'border-destructive' : 'border-border/70'}`}>
+                      <SelectValue placeholder="From account" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {accounts.map((account) => (
+                        <SelectItem key={account.id} value={account.id} className="text-xs">
+                          {account.name} ({formatCurrency(account.balance, account.currency)})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.from_account_id && <p className="text-destructive text-xs mt-1">{errors.from_account_id}</p>}
+                </div>
+
+                <div className="hidden sm:flex items-center justify-center pt-5">
+                  <div className="w-8 h-8 rounded-full bg-muted border border-border/60 flex items-center justify-center text-muted-foreground">
+                    <ArrowRight className="h-4 w-4" />
                   </div>
                 </div>
 
-                {fromAccount && toAccount && fromAccount.id === toAccount.id && (
-                  <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/30 rounded-md p-3">
-                    <p className="text-sm text-red-600 dark:text-red-400">Cannot transfer to the same account</p>
-                  </div>
-                )}
+                <div className="space-y-1.5">
+                  <Label htmlFor="to_account_id" className="text-xs font-medium text-muted-foreground">Destination Account</Label>
+                  <Select value={data.to_account_id} onValueChange={(value) => setData('to_account_id', value)}>
+                    <SelectTrigger className={`h-10 rounded-xl text-xs bg-background/80 ${errors.to_account_id ? 'border-destructive' : 'border-border/70'}`}>
+                      <SelectValue placeholder="To account" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {accounts.map((account) => (
+                        <SelectItem key={account.id} value={account.id} className="text-xs">
+                          {account.name} ({formatCurrency(account.balance, account.currency)})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.to_account_id && <p className="text-destructive text-xs mt-1">{errors.to_account_id}</p>}
+                </div>
+              </div>
 
-                {currencyMismatch && (
-                  <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/30 rounded-md p-3">
-                    <p className="text-sm text-red-600 dark:text-red-400">
-                      Both accounts must use the same currency ({fromAccount?.currency} → {toAccount?.currency} is not supported).
-                    </p>
-                  </div>
-                )}
+              {fromAccount && toAccount && fromAccount.id === toAccount.id && (
+                <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-3 flex items-center gap-2 text-destructive text-xs">
+                  <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                  <span>Cannot transfer funds to the exact same account.</span>
+                </div>
+              )}
 
-                <div>
-                  <Label htmlFor="amount">Amount</Label>
+              {currencyMismatch && (
+                <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-3 flex items-center gap-2 text-destructive text-xs">
+                  <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                  <span>
+                    Both accounts must share the same currency ({fromAccount?.currency} → {toAccount?.currency} is not supported).
+                  </span>
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                <Label htmlFor="amount" className="text-xs font-medium text-muted-foreground">Transfer Amount</Label>
+                <div className="relative">
                   <Input
                     id="amount"
                     type="number"
@@ -119,53 +129,68 @@ export default function Create({ accounts }: Props) {
                     value={data.amount}
                     onChange={(e) => setData('amount', e.target.value)}
                     placeholder="0.00"
-                    className={errors.amount ? 'border-red-500' : ''}
+                    className={`h-10 rounded-xl text-sm font-mono font-semibold bg-background/80 ${errors.amount ? 'border-destructive' : 'border-border/70'}`}
                   />
-                  {errors.amount && <p className="text-red-500 text-sm mt-1">{errors.amount}</p>}
-                  {fromAccount && data.amount && parseFloat(data.amount) > fromAccount.balance && (
-                    <p className="text-orange-600 text-sm mt-1">
-                      Warning: Amount exceeds available balance
-                    </p>
+                  {fromAccount && (
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-mono text-muted-foreground">
+                      {fromAccount.currency}
+                    </span>
                   )}
                 </div>
+                {errors.amount && <p className="text-destructive text-xs mt-1">{errors.amount}</p>}
+                {fromAccount && data.amount && parseFloat(data.amount) > fromAccount.balance && (
+                  <p className="text-amber-600 dark:text-amber-400 text-xs mt-1 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    Warning: Amount exceeds available balance ({formatCurrency(fromAccount.balance, fromAccount.currency)})
+                  </p>
+                )}
+              </div>
 
-                <div>
-                  <Label htmlFor="description">Description (Optional)</Label>
-                  <Input
-                    id="description"
-                    value={data.description}
-                    onChange={(e) => setData('description', e.target.value)}
-                    placeholder="Transfer description"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="transfer_date">Transfer Date</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="transfer_date" className="text-xs font-medium text-muted-foreground">Execution Date</Label>
                   <Input
                     id="transfer_date"
                     type="date"
                     value={data.transfer_date}
                     onChange={(e) => setData('transfer_date', e.target.value)}
-                    className={errors.transfer_date ? 'border-red-500' : ''}
+                    className={`h-10 rounded-xl text-xs font-mono bg-background/80 ${errors.transfer_date ? 'border-destructive' : 'border-border/70'}`}
                   />
-                  {errors.transfer_date && <p className="text-red-500 text-sm mt-1">{errors.transfer_date}</p>}
+                  {errors.transfer_date && <p className="text-destructive text-xs mt-1">{errors.transfer_date}</p>}
                 </div>
 
-                <div className="flex gap-4">
-                  <Button type="submit" disabled={processing || (fromAccount?.id === toAccount?.id) || currencyMismatch}>
-                    {processing ? 'Processing...' : 'Transfer'}
-                  </Button>
-                  <Link href="/accounts">
-                    <Button type="button" variant="outline">
-                      Cancel
-                    </Button>
-                  </Link>
+                <div className="space-y-1.5">
+                  <Label htmlFor="description" className="text-xs font-medium text-muted-foreground">Note / Reference (Optional)</Label>
+                  <Input
+                    id="description"
+                    value={data.description}
+                    onChange={(e) => setData('description', e.target.value)}
+                    placeholder="e.g. Monthly savings contribution"
+                    className="h-10 rounded-xl text-xs bg-background/80 border-border/70"
+                  />
                 </div>
-              </form>
-            </CardContent>
-          </Card>
+              </div>
+
+              <div className="flex items-center gap-3 pt-4 border-t border-border/60">
+                <Button
+                  type="submit"
+                  disabled={processing || !data.from_account_id || !data.to_account_id || fromAccount?.id === toAccount?.id || currencyMismatch}
+                  className="rounded-xl text-xs h-9 px-5 gap-1.5 shadow-sm"
+                >
+                  <ArrowLeftRight className="h-3.5 w-3.5" />
+                  {processing ? 'Processing Transfer...' : 'Complete Transfer'}
+                </Button>
+                <Link href="/accounts">
+                  <Button type="button" variant="ghost" className="rounded-xl text-xs h-9 text-muted-foreground">
+                    Cancel
+                  </Button>
+                </Link>
+              </div>
+            </form>
+          </KravioCard>
         </div>
       </div>
     </AppLayout>
   );
 }
+

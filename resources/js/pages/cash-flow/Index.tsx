@@ -1,13 +1,13 @@
 import { Head } from '@inertiajs/react';
-import { TrendingUp, TrendingDown, Wallet, AlertTriangle } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, AlertTriangle, ArrowRight } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ReferenceLine } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip } from 'recharts';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency } from '@/lib/formatCurrency';
+import { KravioCard } from '@/components/dashboard/KravioCard';
+import { KravioKPICard } from '@/components/dashboard/KravioKPICard';
 
 interface Point {
   date: string;
@@ -29,10 +29,6 @@ interface Props {
   currencies: Record<string, { symbol: string; label: string }>;
 }
 
-const chartConfig = {
-  balance: { label: 'Projected Balance', color: 'var(--chart-2)' },
-} satisfies ChartConfig;
-
 export default function Index({ timelines, milestones }: Props) {
   const available = Object.keys(timelines);
   const [currency, setCurrency] = useState(available[0] ?? 'USD');
@@ -50,127 +46,160 @@ export default function Index({ timelines, milestones }: Props) {
     return (
       <AppLayout>
         <Head title="Cash Flow Projection" />
-        <div className="py-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 className="text-2xl sm:text-3xl font-bold mb-6">Cash Flow Projection</h1>
-            <Card>
-              <CardContent className="text-center py-12">
-                <Wallet className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground mb-2">No projection available yet</p>
-                <p className="text-sm text-muted-foreground">
-                  Add accounts and recurring transactions to forecast your balance.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+        <div className="flex-1 space-y-6 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+          <h1 className="text-2xl sm:text-3xl font-bold">Cash Flow Projection</h1>
+          <KravioCard pattern className="text-center py-12">
+            <Wallet className="h-12 w-12 mx-auto text-muted-foreground/60 mb-3" />
+            <h3 className="text-sm font-semibold text-foreground">No projection available yet</h3>
+            <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
+              Add active accounts and recurring income/expenses to forecast your 90-day balance.
+            </p>
+          </KravioCard>
         </div>
       </AppLayout>
     );
   }
 
-  const milestoneCard = (label: string, value: number) => (
-    <Card>
-      <CardContent className="pt-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="text-sm font-medium text-muted-foreground">{label}</div>
-            <div className={`text-2xl font-bold font-mono tabular-nums mt-2 ${value < 0 ? 'text-red-600' : 'text-green-600'}`}>
-              {formatCurrency(value, currency)}
-            </div>
-          </div>
-          <div className={`h-12 w-12 rounded-full flex items-center justify-center ${value < 0 ? 'bg-red-100 dark:bg-red-900/20' : 'bg-green-100 dark:bg-green-900/20'}`}>
-            {value < 0 ? <TrendingDown className="h-6 w-6 text-red-600" /> : <TrendingUp className="h-6 w-6 text-green-600" />}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-
   return (
     <AppLayout>
       <Head title="Cash Flow Projection" />
 
-      <div className="py-6 sm:py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold">Cash Flow Projection</h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                Forecast based on current balances and recurring transactions
-              </p>
-            </div>
-            {available.length > 1 && (
-              <Select value={currency} onValueChange={setCurrency}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {available.map((c) => (
-                    <SelectItem key={c} value={c}>{c}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
+      <div className="flex-1 space-y-6 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+        {/* ── Kravio Header ────────────────────────────────────────────── */}
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 animate-rise">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">Cash Flow Projection</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+              90-day balance forecast driven by recurring bills, income schedules, and account balances.
+            </p>
           </div>
 
-          {goesNegative && (
-            <div className="mb-6 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/30 rounded-lg p-4 flex items-center gap-3">
-              <AlertTriangle className="h-5 w-5 text-red-600 flex-shrink-0" />
-              <p className="text-sm text-red-800 dark:text-red-300">
-                Projected balance drops below zero (low point: {formatCurrency(lowestPoint, currency)}). Review upcoming expenses.
-              </p>
-            </div>
+          {available.length > 1 && (
+            <Select value={currency} onValueChange={setCurrency}>
+              <SelectTrigger className="h-8 w-28 text-xs font-medium">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent align="end">
+                {available.map((c) => (
+                  <SelectItem key={c} value={c} className="text-xs font-medium">{c}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )}
-
-          {milestone && (
-            <div className="grid gap-4 grid-cols-2 lg:grid-cols-4 mb-6">
-              {milestoneCard('Today', milestone.start)}
-              {milestoneCard('In 30 days', milestone.day30)}
-              {milestoneCard('In 60 days', milestone.day60)}
-              {milestoneCard('In 90 days', milestone.day90)}
-            </div>
-          )}
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Projected Balance — Next 90 Days</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {points.length > 1 ? (
-                <ChartContainer config={chartConfig} className="h-[360px] w-full">
-                  <AreaChart accessibilityLayer data={points}>
-                    <defs>
-                      <linearGradient id="cashFillBalance" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="var(--color-balance)" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="var(--color-balance)" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/60" />
-                    <XAxis dataKey="label" tickLine={false} axisLine={false} tickMargin={10} minTickGap={24} />
-                    <YAxis tickLine={false} axisLine={false} tickFormatter={(v) => formatCurrency(v, currency)} width={80} />
-                    <ReferenceLine y={0} stroke="var(--chart-4)" strokeDasharray="4 4" />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Area
-                      type="stepAfter"
-                      dataKey="balance"
-                      stroke="var(--color-balance)"
-                      strokeWidth={2}
-                      fill="url(#cashFillBalance)"
-                      dot={false}
-                      activeDot={{ r: 5 }}
-                    />
-                  </AreaChart>
-                </ChartContainer>
-              ) : (
-                <div className="flex items-center justify-center h-[360px] text-muted-foreground text-center">
-                  Not enough recurring transactions to project a trend.
-                  <br />
-                  Add recurring income or expenses to see your forecast.
-                </div>
-              )}
-            </CardContent>
-          </Card>
         </div>
+
+        {/* ── Kravio Milestone KPI Cards ───────────────────────────────── */}
+        {milestone && (
+          <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            <KravioKPICard
+              index={0}
+              title="Current Balance"
+              value={formatCurrency(milestone.start, currency)}
+              icon={Wallet}
+              iconColorClass="bg-primary/10 text-primary"
+              subtitle="Starting runway"
+            />
+            <KravioKPICard
+              index={1}
+              title="30-Day Outlook"
+              value={formatCurrency(milestone.day30, currency)}
+              icon={milestone.day30 >= milestone.start ? TrendingUp : TrendingDown}
+              iconColorClass={milestone.day30 >= milestone.start ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600'}
+              delta={{
+                value: `${milestone.day30 >= milestone.start ? '+' : ''}${formatCurrency(milestone.day30 - milestone.start, currency)}`,
+                isPositive: milestone.day30 >= milestone.start,
+                label: 'vs. today',
+              }}
+            />
+            <KravioKPICard
+              index={2}
+              title="60-Day Outlook"
+              value={formatCurrency(milestone.day60, currency)}
+              icon={milestone.day60 >= milestone.start ? TrendingUp : TrendingDown}
+              iconColorClass={milestone.day60 >= milestone.start ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600'}
+              delta={{
+                value: `${milestone.day60 >= milestone.start ? '+' : ''}${formatCurrency(milestone.day60 - milestone.start, currency)}`,
+                isPositive: milestone.day60 >= milestone.start,
+                label: 'vs. today',
+              }}
+            />
+            <KravioKPICard
+              index={3}
+              title="90-Day Outlook"
+              value={formatCurrency(milestone.day90, currency)}
+              icon={milestone.day90 >= milestone.start ? TrendingUp : TrendingDown}
+              iconColorClass={milestone.day90 >= milestone.start ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600'}
+              delta={{
+                value: `${milestone.day90 >= milestone.start ? '+' : ''}${formatCurrency(milestone.day90 - milestone.start, currency)}`,
+                isPositive: milestone.day90 >= milestone.start,
+                label: 'vs. today',
+              }}
+            />
+          </div>
+        )}
+
+        {/* ── Warning Banner if cash flow goes negative ────────────────── */}
+        {goesNegative && (
+          <div className="animate-rise rounded-xl bg-rose-500/10 border border-rose-500/20 p-3.5 flex items-center gap-3 text-xs text-rose-700 dark:text-rose-300">
+            <AlertTriangle className="h-4 w-4 shrink-0 text-rose-600" />
+            <p className="font-medium">
+              Warning: Projected cash flow dips below zero to{' '}
+              <span className="font-mono font-bold">{formatCurrency(lowestPoint, currency)}</span> during this period.
+            </p>
+          </div>
+        )}
+
+        {/* ── Kravio Chart Canvas ──────────────────────────────────────── */}
+        <KravioCard pattern className="animate-rise [animation-delay:200ms]" innerClassName="p-4 sm:p-6">
+          <div className="flex items-center justify-between pb-3 border-b border-border/40">
+            <div>
+              <h3 className="text-sm font-semibold text-foreground">90-Day Liquidity Forecast</h3>
+              <p className="text-xs text-muted-foreground">Anticipated daily balance changes based on scheduled cash movements</p>
+            </div>
+          </div>
+
+          <div className="mt-4 h-[320px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={points} margin={{ top: 12, right: 10, left: -10, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="kravioFlowGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#2f8fd8" stopOpacity={0.35} />
+                    <stop offset="95%" stopColor="#2f8fd8" stopOpacity={0.0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/40" />
+                <XAxis dataKey="label" tickLine={false} axisLine={false} tickMargin={10} className="text-xs font-medium fill-muted-foreground" />
+                <YAxis tickLine={false} axisLine={false} width={65} tickFormatter={(v) => formatCurrency(v, currency)} className="text-xs font-mono fill-muted-foreground" />
+                <ReferenceLine y={0} stroke="#ef4444" strokeDasharray="3 3" strokeWidth={1} />
+                <Tooltip
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const point = payload[0].payload as Point;
+                      return (
+                        <div className="rounded-lg border border-border/70 bg-card p-2.5 shadow-md text-xs">
+                          <p className="font-semibold text-foreground">{point.label} ({point.date})</p>
+                          <p className="font-mono font-bold text-sky-600 dark:text-sky-400 mt-0.5">
+                            {formatCurrency(point.balance, currency)}
+                          </p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="balance"
+                  stroke="#2f8fd8"
+                  strokeWidth={2.5}
+                  fill="url(#kravioFlowGrad)"
+                  dot={false}
+                  activeDot={{ r: 5, strokeWidth: 2, stroke: '#ffffff' }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </KravioCard>
       </div>
     </AppLayout>
   );

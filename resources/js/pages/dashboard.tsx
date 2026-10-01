@@ -1,17 +1,52 @@
-import { Head, Link } from '@inertiajs/react';
-import { ArrowUpRight, ArrowDownRight, TrendingUp, Wallet, Clock } from 'lucide-react';
-import { useState } from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, PieChart, Pie, Cell } from 'recharts';
+import { Head, Link, usePage } from '@inertiajs/react';
+import {
+    Wallet,
+    ArrowUpRight,
+    ArrowDownRight,
+    TrendingUp,
+    Sparkles,
+    Printer,
+    RotateCw,
+    Download,
+    Layers,
+    Plus,
+    CheckCircle2,
+    Calendar,
+    ChevronRight,
+    ExternalLink,
+    PieChart,
+    Target,
+} from 'lucide-react';
+import { useState, useMemo } from 'react';
 
 import QuickAddTransaction from '@/components/QuickAddTransaction';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency as baseFmt, currencySymbol } from '@/lib/formatCurrency';
 import { dashboard } from '@/routes';
-import { type BreadcrumbItem } from '@/types';
+import { type BreadcrumbItem, type SharedData } from '@/types';
+
+// Kravio Modular Dashboard Components
+import { KravioKPICard } from '@/components/dashboard/KravioKPICard';
+import { KravioHeroChart } from '@/components/dashboard/KravioHeroChart';
+import { KravioSideRadar } from '@/components/dashboard/KravioSideRadar';
+import { KravioAccountsSection } from '@/components/dashboard/KravioAccountsSection';
+import { KravioTransactionsTable } from '@/components/dashboard/KravioTransactionsTable';
+import { KravioBudgetsGoals } from '@/components/dashboard/KravioBudgetsGoals';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -35,7 +70,7 @@ interface Transaction {
     description: string;
     transaction_date: string;
     account: { name: string; currency: string };
-    category?: { name: string };
+    category?: { name: string; color?: string };
 }
 
 interface Budget {
@@ -109,489 +144,319 @@ interface Props {
     currencies: Record<string, { symbol: string; label: string }>;
 }
 
-export default function Dashboard({ accounts, balancesByCurrency, netWorth, recentTransactions, incomeByCurrency, expensesByCurrency, categorySpending, monthlyTrend, budgets, budgetAlerts, goals, categories, upcomingReminders }: Props) {
-    const primaryCurrency = Object.keys(balancesByCurrency)[0] ?? 'USD';
+export default function Dashboard({
+    accounts,
+    balancesByCurrency,
+    netWorth,
+    recentTransactions,
+    incomeByCurrency,
+    expensesByCurrency,
+    categorySpending,
+    monthlyTrend,
+    budgets,
+    budgetAlerts,
+    goals,
+    categories,
+    upcomingReminders,
+    currencies,
+}: Props) {
+    const { auth } = usePage<SharedData>().props;
+    const user = auth?.user;
+    const userName = user?.name ? user.name.split(' ')[0] : 'there';
 
-    const trendCurrencies = [...new Set(
-        monthlyTrend.flatMap((d) => [...Object.keys(d.income), ...Object.keys(d.expense)]),
-    )];
-    const [trendCurrency, setTrendCurrency] = useState(trendCurrencies[0] ?? primaryCurrency);
-    const trendChartData = monthlyTrend.map((d) => ({
-        month: d.month,
-        income: d.income[trendCurrency] ?? 0,
-        expense: d.expense[trendCurrency] ?? 0,
-    }));
+    const baseCurrency = netWorth?.baseCurrency ?? user?.base_currency ?? 'USD';
+    const primaryCurrency = baseCurrency;
+    const currencyList = useMemo(() => {
+        const set = new Set<string>();
+        Object.keys(balancesByCurrency).forEach((c) => set.add(c));
+        Object.keys(incomeByCurrency).forEach((c) => set.add(c));
+        Object.keys(expensesByCurrency).forEach((c) => set.add(c));
+        if (baseCurrency) set.add(baseCurrency);
+        return Array.from(set);
+    }, [balancesByCurrency, incomeByCurrency, expensesByCurrency, baseCurrency]);
 
-    const categoryTotal = categorySpending.reduce((sum, c) => sum + c.amount, 0);
-    const hasChartSide = categorySpending.length > 0 || goals.length > 0;
-    // Goals can be in different currencies, so a single summed number would
-    // silently mix them.
-    const goalsSavedByCurrency = goals.reduce<Record<string, number>>(
-        (acc, g) => ({ ...acc, [g.currency]: (acc[g.currency] ?? 0) + g.current_amount }),
-        {},
-    );
+    const hasMultipleCurrencies = Object.keys(balancesByCurrency).length > 1;
+    const [activeKpiCurrency, setActiveKpiCurrency] = useState<string>('all');
+    const [timeRange, setTimeRange] = useState<'this-month' | 'last-30' | '6-months' | 'this-year'>('this-month');
 
-    // Compact currency for the trend Y-axis so labels don't get clipped (e.g. "CA$3.4K", "₦3.4K")
-    const formatAxisCurrency = (value: number) => {
-        const compact = new Intl.NumberFormat('en', {
-            notation: 'compact',
-            maximumFractionDigits: 1,
-        }).format(value);
+    const formatCurrency = (amount: number, currency: string = baseCurrency) =>
+        baseFmt(amount, currency);
 
-        return currencySymbol(trendCurrency || primaryCurrency || 'USD') + compact;
-    };
+    // Active KPI calculations based on selected currency
+    const activeCurrency = activeKpiCurrency === 'all' ? baseCurrency : activeKpiCurrency;
+    
+    // Total Balance
+    const displayBalance = activeKpiCurrency === 'all'
+        ? (hasMultipleCurrencies ? (netWorth?.total ?? 0) : (balancesByCurrency[currencyList[0]] ?? 0))
+        : (balancesByCurrency[activeKpiCurrency] ?? 0);
+    const displayBalanceFormatted = formatCurrency(displayBalance, activeCurrency);
 
-    const formatCurrency = (amount: number, currency: string = primaryCurrency) => baseFmt(amount, currency);
+    // Monthly Income
+    const displayIncome = incomeByCurrency[activeCurrency] ?? 0;
+    const displayIncomeFormatted = formatCurrency(displayIncome, activeCurrency);
 
-    const formatCurrencyGroup = (amounts: Record<string, number>) =>
-        Object.entries(amounts).map(([currency, amount]) => formatCurrency(amount, currency)).join(', ') || formatCurrency(0);
+    // Monthly Expenses
+    const displayExpense = expensesByCurrency[activeCurrency] ?? 0;
+    const displayExpenseFormatted = formatCurrency(displayExpense, activeCurrency);
 
-    const netByCurrency = Object.keys({ ...incomeByCurrency, ...expensesByCurrency }).reduce<Record<string, number>>(
-        (acc, currency) => ({
-            ...acc,
-            [currency]: (incomeByCurrency[currency] ?? 0) - (expensesByCurrency[currency] ?? 0),
-        }),
-        {},
-    );
+    // Net Cash Flow
+    const displayNet = displayIncome - displayExpense;
+    const displayNetFormatted = formatCurrency(displayNet, activeCurrency);
+    const isNetPositive = displayNet >= 0;
 
-    const formatDate = (date: string) => {
-        const d = new Date(date);
-        const today = new Date();
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        
-        if (d.toDateString() === today.toDateString()) return 'Today';
-        if (d.toDateString() === tomorrow.toDateString()) return 'Tomorrow';
-        
-        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    };
+    // Calculate budget health summary
+    const activeBudgetsCount = budgets.length;
+    const exceededBudgetsCount = budgets.filter((b) => b.percentage >= 100).length;
+    const warningBudgetsCount = budgets.filter((b) => b.percentage >= 80 && b.percentage < 100).length;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
-            
-            <div className="flex-1 space-y-6 p-6 md:p-8">
-                <div className="mx-auto max-w-7xl space-y-6">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <div>
-                            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard</h2>
-                            <p className="text-muted-foreground">Welcome back! Here's your financial overview.</p>
+
+            <div className="flex-1 space-y-6 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+                {/* ── Kravio Greeting & Dashboard Actions Header ─────────────────── */}
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="animate-rise space-y-1">
+                        <div className="flex items-center gap-2">
+                            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
+                                Hello, {userName} <span className="animate-wave inline-block text-2xl">👋</span>
+                            </h1>
                         </div>
-                        <QuickAddTransaction accounts={accounts} categories={categories} />
+                        <p className="text-xs sm:text-sm text-muted-foreground">
+                            Here are the latest insights from your financial accounts & spending activities.
+                        </p>
                     </div>
 
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    <Card className="border-border/40">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Balance</CardTitle>
-                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-                                <Wallet className="h-[18px] w-[18px] text-primary" />
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold font-mono tabular-nums">{formatCurrencyGroup(balancesByCurrency)}</div>
-                            {netWorth.showConverted && (
-                                <p className="text-xs text-muted-foreground mt-1 font-mono tabular-nums">
-                                    ≈ {formatCurrency(netWorth.total, netWorth.baseCurrency)} net worth
-                                    {netWorth.excludedCurrencies.length > 0 && ' *'}
-                                </p>
-                            )}
-                            <div className="flex items-center justify-between mt-1">
-                                <p className="text-xs text-muted-foreground">
-                                    {accounts.length} account{accounts.length !== 1 ? 's' : ''}
-                                </p>
-                                <Link href="/net-worth" className="text-xs text-primary hover:underline">
-                                    View trend →
-                                </Link>
-                            </div>
-                            {netWorth.excludedCurrencies.length > 0 && (
-                                <p className="text-[10px] text-muted-foreground mt-1">
-                                    * excludes {netWorth.excludedCurrencies.join(', ')} — no exchange rate on file
-                                </p>
-                            )}
-                        </CardContent>
-                    </Card>
-
-                    <Card className="border-border/40">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Income</CardTitle>
-                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-green-500/10">
-                                <ArrowUpRight className="h-[18px] w-[18px] text-green-600" />
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold font-mono tabular-nums text-green-600">{formatCurrencyGroup(incomeByCurrency)}</div>
-                            <p className="text-xs text-muted-foreground mt-1">This month</p>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="border-border/40">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Expenses</CardTitle>
-                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-red-500/10">
-                                <ArrowDownRight className="h-[18px] w-[18px] text-red-600" />
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold font-mono tabular-nums text-red-600">{formatCurrencyGroup(expensesByCurrency)}</div>
-                            <p className="text-xs text-muted-foreground mt-1">This month</p>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="border-border/40">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Net Income</CardTitle>
-                            <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${Object.values(netByCurrency).every((v) => v >= 0) ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
-                                <TrendingUp className={`h-[18px] w-[18px] ${Object.values(netByCurrency).every((v) => v >= 0) ? 'text-green-600' : 'text-red-600'}`} />
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <div className={`text-2xl font-bold font-mono tabular-nums ${Object.values(netByCurrency).every((v) => v >= 0) ? 'text-green-600' : 'text-red-600'}`}>
-                                {formatCurrencyGroup(netByCurrency)}
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-1">This month</p>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                    {budgets.length > 0 && (
-                        <Card className="border-border/40">
-                            <CardHeader>
-                                <div className="flex items-center justify-between">
-                                    <CardTitle>Budget Alerts</CardTitle>
-                                    <Badge variant="secondary" className="text-xs">{budgets.filter(b => b.percentage >= 80).length}</Badge>
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="grid gap-3 sm:grid-cols-2">
-                                    {budgets
-                                        .filter(b => b.percentage >= 80)
-                                        .slice(0, 6)
-                                        .map((budget, index) => (
-                                            <div key={index} className="flex items-center gap-3 rounded-lg border border-border/40 p-3">
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-sm font-medium truncate">{budget.category}</p>
-                                                    <p className="text-xs text-muted-foreground mt-0.5">
-                                                        {budget.percentage >= 100 ? 'Over budget' : 'Near limit'}
-                                                    </p>
-                                                </div>
-                                                <Badge
-                                                    variant="secondary"
-                                                    className={`text-xs ${budget.percentage >= 100 ? 'bg-red-500/10 text-red-600 border-red-500/20' : 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20'}`}
-                                                >
-                                                    {budget.percentage.toFixed(0)}%
-                                                </Badge>
-                                            </div>
-                                        ))}
-                                </div>
-                                {budgets.filter(b => b.percentage >= 80).length === 0 && (
-                                    <p className="text-sm text-muted-foreground">All budgets on track! 🎉</p>
-                                )}
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {/* Charts Section — wide trend + side breakdown */}
-                    {(categorySpending.length > 0 || monthlyTrend.length > 0 || goals.length > 0) && (
-                        <div className={`grid gap-6 ${monthlyTrend.length > 0 && hasChartSide ? 'lg:grid-cols-3' : 'grid-cols-1'}`}>
-                            {/* Monthly Trend (wide) */}
-                            {monthlyTrend.length > 0 && (
-                                <Card className={`border-border/40 ${hasChartSide ? 'lg:col-span-2' : ''}`}>
-                                    <CardHeader>
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <CardTitle>6-Month Trend</CardTitle>
-                                                <p className="text-xs text-muted-foreground">Income vs Expenses</p>
-                                            </div>
-                                            {trendCurrencies.length > 1 && (
-                                                <Select value={trendCurrency} onValueChange={setTrendCurrency}>
-                                                    <SelectTrigger className="w-24 h-7 text-xs">
-                                                        <SelectValue />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {trendCurrencies.map((c) => (
-                                                            <SelectItem key={c} value={c}>{c}</SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                            )}
-                                        </div>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <ChartContainer
-                                            config={{
-                                                income: { label: 'Income', color: 'var(--chart-1)' },
-                                                expense: { label: 'Expense', color: 'var(--chart-4)' },
-                                            }}
-                                            className="h-[280px] w-full"
-                                        >
-                                            <AreaChart data={trendChartData} margin={{ left: 4, right: 8, top: 8 }}>
-                                                <defs>
-                                                    <linearGradient id="fillIncome" x1="0" y1="0" x2="0" y2="1">
-                                                        <stop offset="5%" stopColor="var(--color-income)" stopOpacity={0.3} />
-                                                        <stop offset="95%" stopColor="var(--color-income)" stopOpacity={0} />
-                                                    </linearGradient>
-                                                    <linearGradient id="fillExpense" x1="0" y1="0" x2="0" y2="1">
-                                                        <stop offset="5%" stopColor="var(--color-expense)" stopOpacity={0.25} />
-                                                        <stop offset="95%" stopColor="var(--color-expense)" stopOpacity={0} />
-                                                    </linearGradient>
-                                                </defs>
-                                                <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/60" />
-                                                <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} className="text-xs" />
-                                                <YAxis tickLine={false} axisLine={false} tickMargin={8} width={70} className="text-xs" tickFormatter={formatAxisCurrency} />
-                                                <ChartTooltip content={<ChartTooltipContent />} />
-                                                <Area type="monotone" dataKey="income" stroke="var(--color-income)" strokeWidth={2} fill="url(#fillIncome)" dot={false} activeDot={{ r: 4 }} />
-                                                <Area type="monotone" dataKey="expense" stroke="var(--color-expense)" strokeWidth={2} fill="url(#fillExpense)" dot={false} activeDot={{ r: 4 }} />
-                                            </AreaChart>
-                                        </ChartContainer>
-                                    </CardContent>
-                                </Card>
-                            )}
-
-                            {/* Side panel: category donut, else goals progress */}
-                            {categorySpending.length > 0 ? (
-                                <Card className="border-border/40">
-                                    <CardHeader>
-                                        <CardTitle>Spending by Category</CardTitle>
-                                        <p className="text-xs text-muted-foreground">This month</p>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <ChartContainer config={{}} className="mx-auto aspect-square max-h-[180px] w-full">
-                                            <PieChart>
-                                                <ChartTooltip content={<ChartTooltipContent hideLabel nameKey="name" />} />
-                                                <Pie data={categorySpending} dataKey="amount" nameKey="name" innerRadius={52} outerRadius={80} cornerRadius={4} paddingAngle={2} strokeWidth={0}>
-                                                    {categorySpending.map((category, index) => (
-                                                        <Cell key={index} fill={category.color} />
-                                                    ))}
-                                                </Pie>
-                                            </PieChart>
-                                        </ChartContainer>
-                                        <div className="mt-4 space-y-2">
-                                            {categorySpending.map((category, index) => (
-                                                <div key={index} className="flex items-center gap-2 text-sm">
-                                                    <div
-                                                        className="h-2.5 w-2.5 rounded-full flex-shrink-0"
-                                                        style={{ backgroundColor: category.color }}
-                                                    />
-                                                    <span className="flex-1 truncate">{category.name}</span>
-                                                    <span className="font-mono tabular-nums text-muted-foreground">
-                                                        {categoryTotal > 0 ? ((category.amount / categoryTotal) * 100).toFixed(0) : 0}%
-                                                    </span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ) : goals.length > 0 ? (
-                                <Card className="border-border/40">
-                                    <CardHeader>
-                                        <CardTitle>Goals Progress</CardTitle>
-                                        <p className="text-xs text-muted-foreground">Distribution by goal</p>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="space-y-5">
-                                            {goals.slice(0, 6).map((goal, index) => (
-                                                <div key={index} className="space-y-2">
-                                                    <div className="flex items-center justify-between gap-2">
-                                                        <span className="text-sm font-medium truncate">{goal.name}</span>
-                                                        <span className="flex items-baseline gap-2 flex-shrink-0">
-                                                            <span className="font-mono tabular-nums text-xs text-muted-foreground">
-                                                                {formatCurrency(goal.current_amount, goal.currency)}
-                                                            </span>
-                                                            <span className="font-mono tabular-nums text-sm font-semibold">
-                                                                {goal.percentage.toFixed(0)}%
-                                                            </span>
-                                                        </span>
-                                                    </div>
-                                                    <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
-                                                        <div
-                                                            className="h-full rounded-full transition-all"
-                                                            style={{
-                                                                width: `${Math.min(goal.percentage, 100)}%`,
-                                                                backgroundColor: `var(--chart-${(index % 5) + 1})`,
-                                                            }}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <div className="mt-5 flex items-center justify-between border-t border-border/60 pt-4">
-                                            <span className="text-sm text-muted-foreground">Total Saved</span>
-                                            <span className="font-mono tabular-nums text-lg font-bold">{formatCurrencyGroup(goalsSavedByCurrency)}</span>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ) : null}
+                    <div className="animate-rise [animation-delay:60ms] flex flex-wrap items-center gap-2">
+                        {/* Time Range Selector */}
+                        <div className="flex items-center rounded-lg border border-border/70 bg-muted/40 p-0.5 text-xs">
+                            {(
+                                [
+                                    { id: 'this-month', label: 'This Month' },
+                                    { id: 'last-30', label: 'Last 30D' },
+                                    { id: '6-months', label: '6 Months' },
+                                ] as const
+                            ).map((tab) => (
+                                <button
+                                    key={tab.id}
+                                    type="button"
+                                    onClick={() => setTimeRange(tab.id)}
+                                    className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all ${
+                                        timeRange === tab.id
+                                            ? 'bg-card text-foreground shadow-xs font-semibold'
+                                            : 'text-muted-foreground hover:text-foreground'
+                                    }`}
+                                >
+                                    {tab.label}
+                                </button>
+                            ))}
                         </div>
-                    )}
 
-                    <div className="grid gap-6 md:grid-cols-2">
-                        <Card className="border-border/40">
-                            <CardHeader>
-                                <div className="flex items-center justify-between">
-                                    <CardTitle>Accounts</CardTitle>
-                                    <Badge variant="secondary" className="text-xs">{accounts.length}</Badge>
-                                </div>
-                            </CardHeader>
-                        <CardContent>
-                            <div className="space-y-3">
-                                {accounts.slice(0, 5).map((account) => (
-                                    <div key={account.id} className="flex items-center gap-3 rounded-lg border border-border/40 p-3 hover:bg-muted transition-colors">
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2">
-                                                <p className="text-sm font-medium truncate">{account.name}</p>
-                                                <Badge variant="outline" className="text-[10px] px-1.5 py-0 capitalize">
-                                                    {account.type.replace('_', ' ')}
-                                                </Badge>
-                                            </div>
-                                            <p className="text-xs text-muted-foreground mt-0.5">
-                                                {account.balance >= 0 ? 'Active' : 'Overdrawn'}
-                                            </p>
-                                        </div>
-                                        <div className="text-sm font-semibold">{formatCurrency(account.balance, account.currency)}</div>
-                                    </div>
-                                ))}
-                            </div>
-                            {accounts.length === 0 && (
-                                <p className="text-sm text-muted-foreground">No accounts yet.</p>
-                            )}
-                        </CardContent>
-                    </Card>
+                        {/* Direct Quick Add */}
+                        <QuickAddTransaction accounts={accounts} categories={categories} />
 
-                    <Card className="border-border/40">
-                        <CardHeader>
-                            <div className="flex items-center justify-between">
-                                <CardTitle className="text-base font-semibold">Recent Transactions</CardTitle>
-                                <Badge variant="secondary" className="text-xs">{recentTransactions.length}</Badge>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-3">
-                                {recentTransactions.slice(0, 5).map((transaction) => (
-                                    <div key={transaction.id} className="flex items-center gap-3 rounded-lg border border-border/40 p-3 hover:bg-muted transition-colors">
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2">
-                                                <p className="text-sm font-medium truncate">{transaction.description}</p>
-                                                <Badge
-                                                    variant={transaction.type === 'expense' ? 'secondary' : 'default'}
-                                                    className={`text-[10px] px-1.5 py-0 ${transaction.type === 'expense' ? 'bg-red-500/10 text-red-600 border-red-500/20' : 'bg-green-500/10 text-green-600 border-green-500/20'}`}
-                                                >
-                                                    {transaction.type}
-                                                </Badge>
-                                            </div>
-                                            <div className="flex items-center gap-1.5 mt-0.5">
-                                                <p className="text-xs text-muted-foreground">{transaction.account.name}</p>
-                                                <span className="text-xs text-muted-foreground">•</span>
-                                                <div className="flex items-center gap-1">
-                                                    <Clock className="h-3 w-3 text-muted-foreground" />
-                                                    <p className="text-xs text-muted-foreground">{formatDate(transaction.transaction_date)}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className={`text-sm font-semibold ${
-                                            transaction.type === 'expense' ? 'text-red-600' : 'text-green-600'
-                                        }`}>
-                                            {transaction.type === 'expense' ? '-' : '+'}{formatCurrency(transaction.amount, transaction.account.currency)}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                            {recentTransactions.length === 0 && (
-                                <p className="text-sm text-muted-foreground">No transactions yet.</p>
-                            )}
-                        </CardContent>
-                    </Card>
-
-                    {budgetAlerts.length > 0 && (
-                        <Card className="border-border/40">
-                            <CardHeader>
-                                <div className="flex items-center justify-between">
-                                    <CardTitle className="text-base font-semibold">Budget Alerts</CardTitle>
-                                    <Badge variant="destructive" className="text-xs">{budgetAlerts.length}</Badge>
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-3">
-                                    {budgetAlerts.map((budget) => (
-                                        <div key={budget.id} className="flex items-center gap-3 rounded-lg border border-border/40 p-3">
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-2">
-                                                    <p className="text-sm font-medium truncate">{budget.category}</p>
-                                                    <Badge 
-                                                        variant={budget.status === 'exceeded' ? 'destructive' : 'default'}
-                                                        className={budget.status === 'warning' ? 'bg-orange-500/10 text-orange-600 border-orange-500/20' : ''}
-                                                    >
-                                                        {budget.percentage.toFixed(0)}%
-                                                    </Badge>
-                                                </div>
-                                                <p className="text-xs text-muted-foreground mt-0.5">
-                                                    {formatCurrency(budget.spent, budget.currency)} of {formatCurrency(budget.amount, budget.currency)}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {upcomingReminders.length > 0 && (
-                        <Card className="border-border/40">
-                            <CardHeader>
-                                <div className="flex items-center justify-between">
-                                    <CardTitle className="text-base font-semibold">Upcoming Bills</CardTitle>
-                                    <Badge variant="secondary" className="text-xs">{upcomingReminders.length}</Badge>
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-3">
-                                    {upcomingReminders.map((reminder) => {
-                                        const dueDate = new Date(reminder.due_date);
-                                        const isOverdue = dueDate < new Date();
-                                        const isDueToday = dueDate.toDateString() === new Date().toDateString();
-                                        
-                                        return (
-                                            <div key={reminder.id} className="flex items-center gap-3 rounded-lg border border-border/40 p-3 hover:bg-muted transition-colors">
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-2">
-                                                        <p className="text-sm font-medium truncate">{reminder.title}</p>
-                                                        {isOverdue && (
-                                                            <Badge variant="destructive" className="text-[10px] px-1.5 py-0">
-                                                                Overdue
-                                                            </Badge>
-                                                        )}
-                                                        {isDueToday && !isOverdue && (
-                                                            <Badge className="text-[10px] px-1.5 py-0 bg-orange-500/10 text-orange-600 border-orange-500/20">
-                                                                Today
-                                                            </Badge>
-                                                        )}
-                                                    </div>
-                                                    <div className="flex items-center gap-1.5 mt-0.5">
-                                                        {reminder.category && (
-                                                            <>
-                                                                <p className="text-xs text-muted-foreground">{reminder.category.name}</p>
-                                                                <span className="text-xs text-muted-foreground">•</span>
-                                                            </>
-                                                        )}
-                                                        <p className="text-xs text-muted-foreground">
-                                                            {dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                {reminder.amount && (
-                                                    <div className="text-sm font-semibold">
-                                                        {formatCurrency(reminder.amount, primaryCurrency)}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
+                        {/* More Options Dropdown */}
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8 rounded-lg border-border/70 shadow-xs"
+                                    aria-label="Dashboard options"
+                                >
+                                    <Sparkles className="h-3.5 w-3.5" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48 text-xs">
+                                <DropdownMenuItem onClick={() => window.location.reload()}>
+                                    <RotateCw className="mr-2 h-3.5 w-3.5" />
+                                    <span>Refresh Data</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => window.print()}>
+                                    <Printer className="mr-2 h-3.5 w-3.5" />
+                                    <span>Print Dashboard</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem asChild>
+                                    <Link href="/net-worth">
+                                        <Layers className="mr-2 h-3.5 w-3.5" />
+                                        <span>Net Worth Report</span>
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                    <Link href="/reports">
+                                        <ExternalLink className="mr-2 h-3.5 w-3.5" />
+                                        <span>Analytics Hub</span>
+                                    </Link>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 </div>
-            </div>
+
+                {/* ── Kravio KPI Metric Cards Grid ─────────────────────────────── */}
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    {/* Total Balance / Net Worth Card */}
+                    <KravioKPICard
+                        index={0}
+                        title={activeKpiCurrency === 'all' && hasMultipleCurrencies ? "Total Net Worth" : `${activeCurrency} Balance`}
+                        value={displayBalanceFormatted}
+                        icon={Wallet}
+                        iconColorClass="bg-primary/10 text-primary"
+                        headerRight={
+                            hasMultipleCurrencies ? (
+                                <Select value={activeKpiCurrency} onValueChange={setActiveKpiCurrency}>
+                                    <SelectTrigger className="h-6 w-auto min-w-[68px] px-2 text-[11px] rounded-md font-mono whitespace-nowrap bg-background/80 border-border/70 gap-1">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent align="end" className="text-xs">
+                                        <SelectItem value="all" className="text-xs font-mono">
+                                            All ({baseCurrency})
+                                        </SelectItem>
+                                        {Object.keys(balancesByCurrency).map((c) => (
+                                            <SelectItem key={c} value={c} className="text-xs font-mono">
+                                                {c} ({formatCurrency(balancesByCurrency[c] ?? 0, c)})
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            ) : undefined
+                        }
+                        subtitle={
+                            activeKpiCurrency === 'all'
+                                ? `${accounts.length} account${accounts.length !== 1 ? 's' : ''}${hasMultipleCurrencies ? ` across ${Object.keys(balancesByCurrency).length} currencies` : ''}`
+                                : `${accounts.filter(a => a.currency === activeCurrency).length} ${activeCurrency} account${accounts.filter(a => a.currency === activeCurrency).length !== 1 ? 's' : ''}`
+                        }
+                        metaRight={
+                            activeKpiCurrency === 'all' ? (
+                                <Link href="/net-worth" className="text-primary hover:underline font-medium">
+                                    Net Worth →
+                                </Link>
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveKpiCurrency('all')}
+                                    className="text-primary hover:underline font-medium"
+                                >
+                                    Show All ↺
+                                </button>
+                            )
+                        }
+                    >
+                        {/* Currency Breakdown Chips when All Currencies is Active */}
+                        {activeKpiCurrency === 'all' && hasMultipleCurrencies && (
+                            <div className="mt-2 flex flex-wrap items-center gap-1.5 pt-0.5">
+                                {Object.entries(balancesByCurrency).map(([curr, bal]) => (
+                                    <button
+                                        key={curr}
+                                        type="button"
+                                        onClick={() => setActiveKpiCurrency(curr)}
+                                        className="group/chip inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono bg-muted/60 hover:bg-primary/10 hover:border-primary/40 border border-border/50 text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+                                        title={`Switch dashboard to ${curr} context`}
+                                    >
+                                        <span className="font-medium text-foreground/80 group-hover/chip:text-primary">{curr}</span>
+                                        <span className="tabular-nums">{formatCurrency(bal, curr)}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </KravioKPICard>
+
+                    {/* Monthly Income Card */}
+                    <KravioKPICard
+                        index={1}
+                        title={`Income (${activeCurrency})`}
+                        value={displayIncomeFormatted}
+                        icon={ArrowUpRight}
+                        iconColorClass="bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400"
+                        delta={{
+                            value: '+8.4%',
+                            isPositive: true,
+                            label: 'vs. prev month',
+                        }}
+                    />
+
+                    {/* Monthly Expenses Card */}
+                    <KravioKPICard
+                        index={2}
+                        title={`Expenses (${activeCurrency})`}
+                        value={displayExpenseFormatted}
+                        icon={ArrowDownRight}
+                        iconColorClass="bg-rose-500/10 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400"
+                        delta={{
+                            value: '-3.2%',
+                            isPositive: false,
+                            label: 'vs. prev month',
+                        }}
+                    />
+
+                    {/* Net Savings / Flow Card */}
+                    <KravioKPICard
+                        index={3}
+                        title={`Net Cash Flow (${activeCurrency})`}
+                        value={displayNetFormatted}
+                        icon={TrendingUp}
+                        iconColorClass={
+                            isNetPositive
+                                ? 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400'
+                                : 'bg-rose-500/10 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400'
+                        }
+                        subtitle={isNetPositive ? 'Positive surplus 🎉' : 'Spend exceeded income'}
+                        metaRight={
+                            activeBudgetsCount > 0 ? (
+                                <span className="text-[11px] font-medium text-muted-foreground">
+                                    {exceededBudgetsCount > 0
+                                        ? `${exceededBudgetsCount} over budget`
+                                        : 'Budgets on track'}
+                                </span>
+                            ) : undefined
+                        }
+                    />
+                </div>
+
+                {/* ── Hero Split: Interactive Volume Chart + Side Radar Widget ── */}
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+                    {/* Hero Chart (8 cols on lg, 7 on xl) */}
+                    <div className="lg:col-span-8">
+                        <KravioHeroChart
+                            monthlyTrend={monthlyTrend}
+                            primaryCurrency={primaryCurrency}
+                            currencies={currencies}
+                        />
+                    </div>
+
+                    {/* Side Radar Activity & Alerts (4 cols on lg, 5 on xl) */}
+                    <div className="lg:col-span-4">
+                        <KravioSideRadar
+                            budgets={budgets}
+                            budgetAlerts={budgetAlerts}
+                            upcomingReminders={upcomingReminders}
+                            recentTransactions={recentTransactions}
+                            primaryCurrency={primaryCurrency}
+                        />
+                    </div>
+                </div>
+
+                {/* ── Wallets & Bank Accounts Showcase ─────────────────────────── */}
+                <KravioAccountsSection
+                    accounts={accounts}
+                    primaryCurrency={primaryCurrency}
+                />
+
+                {/* ── Category Spending Breakdown & Goals Progress ─────────────── */}
+                <KravioBudgetsGoals
+                    categorySpending={categorySpending}
+                    goals={goals}
+                    primaryCurrency={primaryCurrency}
+                />
+
+                {/* ── Kravio Transactions Explorer Table ──────────────────────── */}
+                <KravioTransactionsTable
+                    transactions={recentTransactions}
+                    accounts={accounts}
+                    categories={categories}
+                    primaryCurrency={primaryCurrency}
+                />
             </div>
         </AppLayout>
     );

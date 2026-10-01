@@ -64,6 +64,8 @@ interface Props {
     primaryCurrency: string;
 }
 
+import { KravioCard } from '@/components/dashboard/KravioCard';
+
 type InsightSectionProps = {
     title: string;
     description: string;
@@ -84,29 +86,27 @@ function InsightSection({
     count,
 }: InsightSectionProps) {
     return (
-        <Card className={`border-border/50 ${className}`}>
-            <CardHeader className="gap-3 pb-3">
-                <div className="flex items-start justify-between gap-4">
-                    <div className="flex min-w-0 items-start gap-3">
-                        <div
-                            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${iconClassName}`}
-                        >
-                            <Icon className="h-5 w-5" />
-                        </div>
-                        <div className="min-w-0">
-                            <CardTitle className="text-base">{title}</CardTitle>
-                            <CardDescription>{description}</CardDescription>
-                        </div>
+        <KravioCard pattern className={className} innerClassName="p-4 sm:p-5">
+            <div className="flex items-start justify-between gap-4 pb-3 border-b border-border/40">
+                <div className="flex min-w-0 items-start gap-3">
+                    <div
+                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${iconClassName}`}
+                    >
+                        <Icon className="h-4 w-4" />
                     </div>
-                    {typeof count === 'number' && (
-                        <Badge variant="secondary" className="shrink-0">
-                            {count}
-                        </Badge>
-                    )}
+                    <div className="min-w-0">
+                        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+                        <p className="text-xs text-muted-foreground">{description}</p>
+                    </div>
                 </div>
-            </CardHeader>
-            <CardContent>{children}</CardContent>
-        </Card>
+                {typeof count === 'number' && (
+                    <Badge variant="outline" className="shrink-0 text-[11px] font-mono">
+                        {count}
+                    </Badge>
+                )}
+            </div>
+            <div className="pt-3">{children}</div>
+        </KravioCard>
     );
 }
 
@@ -124,28 +124,27 @@ function MetricCard({
     iconClassName: string;
 }) {
     return (
-        <Card className="border-border/50 py-4">
-            <CardContent className="flex items-center justify-between gap-4 px-4">
-                <div className="min-w-0">
-                    <p className="text-sm font-medium text-muted-foreground">
-                        {label}
-                    </p>
-                    <p className="mt-1 truncate font-mono text-2xl font-semibold tracking-tight tabular-nums">
-                        {value}
-                    </p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                        {detail}
-                    </p>
-                </div>
-                <div
-                    className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${iconClassName}`}
-                >
-                    <Icon className="h-5 w-5" />
-                </div>
-            </CardContent>
-        </Card>
+        <KravioCard pattern innerClassName="p-4 flex items-center justify-between gap-4">
+            <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    {label}
+                </p>
+                <p className="mt-1 truncate font-mono text-2xl font-bold tracking-tight text-foreground tabular-nums">
+                    {value}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                    {detail}
+                </p>
+            </div>
+            <div
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${iconClassName}`}
+            >
+                <Icon className="h-5 w-5" />
+            </div>
+        </KravioCard>
     );
 }
+
 
 function TrendIcon({ trend }: { trend?: string }) {
     if (trend === 'increasing') {
