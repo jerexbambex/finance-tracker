@@ -1,13 +1,15 @@
+import React from 'react';
 import { Head, useForm, Link } from '@inertiajs/react';
+import { ArrowLeft } from 'lucide-react';
 
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
+import { KravioCard } from '@/components/dashboard/KravioCard';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
+import { type BreadcrumbItem } from '@/types';
 
 interface Account {
   id: number;
@@ -23,6 +25,11 @@ interface Props {
   currencies?: Array<{ value: string; label: string; symbol: string }>;
 }
 
+const breadcrumbs: BreadcrumbItem[] = [
+  { title: 'Accounts', href: '/accounts' },
+  { title: 'Edit Account', href: '#' },
+];
+
 export default function Edit({ account, currencies = [] }: Props) {
   const { data, setData, put, processing, errors } = useForm({
     name: account.name,
@@ -31,8 +38,6 @@ export default function Edit({ account, currencies = [] }: Props) {
     currency: account.currency,
     description: account.description || '',
   });
-
-  console.log('Currencies:', currencies);
 
   const accountTypes = [
     { value: 'checking', label: 'Checking Account' },
@@ -48,116 +53,122 @@ export default function Edit({ account, currencies = [] }: Props) {
   };
 
   return (
-    <AppLayout>
+    <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Edit Account" />
-      
-      <div className="py-12">
-        <div className="max-w-2xl mx-auto sm:px-6 lg:px-8">
-          <Breadcrumb className="mb-4">
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink asChild>
-                  <Link href="/dashboard">Home</Link>
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbLink asChild>
-                  <Link href="/accounts">Accounts</Link>
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>Edit Account</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Edit Account</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <Label htmlFor="name">Account Name</Label>
-                  <Input
-                    id="name"
-                    value={data.name}
-                    onChange={(e) => setData('name', e.target.value)}
-                    className={errors.name ? 'border-red-500' : ''}
-                  />
-                  {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
-                </div>
 
-                <div>
-                  <Label htmlFor="type">Account Type</Label>
-                  <Select value={data.type} onValueChange={(value) => setData('type', value)}>
-                    <SelectTrigger className={errors.type ? 'border-red-500' : ''}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {accountTypes.map((type) => (
-                        <SelectItem key={type.value} value={type.value}>
-                          {type.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {errors.type && <p className="text-red-500 text-sm mt-1">{errors.type}</p>}
-                </div>
-
-                <div>
-                  <Label htmlFor="balance">Balance</Label>
-                  <Input
-                    id="balance"
-                    type="number"
-                    step="0.01"
-                    value={data.balance}
-                    onChange={(e) => setData('balance', e.target.value)}
-                    className={errors.balance ? 'border-red-500' : ''}
-                  />
-                  {errors.balance && <p className="text-red-500 text-sm mt-1">{errors.balance}</p>}
-                </div>
-
-                <div>
-                  <Label htmlFor="currency">Currency</Label>
-                  <Select value={data.currency} onValueChange={(value) => setData('currency', value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {currencies.map((currency) => (
-                        <SelectItem key={currency.value} value={currency.value}>
-                          {currency.symbol} {currency.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="description">Description (Optional)</Label>
-                  <Textarea
-                    id="description"
-                    value={data.description}
-                    onChange={(e) => setData('description', e.target.value)}
-                    rows={3}
-                  />
-                </div>
-
-                <div className="flex gap-4">
-                  <Button type="submit" disabled={processing}>
-                    {processing ? 'Updating...' : 'Update Account'}
-                  </Button>
-                  <Button type="button" variant="outline" onClick={() => window.history.back()}>
-                    Cancel
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
+      <div className="flex-1 max-w-3xl mx-auto w-full p-4 sm:p-6 lg:p-8 space-y-6">
+        {/* Page Header */}
+        <div className="flex items-center gap-3">
+          <Link
+            href="/accounts"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/70 bg-card hover:bg-muted/50 text-muted-foreground hover:text-foreground shadow-xs transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+              Edit Account
+            </h1>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+              Update account details, classification, and preferences.
+            </p>
+          </div>
         </div>
+
+        <KravioCard pattern innerClassName="p-5 sm:p-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="name" className="text-xs font-medium text-muted-foreground">
+                  Account Name
+                </Label>
+                <Input
+                  id="name"
+                  value={data.name}
+                  onChange={(e) => setData('name', e.target.value)}
+                  className={`mt-1.5 h-10 rounded-xl text-xs bg-background/80 ${errors.name ? 'border-destructive' : 'border-border/70'}`}
+                />
+                {errors.name && <p className="text-destructive text-xs mt-1">{errors.name}</p>}
+              </div>
+
+              <div>
+                <Label htmlFor="type" className="text-xs font-medium text-muted-foreground">
+                  Account Type
+                </Label>
+                <Select value={data.type} onValueChange={(value) => setData('type', value)}>
+                  <SelectTrigger className={`mt-1.5 h-10 rounded-xl text-xs bg-background/80 ${errors.type ? 'border-destructive' : 'border-border/70'}`}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {accountTypes.map((type) => (
+                      <SelectItem key={type.value} value={type.value} className="text-xs">
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.type && <p className="text-destructive text-xs mt-1">{errors.type}</p>}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="balance" className="text-xs font-medium text-muted-foreground">
+                  Balance
+                </Label>
+                <Input
+                  id="balance"
+                  type="number"
+                  step="0.01"
+                  value={data.balance}
+                  onChange={(e) => setData('balance', e.target.value)}
+                  className={`mt-1.5 h-10 font-mono text-sm rounded-xl bg-background/80 ${errors.balance ? 'border-destructive' : 'border-border/70'}`}
+                />
+                {errors.balance && <p className="text-destructive text-xs mt-1">{errors.balance}</p>}
+              </div>
+
+              <div>
+                <Label htmlFor="currency" className="text-xs font-medium text-muted-foreground">
+                  Currency
+                </Label>
+                <Select value={data.currency} onValueChange={(value) => setData('currency', value)}>
+                  <SelectTrigger className="mt-1.5 h-10 rounded-xl text-xs bg-background/80 border-border/70">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {currencies.map((currency) => (
+                      <SelectItem key={currency.value} value={currency.value} className="text-xs font-mono">
+                        {currency.symbol} {currency.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="description" className="text-xs font-medium text-muted-foreground">
+                Description (Optional)
+              </Label>
+              <Textarea
+                id="description"
+                value={data.description}
+                onChange={(e) => setData('description', e.target.value)}
+                rows={3}
+                className="mt-1.5 rounded-xl text-xs bg-background/80 border-border/70"
+              />
+            </div>
+
+            <div className="flex items-center gap-3 pt-3 border-t border-border/40">
+              <Button type="submit" disabled={processing} className="rounded-xl px-5 text-xs font-semibold shadow-xs">
+                {processing ? 'Saving...' : 'Update Account'}
+              </Button>
+              <Button type="button" variant="outline" asChild className="rounded-xl px-4 text-xs border-border/70">
+                <Link href="/accounts">Cancel</Link>
+              </Button>
+            </div>
+          </form>
+        </KravioCard>
       </div>
     </AppLayout>
   );

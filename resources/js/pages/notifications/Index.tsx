@@ -31,6 +31,12 @@ interface Props {
   unreadCount: number;
 }
 
+import { type BreadcrumbItem } from "@/types";
+
+const breadcrumbs: BreadcrumbItem[] = [
+  { title: 'Notifications', href: '/notifications' },
+];
+
 export default function Index({ notifications, unreadCount }: Props) {
   const markAsRead = (id: string) => {
     router.post(`/notifications/${id}/read`);
@@ -69,7 +75,7 @@ export default function Index({ notifications, unreadCount }: Props) {
   };
 
   return (
-    <AppLayout>
+    <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Notifications" />
 
       <div className="flex-1 space-y-6 p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto w-full">

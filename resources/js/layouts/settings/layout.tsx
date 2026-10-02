@@ -41,6 +41,8 @@ const sidebarNavItems: Array<{ title: string; href: any; icon: any }> = [
     },
 ];
 
+import { KravioCard } from '@/components/dashboard/KravioCard';
+
 export default function SettingsLayout({ children }: PropsWithChildren) {
     const { urlIsActive } = useActiveUrl();
 
@@ -51,7 +53,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
             <div className="flex flex-col gap-1 pb-4 border-b border-border/60">
-                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Account Settings</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">Account Settings</h1>
                 <p className="text-xs sm:text-sm text-muted-foreground">
                     Manage your personal profile, security preferences, and workspace settings.
                 </p>
@@ -83,7 +85,9 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                 </aside>
 
                 <div className="flex-1 max-w-3xl">
-                    <section className="space-y-8">{children}</section>
+                    <KravioCard pattern innerClassName="p-5 sm:p-8">
+                        {children}
+                    </KravioCard>
                 </div>
             </div>
         </div>

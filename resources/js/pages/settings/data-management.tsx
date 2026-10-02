@@ -1,7 +1,7 @@
+import React from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import { Download, Upload, AlertTriangle, FileArchive } from 'lucide-react';
 
-import { KravioCard } from '@/components/dashboard/KravioCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -41,8 +41,8 @@ export default function DataManagement() {
             </p>
           </div>
 
-          <KravioCard className="p-5 sm:p-6" pattern>
-            <div className="flex items-start gap-3.5 mb-4">
+          <div className="rounded-xl border border-border/60 bg-muted/20 p-5 space-y-4">
+            <div className="flex items-start gap-3.5">
               <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center flex-shrink-0">
                 <FileArchive className="h-4 w-4" />
               </div>
@@ -54,18 +54,18 @@ export default function DataManagement() {
               </div>
             </div>
 
-            <div className="pt-2">
+            <div className="pt-1">
               <a href="/export/all-data" download>
-                <Button size="sm" className="rounded-xl text-xs h-9 px-4 gap-1.5 shadow-sm">
+                <Button size="sm" className="rounded-xl text-xs h-9 px-4 gap-1.5 shadow-xs font-semibold">
                   <Download className="h-3.5 w-3.5" />
                   Download Complete Archive (.json)
                 </Button>
               </a>
             </div>
-          </KravioCard>
+          </div>
 
-          <KravioCard className="p-5 sm:p-6" pattern>
-            <div className="flex items-start gap-3.5 mb-4">
+          <div className="rounded-xl border border-border/60 bg-muted/20 p-5 space-y-4">
+            <div className="flex items-start gap-3.5">
               <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center flex-shrink-0">
                 <Upload className="h-4 w-4" />
               </div>
@@ -94,15 +94,14 @@ export default function DataManagement() {
                 <span>Importing merges new records into your workspace. Existing IDs will be preserved.</span>
               </div>
 
-              <Button type="submit" disabled={!data.file || processing} size="sm" className="rounded-xl text-xs h-9 px-4 gap-1.5 shadow-sm">
+              <Button type="submit" disabled={!data.file || processing} size="sm" className="rounded-xl text-xs h-9 px-4 gap-1.5 shadow-xs font-semibold">
                 <Upload className="h-3.5 w-3.5" />
                 {processing ? 'Restoring Archive...' : 'Begin Restore Process'}
               </Button>
             </form>
-          </KravioCard>
+          </div>
         </div>
       </SettingsLayout>
     </AppLayout>
   );
 }
-

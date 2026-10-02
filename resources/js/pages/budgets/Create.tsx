@@ -1,12 +1,14 @@
+import React from 'react';
 import { Head, useForm, Link } from '@inertiajs/react';
+import { ArrowLeft } from 'lucide-react';
 
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
+import { KravioCard } from '@/components/dashboard/KravioCard';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
+import { type BreadcrumbItem } from '@/types';
 
 interface Category {
   id: string;
@@ -16,6 +18,11 @@ interface Category {
 interface Props {
   categories: Category[];
 }
+
+const breadcrumbs: BreadcrumbItem[] = [
+  { title: 'Budgets', href: '/budgets' },
+  { title: 'Create Budget', href: '/budgets/create' },
+];
 
 export default function Create({ categories }: Props) {
   const currentYear = new Date().getFullYear();
@@ -62,133 +69,130 @@ export default function Create({ categories }: Props) {
   const years = Array.from({ length: 5 }, (_, i) => currentYear + i);
 
   return (
-    <AppLayout>
+    <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Create Budget" />
-      
-      <div className="py-12">
-        <div className="max-w-2xl mx-auto sm:px-6 lg:px-8">
-          <Breadcrumb className="mb-4">
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink asChild>
-                  <Link href="/dashboard">Home</Link>
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbLink asChild>
-                  <Link href="/budgets">Budgets</Link>
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>Create Budget</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Create New Budget</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <Label htmlFor="category_id">Category</Label>
-                  <Select value={data.category_id} onValueChange={(value) => setData('category_id', value)}>
-                    <SelectTrigger className={errors.category_id ? 'border-red-500' : ''}>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {errors.category_id && <p className="text-red-500 text-sm mt-1">{errors.category_id}</p>}
-                </div>
 
-                <div>
-                  <Label htmlFor="amount">Budget Amount</Label>
-                  <Input
-                    id="amount"
-                    type="number"
-                    step="0.01"
-                    value={data.amount}
-                    onChange={(e) => setData('amount', e.target.value)}
-                    placeholder="0.00"
-                    className={errors.amount ? 'border-red-500' : ''}
-                  />
-                  {errors.amount && <p className="text-red-500 text-sm mt-1">{errors.amount}</p>}
-                </div>
-
-                <div>
-                  <Label htmlFor="period_type">Period Type</Label>
-                  <Select value={data.period_type} onValueChange={(value) => setData('period_type', value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="monthly">Monthly</SelectItem>
-                      <SelectItem value="yearly">Yearly</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="period_year">Year</Label>
-                  <Select 
-                    value={String(data.year)} 
-                    onValueChange={(value) => setData('year', parseInt(value))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {years.map((year) => (
-                        <SelectItem key={year} value={String(year)}>
-                          {year}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {data.period_type === 'monthly' && (
-                  <div>
-                    <Label htmlFor="period_month">Month</Label>
-                    <Select 
-                      value={String(data.month)} 
-                      onValueChange={(value) => setData('month', parseInt(value))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {months.map((month) => (
-                          <SelectItem key={month.value} value={month.value}>
-                            {month.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-
-                <div className="flex gap-4">
-                  <Button type="submit" disabled={processing}>
-                    {processing ? 'Creating...' : 'Create Budget'}
-                  </Button>
-                  <Button type="button" variant="outline" onClick={() => window.history.back()}>
-                    Cancel
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
+      <div className="flex-1 max-w-3xl mx-auto w-full p-4 sm:p-6 lg:p-8 space-y-6">
+        {/* Page Header */}
+        <div className="flex items-center gap-3">
+          <Link
+            href="/budgets"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/70 bg-card hover:bg-muted/50 text-muted-foreground hover:text-foreground shadow-xs transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+              Create New Budget
+            </h1>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+              Set spending limits for categories by month or year.
+            </p>
+          </div>
         </div>
+
+        <KravioCard pattern innerClassName="p-5 sm:p-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <Label htmlFor="category_id" className="text-xs font-medium text-muted-foreground">
+                Category
+              </Label>
+              <Select value={data.category_id} onValueChange={(value) => setData('category_id', value)}>
+                <SelectTrigger className={`mt-1.5 h-10 rounded-xl text-xs bg-background/80 ${errors.category_id ? 'border-destructive' : 'border-border/70'}`}>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.id} className="text-xs">
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.category_id && <p className="text-destructive text-xs mt-1">{errors.category_id}</p>}
+            </div>
+
+            <div>
+              <Label htmlFor="amount" className="text-xs font-medium text-muted-foreground">
+                Budget Limit Amount
+              </Label>
+              <Input
+                id="amount"
+                type="number"
+                step="0.01"
+                value={data.amount}
+                onChange={(e) => setData('amount', e.target.value)}
+                placeholder="0.00"
+                className={`mt-1.5 h-10 font-mono text-sm rounded-xl bg-background/80 ${errors.amount ? 'border-destructive' : 'border-border/70'}`}
+              />
+              {errors.amount && <p className="text-destructive text-xs mt-1">{errors.amount}</p>}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="period_type" className="text-xs font-medium text-muted-foreground">
+                  Period Type
+                </Label>
+                <Select value={data.period_type} onValueChange={(value) => setData('period_type', value)}>
+                  <SelectTrigger className="mt-1.5 h-10 rounded-xl text-xs bg-background/80 border-border/70">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="monthly" className="text-xs">Monthly</SelectItem>
+                    <SelectItem value="yearly" className="text-xs">Yearly</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="year" className="text-xs font-medium text-muted-foreground">
+                  Year
+                </Label>
+                <Select value={data.year.toString()} onValueChange={(value) => setData('year', parseInt(value))}>
+                  <SelectTrigger className="mt-1.5 h-10 rounded-xl text-xs bg-background/80 border-border/70 font-mono">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {years.map((year) => (
+                      <SelectItem key={year} value={year.toString()} className="text-xs font-mono">
+                        {year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {data.period_type === 'monthly' && (
+                <div>
+                  <Label htmlFor="month" className="text-xs font-medium text-muted-foreground">
+                    Month
+                  </Label>
+                  <Select value={data.month.toString()} onValueChange={(value) => setData('month', parseInt(value))}>
+                    <SelectTrigger className="mt-1.5 h-10 rounded-xl text-xs bg-background/80 border-border/70">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {months.map((month) => (
+                        <SelectItem key={month.value} value={month.value} className="text-xs">
+                          {month.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center gap-3 pt-3 border-t border-border/40">
+              <Button type="submit" disabled={processing} className="rounded-xl px-5 text-xs font-semibold shadow-xs">
+                {processing ? 'Creating...' : 'Create Budget'}
+              </Button>
+              <Button type="button" variant="outline" asChild className="rounded-xl px-4 text-xs border-border/70">
+                <Link href="/budgets">Cancel</Link>
+              </Button>
+            </div>
+          </form>
+        </KravioCard>
       </div>
     </AppLayout>
   );

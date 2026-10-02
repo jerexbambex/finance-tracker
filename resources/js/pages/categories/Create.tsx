@@ -1,17 +1,25 @@
-import { Head, useForm } from '@inertiajs/react';
+import React from 'react';
+import { Head, useForm, Link } from '@inertiajs/react';
+import { ArrowLeft, Tag } from 'lucide-react';
 
+import { KravioCard } from '@/components/dashboard/KravioCard';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
+import { type BreadcrumbItem } from '@/types';
+
+const breadcrumbs: BreadcrumbItem[] = [
+  { title: 'Categories', href: '/categories' },
+  { title: 'Create Category', href: '/categories/create' },
+];
 
 export default function Create() {
   const { data, setData, post, processing, errors } = useForm({
     name: '',
     type: 'expense',
-    color: '#6b7280',
+    color: '#6366f1',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -37,86 +45,105 @@ export default function Create() {
     { value: '#d946ef', label: 'Fuchsia' },
     { value: '#ec4899', label: 'Pink' },
     { value: '#f43f5e', label: 'Rose' },
-    { value: '#6b7280', label: 'Gray' },
+    { value: '#6b7280', label: 'Slate' },
   ];
 
   return (
-    <AppLayout>
+    <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Create Category" />
-      
-      <div className="py-12">
-        <div className="max-w-2xl mx-auto sm:px-6 lg:px-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Create New Category</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <Label htmlFor="name">Category Name</Label>
-                  <Input
-                    id="name"
-                    value={data.name}
-                    onChange={(e) => setData('name', e.target.value)}
-                    placeholder="e.g., Subscriptions"
-                    className={errors.name ? 'border-red-500' : ''}
-                  />
-                  {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
-                </div>
 
-                <div>
-                  <Label htmlFor="type">Type</Label>
-                  <Select value={data.type} onValueChange={(value) => setData('type', value)}>
-                    <SelectTrigger>
+      <div className="flex-1 max-w-3xl mx-auto w-full p-4 sm:p-6 lg:p-8 space-y-6">
+        {/* Page Header */}
+        <div className="flex items-center gap-3">
+          <Link
+            href="/categories"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/70 bg-card hover:bg-muted/50 text-muted-foreground hover:text-foreground shadow-xs transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+              Create Category
+            </h1>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+              Classify transactions with colors and types for clean reporting.
+            </p>
+          </div>
+        </div>
+
+        <KravioCard pattern innerClassName="p-5 sm:p-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <Label htmlFor="name" className="text-xs font-medium text-muted-foreground">
+                Category Name
+              </Label>
+              <Input
+                id="name"
+                value={data.name}
+                onChange={(e) => setData('name', e.target.value)}
+                placeholder="e.g., Subscriptions, Dining, Software"
+                className={`mt-1.5 h-10 rounded-xl text-xs bg-background/80 ${errors.name ? 'border-destructive' : 'border-border/70'}`}
+              />
+              {errors.name && <p className="text-destructive text-xs mt-1">{errors.name}</p>}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="type" className="text-xs font-medium text-muted-foreground">
+                  Type
+                </Label>
+                <Select value={data.type} onValueChange={(value) => setData('type', value)}>
+                  <SelectTrigger className="mt-1.5 h-10 rounded-xl text-xs bg-background/80 border-border/70">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="expense" className="text-xs">Expense</SelectItem>
+                    <SelectItem value="income" className="text-xs">Income</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="color" className="text-xs font-medium text-muted-foreground">
+                  Badge Color
+                </Label>
+                <div className="flex gap-2 items-center mt-1.5">
+                  <Select value={data.color} onValueChange={(value) => setData('color', value)}>
+                    <SelectTrigger className="h-10 rounded-xl text-xs bg-background/80 border-border/70">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="income">Income</SelectItem>
-                      <SelectItem value="expense">Expense</SelectItem>
+                      {colorOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value} className="text-xs">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-3.5 h-3.5 rounded-full ring-1 ring-border/50"
+                              style={{ backgroundColor: option.value }}
+                            />
+                            {option.label}
+                          </div>
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
+                  <div
+                    className="w-10 h-10 rounded-xl border border-border/70 shadow-xs shrink-0"
+                    style={{ backgroundColor: data.color }}
+                  />
                 </div>
+              </div>
+            </div>
 
-                <div>
-                  <Label htmlFor="color">Color</Label>
-                  <div className="flex gap-2 items-center">
-                    <Select value={data.color} onValueChange={(value) => setData('color', value)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {colorOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            <div className="flex items-center gap-2">
-                              <div
-                                className="w-4 h-4 rounded-full"
-                                style={{ backgroundColor: option.value }}
-                              />
-                              {option.label}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <div
-                      className="w-10 h-10 rounded-lg border"
-                      style={{ backgroundColor: data.color }}
-                    />
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <Button type="submit" disabled={processing}>
-                    {processing ? 'Creating...' : 'Create Category'}
-                  </Button>
-                  <Button type="button" variant="outline" onClick={() => window.history.back()}>
-                    Cancel
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
+            <div className="flex items-center gap-3 pt-3 border-t border-border/40">
+              <Button type="submit" disabled={processing} className="rounded-xl px-5 text-xs font-semibold shadow-xs">
+                {processing ? 'Creating...' : 'Create Category'}
+              </Button>
+              <Button type="button" variant="outline" asChild className="rounded-xl px-4 text-xs border-border/70">
+                <Link href="/categories">Cancel</Link>
+              </Button>
+            </div>
+          </form>
+        </KravioCard>
       </div>
     </AppLayout>
   );

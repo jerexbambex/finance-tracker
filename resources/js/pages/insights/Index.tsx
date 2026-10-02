@@ -18,13 +18,6 @@ import { useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency as baseFmt } from '@/lib/formatCurrency';
@@ -291,50 +284,41 @@ export default function Index({ insights, primaryCurrency }: Props) {
                     )}
 
                     {aiInsights && (
-                        <Card className="border-primary/20 bg-primary/5">
-                            <CardHeader>
-                                <div className="flex items-start gap-3">
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                                        <Sparkles className="h-5 w-5" />
-                                    </div>
-                                    <div>
-                                        <CardTitle>AI Analysis</CardTitle>
-                                        <CardDescription>
-                                            Personalized readout from your
-                                            spending data
-                                        </CardDescription>
-                                    </div>
+                        <KravioCard pattern innerClassName="p-5 sm:p-6 border-primary/20 bg-primary/5">
+                            <div className="flex items-start gap-3 pb-3 border-b border-border/40">
+                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                                    <Sparkles className="h-4 w-4" />
                                 </div>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-sm leading-6 whitespace-pre-line">
-                                    {aiInsights}
+                                <div>
+                                    <h3 className="text-sm font-semibold text-foreground">AI Spending Analysis</h3>
+                                    <p className="text-xs text-muted-foreground">
+                                        Personalized financial readout generated from your spending data
+                                    </p>
                                 </div>
-                            </CardContent>
-                        </Card>
+                            </div>
+                            <div className="mt-4 text-xs sm:text-sm leading-relaxed whitespace-pre-line text-foreground/90">
+                                {aiInsights}
+                            </div>
+                        </KravioCard>
                     )}
 
                     {!hasAnyInsights && (
-                        <Card className="border-dashed border-border/70">
-                            <CardContent className="flex flex-col items-center justify-center px-6 py-16 text-center">
-                                <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                                    <TrendingUp className="h-7 w-7" />
-                                </div>
-                                <h3 className="text-xl font-semibold">
-                                    No insights yet
-                                </h3>
-                                <p className="mt-2 max-w-md text-muted-foreground">
-                                    Add a few transactions and budgets to unlock
-                                    spending patterns, budget alerts, and
-                                    savings opportunities.
-                                </p>
-                                <Button asChild className="mt-6">
-                                    <Link href="/transactions/create">
-                                        Add Transaction
-                                    </Link>
-                                </Button>
-                            </CardContent>
-                        </Card>
+                        <KravioCard pattern innerClassName="flex flex-col items-center justify-center px-6 py-16 text-center">
+                            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary border border-primary/20">
+                                <TrendingUp className="h-6 w-6" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-foreground">
+                                No insights yet
+                            </h3>
+                            <p className="mt-1.5 max-w-md text-xs sm:text-sm text-muted-foreground">
+                                Add a few transactions and budgets to unlock spending patterns, budget alerts, and savings opportunities.
+                            </p>
+                            <Button asChild className="mt-6 rounded-xl text-xs font-semibold shadow-xs">
+                                <Link href="/transactions/create">
+                                    Add Transaction
+                                </Link>
+                            </Button>
+                        </KravioCard>
                     )}
 
                     {hasAnyInsights && (
