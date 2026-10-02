@@ -3,22 +3,23 @@ import { Link, router } from '@inertiajs/react';
 import {
   Search,
   Download,
-  ArrowUpDown,
   Plus,
-  Wallet,
   MoreVertical,
   FileSpreadsheet,
-  Activity,
+  Target,
   Filter,
   Eye,
   Pencil,
   Copy,
   ChevronRight,
   X,
+  FileText,
+  Clock,
+  CheckCircle2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatCurrency as baseFmt } from '@/lib/formatCurrency';
-import { KravioCard } from './KravioCard';
+import { KravioCardPattern } from './KravioCard';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -194,36 +195,37 @@ export function KravioTransactionsTable({
   };
 
   return (
-    <KravioCard
-      pattern
-      className={cn('w-full animate-rise [animation-delay:300ms]', className)}
-      innerClassName="p-0 overflow-hidden"
+    <div
+      className={cn(
+        'relative rounded-2xl border border-border/70 bg-muted/30 p-4 sm:p-6 overflow-hidden shadow-xs animate-rise [animation-delay:300ms]',
+        className
+      )}
     >
+      <KravioCardPattern />
+
       {/* Top Table Control Bar (1:1 with Kravio reference) */}
-      <div className="flex flex-col gap-3 border-b border-border/60 p-4 sm:px-6 sm:flex-row sm:items-center sm:justify-between bg-card">
-        {/* Left Section Title with Kravio Section Icon */}
+      <div className="relative z-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+        {/* Left Section Title with Kravio Target Icon */}
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
-            <Activity className="h-4 w-4" />
+          <div className="flex h-6 w-6 items-center justify-center rounded-full border border-foreground/30 text-foreground/80">
+            <Target className="h-3.5 w-3.5" />
           </div>
-          <div>
-            <h3 className="text-sm sm:text-base font-semibold tracking-tight text-foreground">
-              Transactions Monitoring
-            </h3>
-          </div>
+          <h3 className="text-sm sm:text-base font-semibold tracking-tight text-foreground">
+            SLA Monitoring
+          </h3>
         </div>
 
         {/* Right Controls */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-2">
           {/* Search Field */}
-          <div className="relative flex-1 sm:w-52">
-            <Search className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search transactions..."
-              className="h-8.5 w-full rounded-xl border border-border/70 bg-muted/20 pl-8 pr-8 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:bg-background focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
+              placeholder="Ticket"
+              className="h-8 w-36 sm:w-52 rounded-xl border border-border/80 bg-background pl-8 pr-7 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary shadow-xs transition-all"
             />
             {searchQuery && (
               <button
@@ -239,25 +241,24 @@ export function KravioTransactionsTable({
           {/* Kravio Filter Popover */}
           <Popover open={isFilterOpen} onOpenChange={setIsFilterOpen}>
             <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
+              <button
+                type="button"
                 className={cn(
-                  'h-8.5 gap-1.5 rounded-xl text-xs font-medium border-border/70 hover:bg-muted/50 shadow-xs transition-colors',
+                  'flex h-8 items-center gap-1.5 rounded-xl border border-border/80 bg-background px-3 text-xs font-medium text-foreground hover:bg-muted/50 transition-colors shadow-xs',
                   activeFilterCount > 0 && 'border-primary/50 bg-primary/5 text-primary'
                 )}
               >
-                <Filter className="h-3.5 w-3.5" />
+                <Filter className="h-3.5 w-3.5 text-muted-foreground" />
                 <span>Filter</span>
                 {activeFilterCount > 0 && (
                   <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
                     {activeFilterCount}
                   </span>
                 )}
-              </Button>
+              </button>
             </PopoverTrigger>
 
-            <PopoverContent align="end" className="w-72 p-4 space-y-4 rounded-2xl shadow-xl">
+            <PopoverContent align="end" className="w-72 p-4 space-y-4 rounded-2xl shadow-xl bg-background border border-border/80">
               <div className="flex items-center justify-between border-b border-border/60 pb-2">
                 <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Quick Filters
@@ -337,7 +338,7 @@ export function KravioTransactionsTable({
           <button
             type="button"
             onClick={handleExportCSV}
-            className="flex h-8.5 items-center gap-1.5 rounded-xl border border-border/70 bg-card px-2.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors shadow-xs"
+            className="flex h-8 items-center gap-1.5 rounded-xl border border-border/80 bg-background px-2.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors shadow-xs"
             title="Export filtered transactions as CSV"
           >
             <Download className="h-3.5 w-3.5" />
@@ -351,7 +352,7 @@ export function KravioTransactionsTable({
 
       {/* Selection Banner if items selected */}
       {selectedIds.size > 0 && (
-        <div className="flex items-center justify-between bg-primary/10 px-4 sm:px-6 py-2 text-xs border-b border-primary/20 text-primary">
+        <div className="relative z-10 flex items-center justify-between bg-primary/10 px-4 sm:px-6 py-2 mb-3 rounded-xl text-xs border border-primary/20 text-primary">
           <span>{selectedIds.size} transaction{selectedIds.size !== 1 ? 's' : ''} selected</span>
           <button
             type="button"
@@ -363,282 +364,276 @@ export function KravioTransactionsTable({
         </div>
       )}
 
-      {/* Transactions Data Table (Kravio 1:1 Schema) */}
-      <div className="w-full overflow-x-auto">
-        <table className="w-full text-left text-xs border-collapse">
-          <thead>
-            <tr className="border-b border-border/60 bg-muted/20 text-[11px] font-medium text-muted-foreground">
-              <th className="w-10 px-4 sm:px-6 py-3">
-                <input
-                  type="checkbox"
-                  checked={
-                    filteredTransactions.length > 0 &&
-                    selectedIds.size === filteredTransactions.length
-                  }
-                  onChange={handleSelectAll}
-                  className="h-3.5 w-3.5 rounded border-border/80 text-primary focus:ring-primary/40 cursor-pointer"
-                />
-              </th>
-              <th className="px-4 py-3">
-                <button
-                  type="button"
-                  onClick={() => handleSort('id')}
-                  className="inline-flex items-center gap-1 font-medium hover:text-foreground transition-colors group select-none"
-                >
-                  <span>Ticket ID</span>
-                  <ArrowUpDown className="h-3 w-3 text-muted-foreground/50 group-hover:text-foreground" />
-                </button>
-              </th>
-              <th className="px-4 py-3">
-                <button
-                  type="button"
-                  onClick={() => handleSort('description')}
-                  className="inline-flex items-center gap-1 font-medium hover:text-foreground transition-colors group select-none"
-                >
-                  <span>Subject</span>
-                  <ArrowUpDown className="h-3 w-3 text-muted-foreground/50 group-hover:text-foreground" />
-                </button>
-              </th>
-              <th className="px-4 py-3">
-                <button
-                  type="button"
-                  onClick={() => handleSort('type')}
-                  className="inline-flex items-center gap-1 font-medium hover:text-foreground transition-colors group select-none"
-                >
-                  <span>Priority</span>
-                  <ArrowUpDown className="h-3 w-3 text-muted-foreground/50 group-hover:text-foreground" />
-                </button>
-              </th>
-              <th className="px-4 py-3">
-                <button
-                  type="button"
-                  onClick={() => handleSort('account')}
-                  className="inline-flex items-center gap-1 font-medium hover:text-foreground transition-colors group select-none"
-                >
-                  <span>Assigned To</span>
-                  <ArrowUpDown className="h-3 w-3 text-muted-foreground/50 group-hover:text-foreground" />
-                </button>
-              </th>
-              <th className="px-4 py-3">
-                <button
-                  type="button"
-                  onClick={() => handleSort('category')}
-                  className="inline-flex items-center gap-1 font-medium hover:text-foreground transition-colors group select-none"
-                >
-                  <span>Status</span>
-                  <ArrowUpDown className="h-3 w-3 text-muted-foreground/50 group-hover:text-foreground" />
-                </button>
-              </th>
-              <th className="px-4 py-3">
-                <button
-                  type="button"
-                  onClick={() => handleSort('date')}
-                  className="inline-flex items-center gap-1 font-medium hover:text-foreground transition-colors group select-none"
-                >
-                  <span>Created Date</span>
-                  <ArrowUpDown className="h-3 w-3 text-muted-foreground/50 group-hover:text-foreground" />
-                </button>
-              </th>
-              <th className="px-4 py-3 text-right">
-                <button
-                  type="button"
-                  onClick={() => handleSort('amount')}
-                  className="inline-flex items-center gap-1 font-medium hover:text-foreground transition-colors group select-none ml-auto"
-                >
-                  <span>Amount</span>
-                  <ArrowUpDown className="h-3 w-3 text-muted-foreground/50 group-hover:text-foreground" />
-                </button>
-              </th>
-              <th className="w-12 px-3 py-3 text-center"></th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border/40">
-            {filteredTransactions.length > 0 ? (
-              filteredTransactions.map((tx) => {
-                const isIncome = tx.type === 'income';
-                const isSelected = selectedIds.has(tx.id);
-                const displayId = tx.id.length > 5 ? tx.id.slice(-4) : tx.id;
-
-                return (
-                  <tr
-                    key={tx.id}
-                    className={cn(
-                      'group transition-colors hover:bg-muted/40 cursor-pointer',
-                      isSelected && 'bg-primary/5'
-                    )}
-                    onClick={() => router.visit(`/transactions/${tx.id}`)}
+      {/* Inner Inset Card for Table (Kravio 1:1 Schema) */}
+      <div className="relative z-10 w-full rounded-xl sm:rounded-2xl border border-border/60 bg-background shadow-xs overflow-hidden">
+        <div className="w-full overflow-x-auto">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="border-b border-border/40 text-[11px] sm:text-xs text-muted-foreground font-normal bg-muted/5">
+                <th className="w-12 pl-4 sm:pl-6 py-3.5">
+                  <input
+                    type="checkbox"
+                    checked={
+                      filteredTransactions.length > 0 &&
+                      selectedIds.size === filteredTransactions.length
+                    }
+                    onChange={handleSelectAll}
+                    className="h-4 w-4 rounded border-border/80 text-foreground focus:ring-primary/40 cursor-pointer"
+                  />
+                </th>
+                <th className="py-3.5 font-normal">
+                  <button
+                    type="button"
+                    onClick={() => handleSort('id')}
+                    className="inline-flex items-center gap-1 hover:text-foreground transition-colors group select-none"
                   >
-                    {/* Checkbox */}
-                    <td className="px-4 sm:px-6 py-3.5" onClick={(e) => e.stopPropagation()}>
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => toggleSelect(tx.id)}
-                        className="h-3.5 w-3.5 rounded border-border/80 text-primary focus:ring-primary/40 cursor-pointer"
-                      />
-                    </td>
-
-                    {/* Ticket ID (#2319 font-mono) */}
-                    <td className="px-4 py-3.5 whitespace-nowrap">
-                      <span className="font-mono text-xs text-muted-foreground/90">
-                        #{displayId}
-                      </span>
-                    </td>
-
-                    {/* Subject / Description */}
-                    <td className="px-4 py-3.5">
-                      <div className="min-w-0 max-w-xs sm:max-w-md">
-                        <p className="font-medium text-xs sm:text-sm text-foreground truncate tracking-tight">
-                          {tx.description}
-                        </p>
-                      </div>
-                    </td>
-
-                    {/* Priority / Signal Bars (Kravio 1:1) */}
-                    <td className="px-4 py-3.5 whitespace-nowrap">
-                      {isIncome ? (
-                        <div className="inline-flex items-center gap-1.5">
-                          <div className="flex items-end gap-0.5 h-3">
-                            <span className="w-0.5 h-1.5 bg-emerald-500 rounded-full" />
-                            <span className="w-0.5 h-2.5 bg-emerald-500 rounded-full" />
-                            <span className="w-0.5 h-3.5 bg-emerald-500 rounded-full" />
-                          </div>
-                          <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                            High
-                          </span>
-                        </div>
-                      ) : (
-                        <div className="inline-flex items-center gap-1.5">
-                          <div className="flex items-end gap-0.5 h-3">
-                            <span className="w-0.5 h-1.5 bg-rose-500 rounded-full" />
-                            <span className="w-0.5 h-2.5 bg-rose-500 rounded-full" />
-                            <span className="w-0.5 h-3.5 bg-rose-500 rounded-full" />
-                          </div>
-                          <span className="text-xs font-medium text-rose-600 dark:text-rose-400">
-                            Expense
-                          </span>
-                        </div>
-                      )}
-                    </td>
-
-                    {/* Assigned To / Account */}
-                    <td className="px-4 py-3.5 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <div className="w-5 h-5 rounded-full bg-muted/80 border border-border/70 flex items-center justify-center flex-shrink-0 text-muted-foreground">
-                          <Wallet className="w-2.5 h-2.5" />
-                        </div>
-                        <span className="text-xs text-foreground/80 font-normal truncate max-w-[120px]">
-                          {tx.account.name}
-                        </span>
-                      </div>
-                    </td>
-
-                    {/* Status / Category */}
-                    <td className="px-4 py-3.5 whitespace-nowrap">
-                      {tx.category?.name ? (
-                        <div className="flex items-center gap-1.5">
-                          <span
-                            className="w-2 h-2 rounded-full flex-shrink-0"
-                            style={{
-                              backgroundColor: tx.category.color || '#94a3b8',
-                            }}
-                          />
-                          <span className="text-xs text-foreground/90 font-medium truncate max-w-[130px]">
-                            {tx.category.name}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">—</span>
-                      )}
-                    </td>
-
-                    {/* Created Date */}
-                    <td className="px-4 py-3.5 whitespace-nowrap">
-                      <span className="font-mono text-xs text-muted-foreground">
-                        {formatDate(tx.transaction_date)}
-                      </span>
-                    </td>
-
-                    {/* Amount */}
-                    <td className="px-4 py-3.5 text-right whitespace-nowrap">
-                      <span
-                        className={cn(
-                          'font-mono font-semibold tabular-nums text-xs sm:text-sm',
-                          isIncome
-                            ? 'text-emerald-600 dark:text-emerald-400'
-                            : 'text-foreground'
-                        )}
-                      >
-                        {isIncome ? '+ ' : '- '}
-                        {formatCurrency(tx.amount, tx.account.currency)}
-                      </span>
-                    </td>
-
-                    {/* Row Actions Menu ⋮ (Kravio 1:1) */}
-                    <td className="px-3 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <button
-                            type="button"
-                            className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                          >
-                            <MoreVertical className="h-3.5 w-3.5" />
-                          </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48 text-xs rounded-xl shadow-lg">
-                          <DropdownMenuLabel className="font-mono text-[11px] text-muted-foreground">
-                            #{displayId}
-                          </DropdownMenuLabel>
-                          <DropdownMenuItem asChild>
-                            <Link href={`/transactions/${tx.id}`} className="cursor-pointer">
-                              <Eye className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
-                              View Details
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link href={`/transactions/${tx.id}/edit`} className="cursor-pointer">
-                              <Pencil className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
-                              Edit Transaction
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link href={`/transactions/create?duplicate_id=${tx.id}`} className="cursor-pointer">
-                              <Copy className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
-                              Duplicate Entry
-                            </Link>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </td>
-                  </tr>
-                );
-              })
-            ) : (
-              <tr>
-                <td colSpan={9} className="py-12 text-center text-muted-foreground">
-                  <FileSpreadsheet className="mx-auto h-8 w-8 text-muted-foreground/40 mb-2" />
-                  <p className="text-xs font-semibold text-foreground">No transactions found</p>
-                  <p className="text-[11px] mt-0.5">Try adjusting your search terms or filter criteria.</p>
-                </td>
+                    <span>Ticket ID</span>
+                    <span className="text-[10px] opacity-60">↑↓</span>
+                  </button>
+                </th>
+                <th className="py-3.5 font-normal">
+                  <button
+                    type="button"
+                    onClick={() => handleSort('description')}
+                    className="inline-flex items-center gap-1 hover:text-foreground transition-colors group select-none"
+                  >
+                    <span>Subject</span>
+                    <span className="text-[10px] opacity-60">↑↓</span>
+                  </button>
+                </th>
+                <th className="py-3.5 font-normal">
+                  <button
+                    type="button"
+                    onClick={() => handleSort('type')}
+                    className="inline-flex items-center gap-1 hover:text-foreground transition-colors group select-none"
+                  >
+                    <span>Priority</span>
+                    <span className="text-[10px] opacity-60">↑↓</span>
+                  </button>
+                </th>
+                <th className="py-3.5 font-normal">
+                  <button
+                    type="button"
+                    onClick={() => handleSort('account')}
+                    className="inline-flex items-center gap-1 hover:text-foreground transition-colors group select-none"
+                  >
+                    <span>Assigned To</span>
+                    <span className="text-[10px] opacity-60">↑↓</span>
+                  </button>
+                </th>
+                <th className="py-3.5 font-normal">
+                  <button
+                    type="button"
+                    onClick={() => handleSort('category')}
+                    className="inline-flex items-center gap-1 hover:text-foreground transition-colors group select-none"
+                  >
+                    <span>Status</span>
+                    <span className="text-[10px] opacity-60">↑↓</span>
+                  </button>
+                </th>
+                <th className="py-3.5 font-normal">
+                  <button
+                    type="button"
+                    onClick={() => handleSort('date')}
+                    className="inline-flex items-center gap-1 hover:text-foreground transition-colors group select-none"
+                  >
+                    <span>Created Date</span>
+                    <span className="text-[10px] opacity-60">↑↓</span>
+                  </button>
+                </th>
+                <th className="py-3.5 font-normal text-right pr-2">
+                  <button
+                    type="button"
+                    onClick={() => handleSort('amount')}
+                    className="inline-flex items-center gap-1 hover:text-foreground transition-colors group select-none ml-auto"
+                  >
+                    <span>SLA Due</span>
+                    <span className="text-[10px] opacity-60">↑↓</span>
+                  </button>
+                </th>
+                <th className="w-10 pr-4 sm:pr-6 py-3.5"></th>
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y divide-border/40">
+              {filteredTransactions.length > 0 ? (
+                filteredTransactions.map((tx) => {
+                  const isIncome = tx.type === 'income';
+                  const isSelected = selectedIds.has(tx.id);
+                  const displayId = tx.id.length > 5 ? tx.id.slice(-4) : tx.id;
 
-      {/* Bottom Table Footer (Kravio style) */}
-      <div className="flex items-center justify-between border-t border-border/60 bg-muted/10 px-4 sm:px-6 py-3 text-xs">
-        <span className="text-muted-foreground font-mono">
-          Showing {filteredTransactions.length} of {transactions.length} transactions
-        </span>
-        <Link
-          href="/transactions"
-          className="inline-flex items-center gap-1 font-semibold text-foreground hover:text-primary transition-colors group"
-        >
-          <span>View All Transactions</span>
-          <ChevronRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
-        </Link>
+                  return (
+                    <tr
+                      key={tx.id}
+                      className={cn(
+                        'group transition-colors hover:bg-muted/40 cursor-pointer',
+                        isSelected && 'bg-primary/5'
+                      )}
+                      onClick={() => router.visit(`/transactions/${tx.id}`)}
+                    >
+                      {/* Checkbox */}
+                      <td className="pl-4 sm:pl-6 py-4" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleSelect(tx.id)}
+                          className="h-4 w-4 rounded border-border/80 text-foreground focus:ring-primary/40 cursor-pointer"
+                        />
+                      </td>
+
+                      {/* Ticket ID (#2319) */}
+                      <td className="py-4 whitespace-nowrap">
+                        <span className="text-xs font-normal text-foreground">
+                          #{displayId}
+                        </span>
+                      </td>
+
+                      {/* Subject */}
+                      <td className="py-4">
+                        <div className="min-w-0 max-w-xs sm:max-w-md">
+                          <p className="text-xs sm:text-sm font-normal text-foreground truncate">
+                            {tx.description}
+                          </p>
+                        </div>
+                      </td>
+
+                      {/* Priority (Signal Bars Kravio 1:1) */}
+                      <td className="py-4 whitespace-nowrap">
+                        {isIncome ? (
+                          <div className="inline-flex items-center gap-1.5 text-xs text-foreground">
+                            <div className="flex items-end gap-0.5 h-3">
+                              <span className="w-0.5 h-1 bg-rose-500 rounded-full" />
+                              <span className="w-0.5 h-2 bg-rose-500 rounded-full" />
+                              <span className="w-0.5 h-3 bg-rose-500 rounded-full" />
+                            </div>
+                            <span>High</span>
+                          </div>
+                        ) : (
+                          <div className="inline-flex items-center gap-1.5 text-xs text-foreground">
+                            <div className="flex items-end gap-0.5 h-3">
+                              <span className="w-0.5 h-1 bg-amber-500 rounded-full" />
+                              <span className="w-0.5 h-2 bg-amber-500 rounded-full" />
+                              <span className="w-0.5 h-3 bg-muted-foreground/30 rounded-full" />
+                            </div>
+                            <span>Medium</span>
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Assigned To (Avatar + Name) */}
+                      <td className="py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-full bg-muted border border-border/70 flex items-center justify-center flex-shrink-0 text-muted-foreground text-[10px] font-medium overflow-hidden">
+                            {tx.account.name.slice(0, 2).toUpperCase()}
+                          </div>
+                          <span className="text-xs text-foreground font-normal truncate max-w-[120px]">
+                            {tx.account.name}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Status (Icon + Category 1:1) */}
+                      <td className="py-4 whitespace-nowrap">
+                        {isIncome ? (
+                          <div className="flex items-center gap-1.5 text-xs text-foreground">
+                            <FileText className="w-3.5 h-3.5 text-blue-500" />
+                            <span>{tx.category?.name || 'In Review'}</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1.5 text-xs text-foreground">
+                            <Clock className="w-3.5 h-3.5 text-amber-500" />
+                            <span>{tx.category?.name || 'In Progress'}</span>
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Created Date */}
+                      <td className="py-4 whitespace-nowrap">
+                        <span className="text-xs text-foreground font-normal">
+                          {formatDate(tx.transaction_date)}
+                        </span>
+                      </td>
+
+                      {/* SLA Due / Amount */}
+                      <td className="py-4 text-right whitespace-nowrap pr-2">
+                        <span
+                          className={cn(
+                            'text-xs sm:text-sm font-normal tabular-nums',
+                            isIncome
+                              ? 'text-emerald-600 dark:text-emerald-400 font-medium'
+                              : 'text-foreground'
+                          )}
+                        >
+                          {isIncome ? '+ ' : '- '}
+                          {formatCurrency(tx.amount, tx.account.currency)}
+                        </span>
+                      </td>
+
+                      {/* Row Actions Menu ⋮ */}
+                      <td className="pr-4 sm:pr-6 py-4 text-center" onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button
+                              type="button"
+                              className="flex h-6 w-6 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                            >
+                              <MoreVertical className="h-3.5 w-3.5" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48 text-xs rounded-xl shadow-lg">
+                            <DropdownMenuLabel className="font-mono text-[11px] text-muted-foreground">
+                              #{displayId}
+                            </DropdownMenuLabel>
+                            <DropdownMenuItem asChild>
+                              <Link href={`/transactions/${tx.id}`} className="cursor-pointer">
+                                <Eye className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
+                                View Details
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link href={`/transactions/${tx.id}/edit`} className="cursor-pointer">
+                                <Pencil className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
+                                Edit Transaction
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link href={`/transactions/create?duplicate_id=${tx.id}`} className="cursor-pointer">
+                                <Copy className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
+                                Duplicate Entry
+                              </Link>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan={9} className="py-12 text-center text-muted-foreground">
+                    <FileSpreadsheet className="mx-auto h-8 w-8 text-muted-foreground/40 mb-2" />
+                    <p className="text-xs font-semibold text-foreground">No transactions found</p>
+                    <p className="text-[11px] mt-0.5">Try adjusting your search terms or filter criteria.</p>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Bottom Table Footer */}
+        <div className="flex items-center justify-between border-t border-border/40 bg-muted/5 px-4 sm:px-6 py-3 text-xs">
+          <span className="text-muted-foreground">
+            Showing {filteredTransactions.length} of {transactions.length} transactions
+          </span>
+          <Link
+            href="/transactions"
+            className="inline-flex items-center gap-1 font-semibold text-foreground hover:text-primary transition-colors group"
+          >
+            <span>View All Transactions</span>
+            <ChevronRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
+          </Link>
+        </div>
       </div>
-    </KravioCard>
+    </div>
   );
 }
