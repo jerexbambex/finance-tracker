@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
-import { formatCurrency as baseFmt } from '@/lib/formatCurrency';
+import { formatCurrency as baseFmt, formatCompactCurrency } from '@/lib/formatCurrency';
 import { KravioCard } from '@/components/dashboard/KravioCard';
 import { KravioKPICard } from '@/components/dashboard/KravioKPICard';
 
@@ -416,7 +416,7 @@ export default function Index({
                 </defs>
                 <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/40" />
                 <XAxis dataKey="month" tickLine={false} axisLine={false} className="text-xs font-medium fill-muted-foreground" />
-                <YAxis tickLine={false} axisLine={false} width={65} tickFormatter={(v) => formatCurrency(v, trendCurrency)} className="text-xs font-mono fill-muted-foreground" />
+                <YAxis tickLine={false} axisLine={false} width={65} tickFormatter={(v) => formatCompactCurrency(v, trendCurrency)} className="text-xs font-mono fill-muted-foreground" />
                 <Tooltip
                   content={({ active, payload }) => {
                     if (active && payload && payload.length) {

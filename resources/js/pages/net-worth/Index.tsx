@@ -5,7 +5,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tool
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
-import { formatCurrency, currencySymbol } from '@/lib/formatCurrency';
+import { formatCurrency, currencySymbol, formatCompactCurrency } from '@/lib/formatCurrency';
 import { KravioCard } from '@/components/dashboard/KravioCard';
 import { KravioKPICard } from '@/components/dashboard/KravioKPICard';
 
@@ -36,10 +36,7 @@ export default function Index({ trend, currentTotal, currentByCurrency, baseCurr
   const changePercent = first && first.netWorth !== 0 ? (changeAmount / Math.abs(first.netWorth)) * 100 : null;
   const isUp = changeAmount >= 0;
 
-  const formatAxis = (value: number) => {
-    const compact = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(value);
-    return currencySymbol(baseCurrency) + compact;
-  };
+  const formatAxis = (value: number) => formatCompactCurrency(value, baseCurrency);
 
   const setRange = (value: string) => {
     router.get('/net-worth', { range: value }, { preserveScroll: true, preserveState: true });

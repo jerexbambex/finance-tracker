@@ -5,7 +5,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ReferenceLine, Responsive
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
-import { formatCurrency } from '@/lib/formatCurrency';
+import { formatCurrency, formatCompactCurrency } from '@/lib/formatCurrency';
 import { KravioCard } from '@/components/dashboard/KravioCard';
 import { KravioKPICard } from '@/components/dashboard/KravioKPICard';
 
@@ -169,7 +169,7 @@ export default function Index({ timelines, milestones }: Props) {
                 </defs>
                 <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/40" />
                 <XAxis dataKey="label" tickLine={false} axisLine={false} tickMargin={10} className="text-xs font-medium fill-muted-foreground" />
-                <YAxis tickLine={false} axisLine={false} width={65} tickFormatter={(v) => formatCurrency(v, currency)} className="text-xs font-mono fill-muted-foreground" />
+                <YAxis tickLine={false} axisLine={false} width={65} tickFormatter={(v) => formatCompactCurrency(v, currency)} className="text-xs font-mono fill-muted-foreground" />
                 <ReferenceLine y={0} stroke="#ef4444" strokeDasharray="3 3" strokeWidth={1} />
                 <Tooltip
                   content={({ active, payload }) => {

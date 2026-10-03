@@ -61,7 +61,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
-import { formatCurrency } from '@/lib/formatCurrency';
+import { formatCurrency, formatCompactCurrency } from '@/lib/formatCurrency';
 import { cn } from '@/lib/utils';
 
 interface Transaction {
@@ -591,7 +591,7 @@ export default function Index({ transactions, accounts = [], categories = [], cu
 
               {currentChartData.length > 0 ? (
                 <ChartContainer config={chartConfig} className="h-[240px] sm:h-[280px] w-full">
-                  <AreaChart accessibilityLayer data={currentChartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                  <AreaChart accessibilityLayer data={currentChartData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                     <defs>
                       <linearGradient id="txFillIncome" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#10b981" stopOpacity={0.25} />
@@ -613,7 +613,8 @@ export default function Index({ transactions, accounts = [], categories = [], cu
                     <YAxis
                       tickLine={false}
                       axisLine={false}
-                      tickFormatter={(value) => formatCurrency(value, activeCurrency)}
+                      width={65}
+                      tickFormatter={(value) => formatCompactCurrency(value, activeCurrency)}
                       className="text-[11px] fill-muted-foreground font-mono"
                     />
                     <ChartTooltip content={<ChartTooltipContent />} />

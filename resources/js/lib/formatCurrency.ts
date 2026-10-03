@@ -48,3 +48,16 @@ export function formatCurrency(amount: number, currency = 'USD'): string {
         return `${code} ${number}`.trim();
     }
 }
+
+export function formatCompactCurrency(amount: number, currency = 'USD'): string {
+    const code = currency || 'USD';
+    const symbol = CURRENCY_SYMBOLS[code] ?? code;
+    if (amount === 0) return `${symbol}0`;
+
+    const compact = new Intl.NumberFormat('en-US', {
+        notation: 'compact',
+        maximumFractionDigits: 1,
+    }).format(amount);
+
+    return `${symbol}${compact}`;
+}

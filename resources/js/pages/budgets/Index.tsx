@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import AppLayout from '@/layouts/app-layout';
-import { formatCurrency } from '@/lib/formatCurrency';
+import { formatCurrency, formatCompactCurrency } from '@/lib/formatCurrency';
 import { KravioCard } from '@/components/dashboard/KravioCard';
 import { KravioKPICard } from '@/components/dashboard/KravioKPICard';
 
@@ -444,7 +444,7 @@ export default function Index({ budgets, categories, currencies, view, available
                 <BarChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                   <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/40" />
                   <XAxis dataKey="category" tickLine={false} axisLine={false} className="text-xs font-medium fill-muted-foreground" />
-                  <YAxis tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} className="text-xs font-mono fill-muted-foreground" />
+                  <YAxis tickLine={false} axisLine={false} width={65} tickFormatter={(v) => formatCompactCurrency(v)} className="text-xs font-mono fill-muted-foreground" />
                   <Tooltip
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {

@@ -12,7 +12,7 @@ import {
 } from 'recharts';
 import { ArrowUpRight, ArrowDownRight, Layers, TrendingUp, BarChart3, LineChart as LineChartIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { currencySymbol, formatCurrency as baseFmt } from '@/lib/formatCurrency';
+import { currencySymbol, formatCurrency as baseFmt, formatCompactCurrency as baseFmtCompact } from '@/lib/formatCurrency';
 import { KravioCard } from './KravioCard';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -67,13 +67,7 @@ export function KravioHeroChart({
     const peakExpenseMonth = [...chartData].sort((a, b) => b.expense - a.expense)[0]?.month ?? '-';
 
     const formatCurrency = (val: number) => baseFmt(val, selectedCurrency);
-    const formatCompactCurrency = (val: number) => {
-        const compact = new Intl.NumberFormat('en', {
-            notation: 'compact',
-            maximumFractionDigits: 1,
-        }).format(val);
-        return (currencySymbol(selectedCurrency) || '$') + compact;
-    };
+    const formatCompactCurrency = (val: number) => baseFmtCompact(val, selectedCurrency);
 
     return (
         <KravioCard
