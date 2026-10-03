@@ -25,6 +25,7 @@ class ExportController extends Controller
             ->when($request->account_id, fn ($q) => $q->where('transactions.account_id', $request->account_id))
             ->when($request->category_id, fn ($q) => $q->where('transactions.category_id', $request->category_id))
             ->when($request->type, fn ($q) => $q->where('transactions.type', $request->type))
+            ->when($request->currency, fn ($q) => $q->where('transactions.currency', $request->currency))
             ->when($request->date_from, fn ($q) => $q->whereDate('transactions.transaction_date', '>=', $request->date_from))
             ->when($request->date_to, fn ($q) => $q->whereDate('transactions.transaction_date', '<=', $request->date_to))
             ->when($request->search, fn ($q) => $q->where('transactions.description', 'like', '%'.$request->search.'%'));

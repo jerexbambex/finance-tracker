@@ -37,6 +37,10 @@ class TransactionController extends Controller
         $query->when($request->account_id, fn ($q) => $q->where('account_id', $request->account_id))
             ->when($request->category_id, fn ($q) => $q->where('category_id', $request->category_id))
             ->when($request->type, fn ($q) => $q->where('type', $request->type))
+            ->when($request->currency, fn ($q) => $q->where(function ($sub) use ($request) {
+                $sub->where('transactions.currency', $request->currency)
+                    ->orWhereHas('account', fn ($aq) => $aq->where('currency', $request->currency));
+            }))
             ->when($request->date_from, fn ($q) => $q->whereDate('transaction_date', '>=', $request->date_from))
             ->when($request->date_to, fn ($q) => $q->whereDate('transaction_date', '<=', $request->date_to))
             ->when($request->search, fn ($q) => $q->where('description', 'like', '%'.$request->search.'%'))
@@ -49,6 +53,17 @@ class TransactionController extends Controller
         $categories = Category::where(function ($q) {
             $q->whereNull('user_id')->orWhere('user_id', auth()->id());
         })->where('is_active', true)->get();
+        $currencies = auth()->user()->accounts()
+            ->where('is_active', true)
+            ->pluck('currency')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($currencies)) {
+            $currencies = ['USD'];
+        }
 
         // Calculate chart data for different periods grouped by currency
         $dailyRows = auth()->user()->transactions()
@@ -132,12 +147,13 @@ class TransactionController extends Controller
             'transactions' => $transactions,
             'accounts' => $accounts,
             'categories' => $categories,
+            'currencies' => $currencies,
             'chartData' => [
                 'daily' => $dailyData,
                 'monthly' => $monthlyData,
                 'yearly' => $yearlyData,
             ],
-            'filters' => $request->only(['account_id', 'category_id', 'type', 'date_from', 'date_to', 'search']),
+            'filters' => $request->only(['account_id', 'category_id', 'type', 'currency', 'date_from', 'date_to', 'search']),
             'savedFilters' => $savedFilters,
         ]);
     }

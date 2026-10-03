@@ -101,6 +101,7 @@ interface Props {
   };
   accounts: Account[];
   categories: Category[];
+  currencies?: string[];
   chartData: {
     daily: Array<{ period: string; income: Record<string, number>; expense: Record<string, number> }>;
     monthly: Array<{ period: string; income: Record<string, number>; expense: Record<string, number> }>;
@@ -108,7 +109,7 @@ interface Props {
   };
 }
 
-export default function Index({ transactions, accounts = [], categories = [], chartData }: Props) {
+export default function Index({ transactions, accounts = [], categories = [], currencies = [], chartData }: Props) {
   const page = usePage();
   const { flash } = page.props as { flash?: { success?: string } };
   const queryParams = new URLSearchParams(page.url.split('?')[1] ?? '');
@@ -116,6 +117,7 @@ export default function Index({ transactions, accounts = [], categories = [], ch
   const [showSuccess, setShowSuccess] = useState(!!flash?.success);
   const [searchQuery, setSearchQuery] = useState(queryParams.get('search') || '');
   const [filterType, setFilterType] = useState<string>(queryParams.get('type') || 'all');
+  const [selectedCurrency, setSelectedCurrency] = useState<string>(queryParams.get('currency') || 'all');
   const [selectedCategory, setSelectedCategory] = useState<string>(queryParams.get('category_id') || 'all');
   const [selectedAccount, setSelectedAccount] = useState<string>(queryParams.get('account_id') || 'all');
   const [dateFrom, setDateFrom] = useState(queryParams.get('date_from') || '');
@@ -132,6 +134,15 @@ export default function Index({ transactions, accounts = [], categories = [], ch
   const [bulkCategoryId, setBulkCategoryId] = useState('');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
+  // Available unique currencies list
+  const availableCurrencies = useMemo(() => {
+    const list = new Set<string>(currencies);
+    transactions.data.forEach((t) => {
+      if (t.account?.currency) list.add(t.account.currency);
+    });
+    return Array.from(list);
+  }, [currencies, transactions.data]);
+
   // Export modal state
   const [exportFrom, setExportFrom] = useState('');
   const [exportTo, setExportTo] = useState('');
@@ -140,6 +151,7 @@ export default function Index({ transactions, accounts = [], categories = [], ch
   const activeFilterCount = useMemo(() => {
     let count = 0;
     if (filterType !== 'all') count++;
+    if (selectedCurrency !== 'all') count++;
     if (selectedCategory !== 'all') count++;
     if (selectedAccount !== 'all') count++;
     if (dateFrom) count++;
@@ -147,7 +159,7 @@ export default function Index({ transactions, accounts = [], categories = [], ch
     if (amountMin) count++;
     if (amountMax) count++;
     return count;
-  }, [filterType, selectedCategory, selectedAccount, dateFrom, dateTo, amountMin, amountMax]);
+  }, [filterType, selectedCurrency, selectedCategory, selectedAccount, dateFrom, dateTo, amountMin, amountMax]);
 
   useEffect(() => {
     if (flash?.success) {
@@ -162,6 +174,7 @@ export default function Index({ transactions, accounts = [], categories = [], ch
     const params: Record<string, string> = {
       ...(searchQuery ? { search: searchQuery } : {}),
       ...(filterType !== 'all' ? { type: filterType } : {}),
+      ...(selectedCurrency !== 'all' ? { currency: selectedCurrency } : {}),
       ...(selectedCategory !== 'all' ? { category_id: selectedCategory } : {}),
       ...(selectedAccount !== 'all' ? { account_id: selectedAccount } : {}),
       ...(dateFrom ? { date_from: dateFrom } : {}),
@@ -180,6 +193,7 @@ export default function Index({ transactions, accounts = [], categories = [], ch
 
   const handleResetFilters = () => {
     setFilterType('all');
+    setSelectedCurrency('all');
     setSelectedCategory('all');
     setSelectedAccount('all');
     setDateFrom('');
@@ -247,6 +261,7 @@ export default function Index({ transactions, accounts = [], categories = [], ch
   const exportRangeQuery = () => {
     const params = new URLSearchParams();
     if (filterType !== 'all') params.set('type', filterType);
+    if (selectedCurrency !== 'all') params.set('currency', selectedCurrency);
     if (searchQuery) params.set('search', searchQuery);
     if (exportFrom) params.set('date_from', exportFrom);
     if (exportTo) params.set('date_to', exportTo);
@@ -344,34 +359,42 @@ export default function Index({ transactions, accounts = [], categories = [], ch
 
   // Filtered & Sorted Transactions for current page view
   const processedTransactions = useMemo(() => {
-    return [...transactions.data].sort((a, b) => {
-      let comparison = 0;
-      switch (sortColumn) {
-        case 'id':
-          comparison = a.id.localeCompare(b.id);
-          break;
-        case 'description':
-          comparison = a.description.localeCompare(b.description);
-          break;
-        case 'type':
-          comparison = a.type.localeCompare(b.type);
-          break;
-        case 'account':
-          comparison = a.account.name.localeCompare(b.account.name);
-          break;
-        case 'category':
-          comparison = (a.category?.name || '').localeCompare(b.category?.name || '');
-          break;
-        case 'date':
-          comparison = new Date(a.transaction_date).getTime() - new Date(b.transaction_date).getTime();
-          break;
-        case 'amount':
-          comparison = a.amount - b.amount;
-          break;
-      }
-      return sortDirection === 'desc' ? -comparison : comparison;
-    });
-  }, [transactions.data, sortColumn, sortDirection]);
+    return [...transactions.data]
+      .filter((t) => {
+        if (selectedCurrency !== 'all') {
+          const txCurrency = t.account?.currency || (t as any).currency;
+          if (txCurrency && txCurrency !== selectedCurrency) return false;
+        }
+        return true;
+      })
+      .sort((a, b) => {
+        let comparison = 0;
+        switch (sortColumn) {
+          case 'id':
+            comparison = a.id.localeCompare(b.id);
+            break;
+          case 'description':
+            comparison = a.description.localeCompare(b.description);
+            break;
+          case 'type':
+            comparison = a.type.localeCompare(b.type);
+            break;
+          case 'account':
+            comparison = a.account.name.localeCompare(b.account.name);
+            break;
+          case 'category':
+            comparison = (a.category?.name || '').localeCompare(b.category?.name || '');
+            break;
+          case 'date':
+            comparison = new Date(a.transaction_date).getTime() - new Date(b.transaction_date).getTime();
+            break;
+          case 'amount':
+            comparison = a.amount - b.amount;
+            break;
+        }
+        return sortDirection === 'desc' ? -comparison : comparison;
+      });
+  }, [transactions.data, selectedCurrency, sortColumn, sortDirection]);
 
   return (
     <AppLayout>
@@ -741,6 +764,26 @@ export default function Index({ transactions, accounts = [], categories = [], ch
                           {categories.map((c) => (
                             <SelectItem key={c.id} value={c.id}>
                               {c.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Currency Filter */}
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-medium uppercase text-muted-foreground">
+                        Currency
+                      </label>
+                      <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
+                        <SelectTrigger className="h-8.5 rounded-xl text-xs bg-muted/20 border-border/70 font-mono">
+                          <SelectValue placeholder="All Currencies" />
+                        </SelectTrigger>
+                        <SelectContent className="text-xs">
+                          <SelectItem value="all">All Currencies</SelectItem>
+                          {availableCurrencies.map((c) => (
+                            <SelectItem key={c} value={c} className="font-mono">
+                              {c}
                             </SelectItem>
                           ))}
                         </SelectContent>

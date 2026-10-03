@@ -68,6 +68,7 @@ interface KravioTransactionsTableProps {
   transactions: Transaction[];
   accounts: Account[];
   categories: Category[];
+  currencies?: string[];
   primaryCurrency: string;
   className?: string;
 }
@@ -76,11 +77,13 @@ export function KravioTransactionsTable({
   transactions,
   accounts,
   categories,
+  currencies = [],
   primaryCurrency,
   className,
 }: KravioTransactionsTableProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | 'expense' | 'income'>('all');
+  const [selectedCurrency, setSelectedCurrency] = useState<string>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortColumn, setSortColumn] = useState<'id' | 'description' | 'type' | 'account' | 'category' | 'date' | 'amount'>('date');
   const [sortDirection, setSortDirection] = useState<'desc' | 'asc'>('desc');
@@ -93,12 +96,22 @@ export function KravioTransactionsTable({
     return new Date(date).toISOString().slice(0, 10);
   };
 
+  // Available unique currencies list
+  const availableCurrencies = useMemo(() => {
+    const list = new Set<string>(currencies);
+    transactions.forEach((t) => {
+      if (t.account?.currency) list.add(t.account.currency);
+    });
+    return Array.from(list);
+  }, [currencies, transactions]);
+
   const activeFilterCount = useMemo(() => {
     let count = 0;
     if (typeFilter !== 'all') count++;
+    if (selectedCurrency !== 'all') count++;
     if (selectedCategory !== 'all') count++;
     return count;
-  }, [typeFilter, selectedCategory]);
+  }, [typeFilter, selectedCurrency, selectedCategory]);
 
   const handleSort = (column: typeof sortColumn) => {
     if (sortColumn === column) {
@@ -114,6 +127,7 @@ export function KravioTransactionsTable({
     return transactions
       .filter((t) => {
         if (typeFilter !== 'all' && t.type !== typeFilter) return false;
+        if (selectedCurrency !== 'all' && t.account.currency !== selectedCurrency) return false;
         if (selectedCategory !== 'all' && t.category?.name !== selectedCategory) return false;
 
         if (searchQuery.trim()) {
@@ -299,6 +313,26 @@ export function KravioTransactionsTable({
                     </button>
                   ))}
                 </div>
+              </div>
+
+              {/* Currency Filter */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-medium uppercase text-muted-foreground">
+                  Currency
+                </label>
+                <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
+                  <SelectTrigger className="h-8.5 rounded-xl text-xs bg-muted/20 border-border/70 font-mono">
+                    <SelectValue placeholder="All Currencies" />
+                  </SelectTrigger>
+                  <SelectContent className="text-xs">
+                    <SelectItem value="all">All Currencies</SelectItem>
+                    {availableCurrencies.map((c) => (
+                      <SelectItem key={c} value={c} className="font-mono">
+                        {c}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Category Filter */}
