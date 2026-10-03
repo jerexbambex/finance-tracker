@@ -540,7 +540,7 @@ export default function Index({ transactions, accounts = [], categories = [], cu
 
           {/* Income vs Expenses Area Chart */}
           {transactions.data.length > 0 && (
-            <KravioCard className="p-5 sm:p-6" pattern>
+            <KravioCard pattern innerClassName="p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
                 <div>
                   <div className="flex items-center gap-2">
@@ -591,7 +591,7 @@ export default function Index({ transactions, accounts = [], categories = [], cu
 
               {currentChartData.length > 0 ? (
                 <ChartContainer config={chartConfig} className="h-[240px] sm:h-[280px] w-full">
-                  <AreaChart accessibilityLayer data={currentChartData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                  <AreaChart accessibilityLayer data={currentChartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                     <defs>
                       <linearGradient id="txFillIncome" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#10b981" stopOpacity={0.25} />
@@ -613,7 +613,7 @@ export default function Index({ transactions, accounts = [], categories = [], cu
                     <YAxis
                       tickLine={false}
                       axisLine={false}
-                      width={65}
+                      width={48}
                       tickFormatter={(value) => formatCompactCurrency(value, activeCurrency)}
                       className="text-[11px] fill-muted-foreground font-mono"
                     />

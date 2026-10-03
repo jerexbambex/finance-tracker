@@ -64,7 +64,7 @@ export default function Recommendations({ recommendations }: Props) {
           </div>
 
           {recommendations.length === 0 ? (
-            <KravioCard className="p-12 text-center" pattern>
+            <KravioCard pattern innerClassName="p-12 text-center">
               <div className="w-12 h-12 rounded-2xl bg-muted/80 border border-border/70 flex items-center justify-center mx-auto mb-3 text-muted-foreground">
                 <Lightbulb className="h-6 w-6" />
               </div>
@@ -83,7 +83,7 @@ export default function Recommendations({ recommendations }: Props) {
               {recommendations.map((rec, index) => (
                 <KravioCard
                   key={rec.category_id}
-                  className="p-5 flex flex-col justify-between"
+                  innerClassName="p-5 flex flex-col justify-between"
                   pattern
                   style={{ animationDelay: `${index * 60}ms` }}
                 >

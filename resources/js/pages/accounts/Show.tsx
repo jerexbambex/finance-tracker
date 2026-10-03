@@ -74,7 +74,7 @@ export default function Show({ account }: Props) {
           </div>
 
           {/* Balance card */}
-          <KravioCard className="p-6" pattern>
+          <KravioCard pattern innerClassName="p-5 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
                 <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Current Cleared Balance</span>
@@ -89,7 +89,7 @@ export default function Show({ account }: Props) {
           </KravioCard>
 
           {/* Transactions list */}
-          <KravioCard className="p-0 overflow-hidden" pattern>
+          <KravioCard pattern noPadding innerClassName="overflow-hidden">
             <div className="p-4 sm:p-5 border-b border-border/60 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <History className="h-4 w-4 text-muted-foreground" />
