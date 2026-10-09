@@ -2,7 +2,6 @@
 
 use App\Models\Account;
 use App\Models\Transaction;
-use App\Models\User;
 
 function acctWith(float $balance, string $currency = 'USD'): Account
 {

@@ -1,9 +1,7 @@
-import React, { useState, useMemo } from 'react';
 import { Link, router } from '@inertiajs/react';
 import {
   Search,
   Download,
-  Plus,
   MoreVertical,
   FileSpreadsheet,
   Target,
@@ -15,17 +13,16 @@ import {
   X,
   FileText,
   Clock,
-  CheckCircle2,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { formatCurrency as baseFmt } from '@/lib/formatCurrency';
-import { KravioCardPattern } from './KravioCard';
+import React, { useState, useMemo } from 'react';
+
+import QuickAddTransaction from '@/components/QuickAddTransaction';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuSeparator,
   DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -33,7 +30,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -41,7 +37,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import QuickAddTransaction from '@/components/QuickAddTransaction';
+import { formatCurrency as baseFmt } from '@/lib/formatCurrency';
+import { cn } from '@/lib/utils';
+
+import { KravioCardPattern } from './KravioCard';
+
 
 interface Transaction {
   id: string;
@@ -166,7 +166,7 @@ export function KravioTransactionsTable({
         }
         return sortDirection === 'desc' ? -comparison : comparison;
       });
-  }, [transactions, typeFilter, selectedCategory, searchQuery, sortColumn, sortDirection]);
+  }, [transactions, typeFilter, selectedCurrency, selectedCategory, searchQuery, sortColumn, sortDirection]);
 
   const handleSelectAll = () => {
     if (selectedIds.size === filteredTransactions.length) {

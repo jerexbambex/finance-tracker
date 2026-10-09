@@ -1,7 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { TrendingUp, Lightbulb, Sparkles, Check, ArrowRight, ArrowLeft } from 'lucide-react';
+import { TrendingUp, Lightbulb, Sparkles, Check, ArrowLeft } from 'lucide-react';
 
-import { KravioCard, KravioCardPattern } from '@/components/dashboard/KravioCard';
+import { KravioCard } from '@/components/dashboard/KravioCard';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency } from '@/lib/formatCurrency';

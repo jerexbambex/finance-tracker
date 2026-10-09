@@ -1,17 +1,15 @@
 import { Head, router } from '@inertiajs/react';
-import { Download, Printer, TrendingUp, TrendingDown, PieChart as PieChartIcon, ArrowUpRight, ArrowDownRight, Calendar } from 'lucide-react';
+import { Download, Printer, TrendingDown, PieChart as PieChartIcon, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { Sector } from 'recharts';
-import { type PieSectorDataItem } from 'recharts/types/polar/Pie';
 
+import { KravioCard } from '@/components/dashboard/KravioCard';
+import { KravioKPICard } from '@/components/dashboard/KravioKPICard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency as baseFmt, formatCompactCurrency } from '@/lib/formatCurrency';
-import { KravioCard } from '@/components/dashboard/KravioCard';
-import { KravioKPICard } from '@/components/dashboard/KravioKPICard';
 
 interface CategorySpending {
   category: string;
@@ -120,7 +118,6 @@ export default function Index({
     return [...s];
   }, [monthlyTrends]);
 
-  const [activeCategory, setActiveCategory] = useState('');
   const [categoryCurrency, setCategoryCurrency] = useState(() => categoryCurrencies[0] ?? '');
   const [trendCurrency, setTrendCurrency] = useState(() => trendCurrencies[0] ?? '');
 
@@ -129,16 +126,7 @@ export default function Index({
     [categorySpending, categoryCurrency],
   );
 
-  const effectiveCategory = filteredCategorySpending.some((c) => c.category === activeCategory)
-    ? activeCategory
-    : (filteredCategorySpending[0]?.category ?? '');
-
   const topCategories = filteredCategorySpending.slice(0, 5);
-
-  const activeIndex = useMemo(() => {
-    const i = filteredCategorySpending.findIndex((c) => c.category === effectiveCategory);
-    return i >= 0 ? i : 0;
-  }, [filteredCategorySpending, effectiveCategory]);
 
   const trendChartData = useMemo(
     () =>

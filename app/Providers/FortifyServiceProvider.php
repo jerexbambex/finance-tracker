@@ -14,6 +14,7 @@ use Laravel\Fortify\Contracts\LoginResponse;
 use Laravel\Fortify\Contracts\LogoutResponse;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
+use Symfony\Component\HttpFoundation\Response;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -24,7 +25,7 @@ class FortifyServiceProvider extends ServiceProvider
     {
         $this->app->instance(LoginResponse::class, new class implements LoginResponse
         {
-            public function toResponse($request): \Symfony\Component\HttpFoundation\Response
+            public function toResponse($request): Response
             {
                 return redirect()->intended(config('fortify.home'));
             }
@@ -32,7 +33,7 @@ class FortifyServiceProvider extends ServiceProvider
 
         $this->app->instance(LogoutResponse::class, new class implements LogoutResponse
         {
-            public function toResponse($request): \Symfony\Component\HttpFoundation\Response
+            public function toResponse($request): Response
             {
                 return redirect('/');
             }

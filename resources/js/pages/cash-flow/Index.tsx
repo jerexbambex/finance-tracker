@@ -1,13 +1,13 @@
 import { Head } from '@inertiajs/react';
-import { TrendingUp, TrendingDown, Wallet, AlertTriangle, ArrowRight } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, AlertTriangle } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip } from 'recharts';
 
+import { KravioCard } from '@/components/dashboard/KravioCard';
+import { KravioKPICard } from '@/components/dashboard/KravioKPICard';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency, formatCompactCurrency } from '@/lib/formatCurrency';
-import { KravioCard } from '@/components/dashboard/KravioCard';
-import { KravioKPICard } from '@/components/dashboard/KravioKPICard';
 
 interface Point {
   date: string;
@@ -48,7 +48,7 @@ export default function Index({ timelines, milestones }: Props) {
         <Head title="Cash Flow Projection" />
         <div className="flex-1 space-y-6 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
           <h1 className="text-2xl sm:text-3xl font-bold">Cash Flow Projection</h1>
-          <KravioCard pattern className="text-center py-12">
+          <KravioCard pattern innerClassName="items-center text-center py-12">
             <Wallet className="h-12 w-12 mx-auto text-muted-foreground/60 mb-3" />
             <h3 className="text-sm font-semibold text-foreground">No projection available yet</h3>
             <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">

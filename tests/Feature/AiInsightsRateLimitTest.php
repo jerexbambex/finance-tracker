@@ -1,6 +1,8 @@
 <?php
 
+use App\Jobs\GenerateAiInsights;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;
 
@@ -47,8 +49,8 @@ it('status endpoint only returns the requesting user insights', function () {
     $a = User::factory()->create();
     $b = User::factory()->create();
 
-    \Illuminate\Support\Facades\Cache::put(
-        \App\Jobs\GenerateAiInsights::cacheKey($a->id),
+    Cache::put(
+        GenerateAiInsights::cacheKey($a->id),
         ['status' => 'completed', 'insights' => 'A secret analysis'],
         now()->addDay()
     );

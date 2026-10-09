@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Concerns;
 
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Exists;
 
 /**
  * Validation rules that confine foreign-key references to records the
@@ -14,7 +15,7 @@ trait ScopesOwnership
     /**
      * Account must belong to the current user.
      */
-    protected function ownedAccountExists(): \Illuminate\Validation\Rules\Exists
+    protected function ownedAccountExists(): Exists
     {
         return Rule::exists('accounts', 'id')->where('user_id', auth()->id());
     }
@@ -22,7 +23,7 @@ trait ScopesOwnership
     /**
      * Category must be the user's own OR a global (system) category.
      */
-    protected function ownedCategoryExists(): \Illuminate\Validation\Rules\Exists
+    protected function ownedCategoryExists(): Exists
     {
         return Rule::exists('categories', 'id')->where(function ($query) {
             $query->where('user_id', auth()->id())->orWhereNull('user_id');

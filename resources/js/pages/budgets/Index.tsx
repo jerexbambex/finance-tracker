@@ -1,19 +1,18 @@
 import { Head, useForm, router, Link, usePage } from '@inertiajs/react';
-import { Wallet, TrendingDown, AlertCircle, CheckCircle, ChevronLeft, ChevronRight, Lightbulb, Copy, RefreshCw, Plus, PieChart as PieIcon, AlertTriangle } from 'lucide-react';
+import { Wallet, TrendingDown, AlertCircle, CheckCircle, ChevronLeft, ChevronRight, Lightbulb, Copy, Plus, PieChart as PieIcon, AlertTriangle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
+import { KravioCard } from '@/components/dashboard/KravioCard';
+import { KravioKPICard } from '@/components/dashboard/KravioKPICard';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency, formatCompactCurrency } from '@/lib/formatCurrency';
-import { KravioCard } from '@/components/dashboard/KravioCard';
-import { KravioKPICard } from '@/components/dashboard/KravioKPICard';
 
 interface Budget {
   id: string;
@@ -495,7 +494,7 @@ export default function Index({ budgets, categories, currencies, view, available
             </div>
           )
         ) : (
-          <KravioCard pattern className="text-center py-12">
+          <KravioCard pattern innerClassName="items-center text-center py-12">
             <PieIcon className="h-12 w-12 mx-auto text-muted-foreground/60 mb-3" />
             <h3 className="text-sm font-semibold text-foreground">No budgets for this period</h3>
             <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">

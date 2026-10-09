@@ -1,5 +1,6 @@
 <?php
 
+use Carbon\Carbon;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -56,7 +57,7 @@ return new class extends Migration
                     'currency' => $account->currency ?? 'USD',
                     'description' => 'Opening balance',
                     'transaction_date' => $account->created_at
-                        ? \Carbon\Carbon::parse($account->created_at)->toDateString()
+                        ? Carbon::parse($account->created_at)->toDateString()
                         : now()->toDateString(),
                     'is_recurring' => false,
                     'created_at' => now(),

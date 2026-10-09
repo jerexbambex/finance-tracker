@@ -1,10 +1,11 @@
 import { Head, Link, router } from "@inertiajs/react";
-import { Bell, CheckCheck, Check, Sparkles, AlertTriangle, Target } from "lucide-react";
+import { Bell, CheckCheck, Check, AlertTriangle, Target } from "lucide-react";
 
+import { KravioCard } from "@/components/dashboard/KravioCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import AppLayout from "@/layouts/app-layout";
-import { KravioCard } from "@/components/dashboard/KravioCard";
+import { type BreadcrumbItem } from "@/types";
 
 interface Notification {
   id: string;
@@ -30,8 +31,6 @@ interface Props {
   };
   unreadCount: number;
 }
-
-import { type BreadcrumbItem } from "@/types";
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: 'Notifications', href: '/notifications' },
@@ -96,7 +95,7 @@ export default function Index({ notifications, unreadCount }: Props) {
         </div>
 
         {notifications.data.length === 0 ? (
-          <KravioCard pattern className="text-center py-16">
+          <KravioCard pattern innerClassName="items-center text-center py-16">
             <Bell className="h-12 w-12 mx-auto text-muted-foreground/60 mb-3" />
             <h3 className="text-sm font-semibold text-foreground">No notifications yet</h3>
             <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">

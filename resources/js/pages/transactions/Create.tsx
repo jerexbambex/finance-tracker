@@ -1,6 +1,6 @@
-import React from 'react';
 import { Head, useForm, Link } from '@inertiajs/react';
-import { ArrowLeft, Plus, Receipt, Split as SplitIcon, Tag, Calendar, Wallet } from 'lucide-react';
+import { ArrowLeft, Split as SplitIcon } from 'lucide-react';
+import React from 'react';
 
 import { KravioCard } from '@/components/dashboard/KravioCard';
 import { Button } from '@/components/ui/button';

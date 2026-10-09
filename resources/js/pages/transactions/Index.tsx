@@ -14,15 +14,12 @@ import {
   Plus,
   Search,
   Filter,
-  ArrowUpDown,
   X,
   Download,
   Copy,
-  Activity,
   Layers,
   Clock,
   Target,
-  FileCheck2,
 } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
@@ -47,12 +44,12 @@ import {
   DropdownMenuTrigger,
   DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -114,7 +111,8 @@ export default function Index({ transactions, accounts = [], categories = [], cu
   const { flash } = page.props as { flash?: { success?: string } };
   const queryParams = new URLSearchParams(page.url.split('?')[1] ?? '');
 
-  const [showSuccess, setShowSuccess] = useState(!!flash?.success);
+  const [dismissedFlash, setDismissedFlash] = useState<typeof flash | null>(null);
+  const showSuccess = !!flash?.success && dismissedFlash !== flash;
   const [searchQuery, setSearchQuery] = useState(queryParams.get('search') || '');
   const [filterType, setFilterType] = useState<string>(queryParams.get('type') || 'all');
   const [selectedCurrency, setSelectedCurrency] = useState<string>(queryParams.get('currency') || 'all');
@@ -163,8 +161,7 @@ export default function Index({ transactions, accounts = [], categories = [], cu
 
   useEffect(() => {
     if (flash?.success) {
-      setShowSuccess(true);
-      const timer = setTimeout(() => setShowSuccess(false), 3000);
+      const timer = setTimeout(() => setDismissedFlash(flash), 3000);
       return () => clearTimeout(timer);
     }
   }, [flash]);
@@ -362,7 +359,7 @@ export default function Index({ transactions, accounts = [], categories = [], cu
     return [...transactions.data]
       .filter((t) => {
         if (selectedCurrency !== 'all') {
-          const txCurrency = t.account?.currency || (t as any).currency;
+          const txCurrency = t.account?.currency || (t as { currency?: string }).currency;
           if (txCurrency && txCurrency !== selectedCurrency) return false;
         }
         return true;

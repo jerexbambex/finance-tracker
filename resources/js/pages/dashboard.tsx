@@ -7,31 +7,19 @@ import {
     Sparkles,
     Printer,
     RotateCw,
-    Download,
     Layers,
-    Plus,
-    CheckCircle2,
-    Calendar,
-    ChevronRight,
     ExternalLink,
-    PieChart,
-    Target,
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 
-import QuickAddTransaction from '@/components/QuickAddTransaction';
-import AppLayout from '@/layouts/app-layout';
-import { formatCurrency as baseFmt, currencySymbol } from '@/lib/formatCurrency';
-import { dashboard } from '@/routes';
-import { type BreadcrumbItem, type SharedData } from '@/types';
-
-// Kravio Modular Dashboard Components
-import { KravioKPICard } from '@/components/dashboard/KravioKPICard';
-import { KravioHeroChart } from '@/components/dashboard/KravioHeroChart';
-import { KravioSideRadar } from '@/components/dashboard/KravioSideRadar';
 import { KravioAccountsSection } from '@/components/dashboard/KravioAccountsSection';
-import { KravioTransactionsTable } from '@/components/dashboard/KravioTransactionsTable';
 import { KravioBudgetsGoals } from '@/components/dashboard/KravioBudgetsGoals';
+import { KravioHeroChart } from '@/components/dashboard/KravioHeroChart';
+import { KravioKPICard } from '@/components/dashboard/KravioKPICard';
+import { KravioSideRadar } from '@/components/dashboard/KravioSideRadar';
+import { KravioTransactionsTable } from '@/components/dashboard/KravioTransactionsTable';
+import QuickAddTransaction from '@/components/QuickAddTransaction';
+import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -46,7 +34,12 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
+import AppLayout from '@/layouts/app-layout';
+import { formatCurrency as baseFmt } from '@/lib/formatCurrency';
+import { dashboard } from '@/routes';
+import { type BreadcrumbItem, type SharedData } from '@/types';
+
+// Kravio Modular Dashboard Components
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -207,7 +200,6 @@ export default function Dashboard({
     // Calculate budget health summary
     const activeBudgetsCount = budgets.length;
     const exceededBudgetsCount = budgets.filter((b) => b.percentage >= 100).length;
-    const warningBudgetsCount = budgets.filter((b) => b.percentage >= 80 && b.percentage < 100).length;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>

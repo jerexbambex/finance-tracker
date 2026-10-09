@@ -1,5 +1,6 @@
 <?php
 
+use App\Filament\Resources\ExchangeRates\Pages\CreateExchangeRate;
 use App\Filament\Resources\ExchangeRates\Pages\ListExchangeRates;
 use App\Models\ExchangeRate;
 use App\Models\User;
@@ -39,7 +40,7 @@ it('shows the currency flag, name, and both rate directions readably formatted',
 });
 
 it('stamps a manually created rate with source manual and a fresh fetched_at', function () {
-    Livewire::test(\App\Filament\Resources\ExchangeRates\Pages\CreateExchangeRate::class)
+    Livewire::test(CreateExchangeRate::class)
         ->fillForm(['currency' => 'GBP', 'rate_to_usd' => 1.27])
         ->call('create')
         ->assertHasNoFormErrors();

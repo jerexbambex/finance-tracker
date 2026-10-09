@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 class Budget extends Model
 {
@@ -55,7 +56,7 @@ class Budget extends Model
         // Use a date range (sargable) instead of whereYear/whereMonth so the
         // transaction_date index is used rather than a full scan.
         $isMonthly = $this->period_type === 'monthly' && $this->period_month;
-        $start = \Illuminate\Support\Carbon::create($this->period_year, $isMonthly ? $this->period_month : 1, 1);
+        $start = Carbon::create($this->period_year, $isMonthly ? $this->period_month : 1, 1);
         $end = $isMonthly ? $start->copy()->endOfMonth() : $start->copy()->endOfYear();
 
         $applyPeriod = function ($query, string $dateColumn = 'transaction_date') use ($start, $end) {

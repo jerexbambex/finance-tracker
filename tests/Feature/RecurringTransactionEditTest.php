@@ -1,8 +1,6 @@
 <?php
 
 use App\Models\Account;
-use App\Models\Category;
-use App\Models\RecurringTransaction;
 use App\Models\User;
 
 function makeRecurringAccount(User $user): Account

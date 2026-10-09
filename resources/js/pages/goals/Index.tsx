@@ -1,18 +1,18 @@
 import { Head, useForm } from '@inertiajs/react';
-import { Target, TrendingUp, Calendar, Plus, CheckCircle2, Check, Sparkles } from 'lucide-react';
+import { Target, TrendingUp, Calendar, Plus, Check, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 
+import { KravioCard } from '@/components/dashboard/KravioCard';
+import { KravioKPICard } from '@/components/dashboard/KravioKPICard';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency } from '@/lib/formatCurrency';
-import { KravioCard } from '@/components/dashboard/KravioCard';
-import { KravioKPICard } from '@/components/dashboard/KravioKPICard';
 
 interface Goal {
   id: string;
@@ -457,7 +457,7 @@ export default function Index({ goals, currencies }: Props) {
         )}
 
         {goals.length === 0 && (
-          <KravioCard pattern className="text-center py-12">
+          <KravioCard pattern innerClassName="items-center text-center py-12">
             <Target className="h-12 w-12 mx-auto text-muted-foreground/60 mb-3" />
             <h3 className="text-sm font-semibold text-foreground">No savings goals yet</h3>
             <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">

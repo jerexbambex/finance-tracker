@@ -1,10 +1,8 @@
 import { Link } from '@inertiajs/react';
+import { User, Lock, ShieldCheck, Palette, Database, type LucideIcon } from 'lucide-react';
 import { type PropsWithChildren } from 'react';
-import { User, Lock, ShieldCheck, Palette, Database } from 'lucide-react';
 
-import Heading from '@/components/heading';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
+import { KravioCard } from '@/components/dashboard/KravioCard';
 import { useActiveUrl } from '@/hooks/use-active-url';
 import { cn, toUrl } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
@@ -13,7 +11,7 @@ import { show } from '@/routes/two-factor';
 import { edit as editPassword } from '@/routes/user-password';
 import { type NavItem } from '@/types';
 
-const sidebarNavItems: Array<{ title: string; href: any; icon: any }> = [
+const sidebarNavItems: Array<{ title: string; href: NavItem['href']; icon: LucideIcon }> = [
     {
         title: 'Profile',
         href: edit(),
@@ -41,7 +39,6 @@ const sidebarNavItems: Array<{ title: string; href: any; icon: any }> = [
     },
 ];
 
-import { KravioCard } from '@/components/dashboard/KravioCard';
 
 export default function SettingsLayout({ children }: PropsWithChildren) {
     const { urlIsActive } = useActiveUrl();

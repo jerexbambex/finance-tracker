@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Models\Budget;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -10,7 +11,7 @@ class BudgetExceededNotification extends Notification
 {
     use Queueable;
 
-    public function __construct(public \App\Models\Budget $budget, public float $spent, public float $percentage) {}
+    public function __construct(public Budget $budget, public float $spent, public float $percentage) {}
 
     public function via(object $notifiable): array
     {

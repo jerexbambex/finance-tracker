@@ -1,13 +1,13 @@
-import { Head, router, Link } from '@inertiajs/react';
-import { Landmark, TrendingDown, TrendingUp, Wallet, ShieldCheck, ArrowUpRight } from 'lucide-react';
+import { Head, router } from '@inertiajs/react';
+import { Landmark } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts';
 
+import { KravioCard } from '@/components/dashboard/KravioCard';
+import { KravioKPICard } from '@/components/dashboard/KravioKPICard';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
-import { formatCurrency, currencySymbol, formatCompactCurrency } from '@/lib/formatCurrency';
-import { KravioCard } from '@/components/dashboard/KravioCard';
-import { KravioKPICard } from '@/components/dashboard/KravioKPICard';
+import { formatCurrency, formatCompactCurrency } from '@/lib/formatCurrency';
 
 interface TrendPoint {
   date: string;

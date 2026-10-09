@@ -7,6 +7,8 @@ namespace App\Services;
 use App\Models\Budget;
 use App\Models\User;
 use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -107,7 +109,7 @@ class BudgetRollover
     /**
      * Write the target-period copies, skipping categories already budgeted there.
      *
-     * @param  \Illuminate\Database\Eloquent\Collection<int, Budget>  $sources
+     * @param  Collection<int, Budget>  $sources
      */
     private function create(User $user, $sources, string $periodType, int $toYear, ?int $toMonth): int
     {
@@ -147,7 +149,7 @@ class BudgetRollover
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Builder<Budget>
+     * @return Builder<Budget>
      */
     private function budgetsFor(User $user, string $periodType, int $year, ?int $month)
     {

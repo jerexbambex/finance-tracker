@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\FailedJobs\Tables;
 
+use App\Models\FailedJob;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
@@ -46,7 +47,7 @@ class FailedJobsTable
             ])
             ->filters([
                 SelectFilter::make('queue')
-                    ->options(fn () => \App\Models\FailedJob::query()
+                    ->options(fn () => FailedJob::query()
                         ->distinct()
                         ->pluck('queue', 'queue')
                         ->all()),

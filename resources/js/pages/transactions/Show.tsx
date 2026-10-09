@@ -2,7 +2,6 @@ import { Head, Link, router } from '@inertiajs/react';
 import {
   ArrowLeft,
   Calendar,
-  DollarSign,
   FileText,
   Tag,
   Wallet,
@@ -16,27 +15,15 @@ import {
   Download,
   Trash2,
   ShieldCheck,
-  Clock,
-  Building2,
-  Share2,
   CheckCircle2,
-  ExternalLink,
   Receipt,
   Layers,
   Sparkles,
 } from 'lucide-react';
 import { useState } from 'react';
 
-import { KravioCard, KravioCardPattern } from '@/components/dashboard/KravioCard';
-import { Badge } from '@/components/ui/badge';
+import { KravioCardPattern } from '@/components/dashboard/KravioCard';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { cn } from '@/lib/utils';

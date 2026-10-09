@@ -16,6 +16,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Support\Carbon;
 use UnitEnum;
 
 class BudgetResource extends Resource
@@ -67,7 +68,7 @@ class BudgetResource extends Resource
                             ->label('Period')
                             ->state(fn (Budget $record) => $record->period_type === 'yearly'
                                 ? (string) $record->period_year
-                                : \Illuminate\Support\Carbon::create($record->period_year, $record->period_month ?? 1)->format('F Y')),
+                                : Carbon::create($record->period_year, $record->period_month ?? 1)->format('F Y')),
                         TextEntry::make('is_active')
                             ->label('Status')
                             ->badge()

@@ -1,11 +1,10 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Bell, Check, Pencil, Plus, Trash2, Calendar, Clock, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Bell, Check, Pencil, Plus, Trash2, Calendar, Clock, AlertTriangle } from 'lucide-react';
 
-import { Badge } from '@/components/ui/badge';
+import { KravioCard } from '@/components/dashboard/KravioCard';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency } from '@/lib/formatCurrency';
-import { KravioCard } from '@/components/dashboard/KravioCard';
 
 interface Reminder {
   id: string;
@@ -214,7 +213,7 @@ export default function Index({ reminders }: Props) {
           )}
 
           {totalRemindersCount === 0 && (
-            <KravioCard pattern className="text-center py-12">
+            <KravioCard pattern innerClassName="items-center text-center py-12">
               <Bell className="h-12 w-12 mx-auto text-muted-foreground/60 mb-3" />
               <h3 className="text-sm font-semibold text-foreground">No active bill reminders</h3>
               <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">

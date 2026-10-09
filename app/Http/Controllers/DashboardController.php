@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Currency;
 use App\Models\Category;
+use App\Models\Transaction;
 use App\Services\CurrencyConverter;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -47,7 +48,7 @@ class DashboardController extends Controller
             ->mapWithKeys(fn ($item) => [$item->currency => $item->total / 100]);
 
         // Split-aware category spending for the current month (top 5, excludes uncategorized)
-        $categorySpending = \App\Models\Transaction::spendByCategory($user->id, $startOfMonth, now())
+        $categorySpending = Transaction::spendByCategory($user->id, $startOfMonth, now())
             ->filter(fn ($row) => $row->category_id !== null)
             ->sortByDesc('amount')
             ->take(5)

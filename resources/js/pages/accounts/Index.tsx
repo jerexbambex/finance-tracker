@@ -1,7 +1,9 @@
 import { Head, useForm, Link, router, usePage } from '@inertiajs/react';
-import { Wallet, CreditCard, TrendingUp, CheckCircle, Plus, Landmark, Building2, ArrowUpRight, ArrowDownRight, Layers, ArrowLeftRight } from 'lucide-react';
+import { Wallet, CreditCard, TrendingUp, CheckCircle, Plus, Landmark, Building2, ArrowLeftRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
+import { KravioCard } from '@/components/dashboard/KravioCard';
+import { KravioKPICard } from '@/components/dashboard/KravioKPICard';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,8 +23,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency } from '@/lib/formatCurrency';
-import { KravioCard } from '@/components/dashboard/KravioCard';
-import { KravioKPICard } from '@/components/dashboard/KravioKPICard';
 
 interface Account {
   id: string;
@@ -394,7 +394,7 @@ export default function Index({ accounts, currencies = [] }: Props) {
         </div>
 
         {accounts.length === 0 && (
-          <KravioCard pattern className="text-center py-12">
+          <KravioCard pattern innerClassName="items-center text-center py-12">
             <Wallet className="h-12 w-12 mx-auto text-muted-foreground/60 mb-3" />
             <h3 className="text-sm font-semibold text-foreground">No accounts linked yet</h3>
             <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">

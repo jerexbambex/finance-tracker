@@ -7,12 +7,14 @@ use App\Models\Account;
 use App\Models\Budget;
 use App\Models\Category;
 use App\Models\SavedFilter;
+use App\Models\Tag;
 use App\Models\Transaction;
 use App\Models\TransactionSplit;
 use App\Notifications\BudgetExceededNotification;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class TransactionController extends Controller
@@ -214,7 +216,7 @@ class TransactionController extends Controller
                 $tagIds = [];
                 foreach ($tagNames as $tagName) {
                     if (! empty($tagName)) {
-                        $tag = \App\Models\Tag::firstOrCreate(
+                        $tag = Tag::firstOrCreate(
                             ['user_id' => auth()->id(), 'name' => $tagName],
                             ['color' => '#6b7280']
                         );
@@ -325,7 +327,7 @@ class TransactionController extends Controller
                 $tagNames = array_filter(array_map('trim', explode(',', $validated['tags'])));
                 $tagIds = [];
                 foreach ($tagNames as $tagName) {
-                    $tag = \App\Models\Tag::firstOrCreate(
+                    $tag = Tag::firstOrCreate(
                         ['user_id' => auth()->id(), 'name' => $tagName],
                         ['color' => '#6b7280']
                     );
@@ -411,7 +413,7 @@ class TransactionController extends Controller
     {
         $validated = $request->validate([
             'ids' => 'required|array',
-            'ids.*' => ['required', \Illuminate\Validation\Rule::exists('transactions', 'id')->where('user_id', auth()->id())],
+            'ids.*' => ['required', Rule::exists('transactions', 'id')->where('user_id', auth()->id())],
         ]);
 
         // Delete individually so TransactionObserver fires (balance updates per row),
@@ -426,7 +428,7 @@ class TransactionController extends Controller
     {
         $validated = $request->validate([
             'ids' => 'required|array',
-            'ids.*' => ['required', \Illuminate\Validation\Rule::exists('transactions', 'id')->where('user_id', auth()->id())],
+            'ids.*' => ['required', Rule::exists('transactions', 'id')->where('user_id', auth()->id())],
             'category_id' => ['required', $this->ownedCategoryExists()],
         ]);
 

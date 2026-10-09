@@ -4,6 +4,7 @@ use App\Models\Budget;
 use App\Models\Category;
 use App\Models\User;
 use App\Services\BudgetRollover;
+use Illuminate\Support\Carbon;
 
 function makeCategory(User $user, string $name = 'Food'): Category
 {
@@ -31,7 +32,7 @@ it('carries last months budgets into the current month', function () {
     makeBudget($user, $food, ['amount' => 450.75]);
     makeBudget($user, $rent, ['amount' => 1200]);
 
-    $created = app(BudgetRollover::class)->rollForward($user, \Illuminate\Support\Carbon::create(2026, 9, 1));
+    $created = app(BudgetRollover::class)->rollForward($user, Carbon::create(2026, 9, 1));
 
     expect($created)->toBe(2);
 
@@ -49,7 +50,7 @@ it('leaves a category that is already budgeted in the target month alone', funct
     makeBudget($user, $food, ['amount' => 500, 'period_month' => 8]);
     makeBudget($user, $food, ['amount' => 900, 'period_month' => 9]);
 
-    $created = app(BudgetRollover::class)->rollForward($user, \Illuminate\Support\Carbon::create(2026, 9, 1));
+    $created = app(BudgetRollover::class)->rollForward($user, Carbon::create(2026, 9, 1));
 
     expect($created)->toBe(0)
         ->and($user->budgets()->where('period_month', 9)->first()->amount)->toEqual(900);
@@ -60,7 +61,7 @@ it('is idempotent across repeated runs', function () {
     makeBudget($user, makeCategory($user));
 
     $rollover = app(BudgetRollover::class);
-    $now = \Illuminate\Support\Carbon::create(2026, 9, 1);
+    $now = Carbon::create(2026, 9, 1);
 
     expect($rollover->rollForward($user, $now))->toBe(1)
         ->and($rollover->rollForward($user, $now))->toBe(0)
@@ -72,7 +73,7 @@ it('does not resurrect a copy the user deleted', function () {
     makeBudget($user, makeCategory($user));
 
     $rollover = app(BudgetRollover::class);
-    $now = \Illuminate\Support\Carbon::create(2026, 9, 1);
+    $now = Carbon::create(2026, 9, 1);
 
     $rollover->rollForward($user, $now);
     $user->budgets()->where('period_month', 9)->delete();
@@ -86,7 +87,7 @@ it('skips budgets opted out of rollover', function () {
     makeBudget($user, makeCategory($user, 'Food'), ['auto_rollover' => false]);
     makeBudget($user, makeCategory($user, 'Rent'), ['auto_rollover' => true]);
 
-    $created = app(BudgetRollover::class)->rollForward($user, \Illuminate\Support\Carbon::create(2026, 9, 1));
+    $created = app(BudgetRollover::class)->rollForward($user, Carbon::create(2026, 9, 1));
 
     expect($created)->toBe(1)
         ->and($user->budgets()->where('period_month', 9)->first()->category->name)->toBe('Rent');
@@ -111,7 +112,7 @@ it('carries yearly budgets into the new year', function () {
         'amount' => 6000,
     ]);
 
-    $created = app(BudgetRollover::class)->rollForward($user, \Illuminate\Support\Carbon::create(2026, 9, 1));
+    $created = app(BudgetRollover::class)->rollForward($user, Carbon::create(2026, 9, 1));
 
     $copy = $user->budgets()->where('period_year', 2026)->where('period_type', 'yearly')->first();
 
@@ -124,7 +125,7 @@ it('rolls forward over a year boundary', function () {
     $user = User::factory()->create();
     makeBudget($user, makeCategory($user), ['period_year' => 2025, 'period_month' => 12]);
 
-    $created = app(BudgetRollover::class)->rollForward($user, \Illuminate\Support\Carbon::create(2026, 1, 15));
+    $created = app(BudgetRollover::class)->rollForward($user, Carbon::create(2026, 1, 15));
 
     expect($created)->toBe(1)
         ->and($user->budgets()->where('period_year', 2026)->where('period_month', 1)->exists())->toBeTrue();
@@ -135,7 +136,7 @@ it('never copies another users budgets', function () {
     $other = User::factory()->create();
     makeBudget($other, makeCategory($other));
 
-    expect(app(BudgetRollover::class)->rollForward($me, \Illuminate\Support\Carbon::create(2026, 9, 1)))->toBe(0)
+    expect(app(BudgetRollover::class)->rollForward($me, Carbon::create(2026, 9, 1)))->toBe(0)
         ->and($me->budgets()->count())->toBe(0);
 });
 

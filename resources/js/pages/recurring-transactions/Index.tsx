@@ -1,6 +1,7 @@
 import { Head, Link, router } from "@inertiajs/react";
-import { Calendar, Repeat, Pencil, Trash2, Plus, Clock, CheckCircle2 } from "lucide-react";
+import { Repeat, Pencil, Trash2, Plus, Clock } from "lucide-react";
 
+import { KravioCard } from '@/components/dashboard/KravioCard';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,7 +17,6 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import AppLayout from "@/layouts/app-layout";
 import { formatCurrency } from '@/lib/formatCurrency';
-import { KravioCard } from '@/components/dashboard/KravioCard';
 
 interface RecurringTransaction {
   id: string;
@@ -177,7 +177,7 @@ export default function Index({ recurringTransactions }: Props) {
         </div>
 
         {recurringTransactions.length === 0 ? (
-          <KravioCard pattern className="text-center py-16">
+          <KravioCard pattern innerClassName="items-center text-center py-16">
             <Repeat className="h-12 w-12 mx-auto text-muted-foreground/60 mb-3" />
             <h3 className="text-sm font-semibold text-foreground">No recurring schedules active</h3>
             <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">

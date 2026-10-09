@@ -5,6 +5,7 @@ namespace App\Filament\Widgets;
 use App\Currency;
 use App\Models\Transaction;
 use Filament\Widgets\ChartWidget;
+use Illuminate\Support\Facades\Cache;
 
 class IncomeExpenseTrend extends ChartWidget
 {
@@ -46,7 +47,7 @@ class IncomeExpenseTrend extends ChartWidget
 
         // One grouped query, filtering on the transactions.currency column directly
         // (no join to accounts). Cached briefly — admin trend needn't be real-time.
-        $rows = \Illuminate\Support\Facades\Cache::remember(
+        $rows = Cache::remember(
             "admin.trend.{$currency}",
             now()->addMinutes(5),
             fn () => Transaction::query()

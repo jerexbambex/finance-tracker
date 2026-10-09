@@ -9,6 +9,7 @@ use App\Models\Category;
 use App\Services\BudgetRollover;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 
 class BudgetController extends Controller
@@ -73,7 +74,7 @@ class BudgetController extends Controller
 
         // What a "copy from previous month" would pull from, so the button can
         // name the source period and hide itself when there is nothing to copy.
-        $previous = \Illuminate\Support\Carbon::create($currentYear, $currentMonth, 1)->subMonthNoOverflow();
+        $previous = Carbon::create($currentYear, $currentMonth, 1)->subMonthNoOverflow();
         $previousPeriod = [
             'year' => $previous->year,
             'month' => $previous->month,

@@ -1,10 +1,13 @@
-import React from 'react';
 import { Link } from '@inertiajs/react';
-import { Wallet, CreditCard, Building2, Landmark, Plus, ArrowUpRight, ShieldCheck } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { formatCurrency as baseFmt } from '@/lib/formatCurrency';
-import { KravioCard } from './KravioCard';
+import { Wallet, CreditCard, Building2, Landmark, Plus, ArrowUpRight } from 'lucide-react';
+import React from 'react';
+
 import { Badge } from '@/components/ui/badge';
+import { formatCurrency as baseFmt } from '@/lib/formatCurrency';
+import { cn } from '@/lib/utils';
+
+import { KravioCard } from './KravioCard';
+
 
 interface Account {
     id: string;
@@ -38,7 +41,6 @@ const getAccountIcon = (type: string) => {
 
 export function KravioAccountsSection({
     accounts,
-    primaryCurrency,
     className,
 }: KravioAccountsSectionProps) {
     const formatCurrency = (val: number, curr: string) => baseFmt(val, curr);

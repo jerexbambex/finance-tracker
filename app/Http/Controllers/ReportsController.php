@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Currency;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Spatie\LaravelPdf\Facades\Pdf;
@@ -79,7 +80,7 @@ class ReportsController extends Controller
             ->get();
 
         // Category spending — split-aware (split parents expanded into their parts)
-        $spendRows = \App\Models\Transaction::spendByCategory($user->id, $startDate, $endDate);
+        $spendRows = Transaction::spendByCategory($user->id, $startDate, $endDate);
         $currencyTotals = $spendRows->groupBy('currency')->map(fn ($rows) => $rows->sum('amount'));
 
         $categorySpending = $spendRows->map(function ($row) use ($currencyTotals) {

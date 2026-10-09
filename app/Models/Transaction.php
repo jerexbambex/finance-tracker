@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\MediaLibrary\HasMedia;
@@ -115,7 +116,7 @@ class Transaction extends Model implements HasMedia
      *   { category_id, name, color, currency, amount (dollars), count }
      * keyed by "{category_id}|{currency}".
      */
-    public static function spendByCategory(string $userId, $start, $end): \Illuminate\Support\Collection
+    public static function spendByCategory(string $userId, $start, $end): Collection
     {
         $direct = static::query()
             ->where('transactions.user_id', $userId)

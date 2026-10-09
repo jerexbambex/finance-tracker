@@ -1,7 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft, ArrowUpRight, ArrowDownRight, CreditCard, Pencil, History } from 'lucide-react';
 
-import { KravioCard, KravioCardPattern } from '@/components/dashboard/KravioCard';
+import { KravioCard } from '@/components/dashboard/KravioCard';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency } from '@/lib/formatCurrency';

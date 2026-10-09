@@ -1,3 +1,4 @@
+import { BarChart3, LineChart as LineChartIcon } from 'lucide-react';
 import React, { useState } from 'react';
 import {
     BarChart,
@@ -10,11 +11,13 @@ import {
     ResponsiveContainer,
     Tooltip,
 } from 'recharts';
-import { ArrowUpRight, ArrowDownRight, Layers, TrendingUp, BarChart3, LineChart as LineChartIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { currencySymbol, formatCurrency as baseFmt, formatCompactCurrency as baseFmtCompact } from '@/lib/formatCurrency';
-import { KravioCard } from './KravioCard';
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { formatCurrency as baseFmt, formatCompactCurrency as baseFmtCompact } from '@/lib/formatCurrency';
+import { cn } from '@/lib/utils';
+
+import { KravioCard } from './KravioCard';
+
 
 interface MonthlyTrend {
     month: string;
@@ -32,7 +35,6 @@ interface KravioHeroChartProps {
 export function KravioHeroChart({
     monthlyTrend,
     primaryCurrency,
-    currencies,
     className,
 }: KravioHeroChartProps) {
     const trendCurrencies = [

@@ -1,10 +1,10 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Plus, Folder, ArrowUpRight, ArrowDownRight, Tag } from 'lucide-react';
+import { Plus, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
+import { KravioCard } from '@/components/dashboard/KravioCard';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
-import { KravioCard } from '@/components/dashboard/KravioCard';
 
 interface Category {
   id: string;

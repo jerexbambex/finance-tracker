@@ -1,6 +1,6 @@
-import React from 'react';
 import { Head, useForm, Link } from '@inertiajs/react';
-import { ArrowLeft, Target } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
+import React from 'react';
 
 import { KravioCard } from '@/components/dashboard/KravioCard';
 import { Button } from '@/components/ui/button';

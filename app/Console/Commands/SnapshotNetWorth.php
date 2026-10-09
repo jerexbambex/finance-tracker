@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Account;
 use App\Models\User;
 use App\Services\NetWorthReconstructor;
 use Illuminate\Console\Command;
@@ -14,7 +15,7 @@ class SnapshotNetWorth extends Command
 
     public function handle(NetWorthReconstructor $reconstructor): int
     {
-        $userIds = \App\Models\Account::query()->distinct()->pluck('user_id');
+        $userIds = Account::query()->distinct()->pluck('user_id');
 
         $rows = 0;
         $users = 0;

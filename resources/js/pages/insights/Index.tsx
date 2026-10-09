@@ -16,6 +16,7 @@ import {
 import type { ElementType, ReactNode } from 'react';
 import { useState } from 'react';
 
+import { KravioCard } from '@/components/dashboard/KravioCard';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -57,7 +58,6 @@ interface Props {
     primaryCurrency: string;
 }
 
-import { KravioCard } from '@/components/dashboard/KravioCard';
 
 type InsightSectionProps = {
     title: string;

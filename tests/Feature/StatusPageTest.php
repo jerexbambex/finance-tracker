@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia;
 
-function insertFailedJob(\DateTimeInterface $failedAt): void
+function insertFailedJob(DateTimeInterface $failedAt): void
 {
     DB::table('failed_jobs')->insert([
         'uuid' => (string) Str::uuid(),

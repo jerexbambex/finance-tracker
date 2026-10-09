@@ -52,6 +52,4 @@ class RecurringTransaction extends Model
     {
         return $this->belongsTo(Category::class);
     }
-
-
 }

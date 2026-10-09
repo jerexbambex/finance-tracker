@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
 import { Link } from '@inertiajs/react';
+import { Target, PieChart as PieIcon, Plus, ChevronRight, CheckCircle } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { Target, PieChart as PieIcon, Plus, ChevronRight, CheckCircle, AlertCircle } from 'lucide-react';
-import { cn } from '@/lib/utils';
+
 import { formatCurrency as baseFmt } from '@/lib/formatCurrency';
+import { cn } from '@/lib/utils';
+
 import { KravioCard } from './KravioCard';
 
 interface CategorySpending {
@@ -34,10 +35,6 @@ export function KravioBudgetsGoals({
     primaryCurrency,
     className,
 }: KravioBudgetsGoalsProps) {
-    const [activeSection, setActiveSection] = useState<'categories' | 'goals'>(
-        categorySpending.length > 0 ? 'categories' : 'goals',
-    );
-
     const totalCategorySpend = categorySpending.reduce((sum, c) => sum + c.amount, 0);
     const formatCurrency = (val: number, curr: string = primaryCurrency) => baseFmt(val, curr);
 

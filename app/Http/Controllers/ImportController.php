@@ -61,6 +61,7 @@ class ImportController extends Controller
 
             if ($validator->fails()) {
                 $errors[] = 'Row skipped: '.implode(', ', $validator->errors()->all());
+
                 continue;
             }
 
@@ -77,6 +78,7 @@ class ImportController extends Controller
 
             if ($duplicate) {
                 $skipped++;
+
                 continue;
             }
 

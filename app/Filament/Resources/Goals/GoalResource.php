@@ -6,6 +6,7 @@ use App\Filament\Resources\Goals\Pages\CreateGoal;
 use App\Filament\Resources\Goals\Pages\EditGoal;
 use App\Filament\Resources\Goals\Pages\ListGoals;
 use App\Filament\Resources\Goals\Pages\ViewGoal;
+use App\Filament\Resources\Goals\RelationManagers\ContributionsRelationManager;
 use App\Filament\Resources\Goals\Schemas\GoalForm;
 use App\Filament\Resources\Goals\Tables\GoalsTable;
 use App\Models\Goal;
@@ -103,7 +104,7 @@ class GoalResource extends Resource
     public static function getRelations(): array
     {
         return [
-            \App\Filament\Resources\Goals\RelationManagers\ContributionsRelationManager::class,
+            ContributionsRelationManager::class,
         ];
     }
 

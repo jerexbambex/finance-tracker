@@ -1,6 +1,8 @@
-import React from 'react';
 import { TrendingUp, TrendingDown, LucideIcon } from 'lucide-react';
+import React from 'react';
+
 import { cn } from '@/lib/utils';
+
 import { KravioCard } from './KravioCard';
 
 export interface KravioKPICardProps {
@@ -34,7 +36,6 @@ export function KravioKPICard({
     metaRight,
     index = 0,
     className,
-    highlight = 'default',
 }: KravioKPICardProps) {
     return (
         <KravioCard

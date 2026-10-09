@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Category;
 use Illuminate\Database\Seeder;
 
 class DefaultCategoriesSeeder extends Seeder
@@ -36,7 +37,7 @@ class DefaultCategoriesSeeder extends Seeder
         ];
 
         foreach ($categories as $category) {
-            \App\Models\Category::firstOrCreate(
+            Category::firstOrCreate(
                 ['name' => $category['name'], 'type' => $category['type'], 'user_id' => null],
                 ['color' => $category['color']]
             );
