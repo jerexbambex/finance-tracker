@@ -1,62 +1,71 @@
 import { Link, usePage } from '@inertiajs/react';
-import { motion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
+import { Check } from 'lucide-react';
 
-import { SharedData } from '@/types';
+import { type SharedData } from '@/types';
+
+const included = ['Unlimited accounts and transactions', 'Budgets, goals and bill reminders', 'Reports, exports and CSV import', 'All ten supported currencies'];
 
 export default function CTA() {
-    const { auth } = usePage<SharedData>().props;
+    const { auth, canRegister = true } = usePage<SharedData & { canRegister?: boolean }>().props;
     const user = auth?.user;
 
     return (
-        <section className="py-24 bg-gradient-to-b from-background to-muted/30">
-            <div className="container mx-auto px-6 max-w-4xl text-center">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    className="space-y-8"
-                >
-                    <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
-                        Why are you still using{' '}
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500 dark:from-emerald-400 dark:to-teal-400">
-                            spreadsheets?
-                        </span>
-                    </h2>
-                    <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                        Start managing money the way it should be. Free forever, no credit card required.
-                    </p>
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                        {user ? (
-                            <Link
-                                href="/dashboard"
-                                className="h-12 px-8 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center gap-2"
-                            >
-                                Go to Dashboard
-                                <ArrowRight className="h-4 w-4" />
-                            </Link>
-                        ) : (
-                            <>
-                                <Link
-                                    href="/register"
-                                    className="h-12 px-8 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center gap-2"
-                                >
-                                    Get Started Free
-                                    <ArrowRight className="h-4 w-4" />
-                                </Link>
-                                <Link
-                                    href="/login"
-                                    className="h-12 px-8 rounded-lg border border-border bg-background hover:bg-muted transition-all flex items-center gap-2"
-                                >
-                                    Sign In
-                                </Link>
-                            </>
-                        )}
+        <section id="pricing" className="scroll-mt-16">
+            <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-24">
+                {/* Deep ink-green in both themes: the one inverted block on the page. */}
+                <div className="relative overflow-hidden rounded-3xl bg-[oklch(0.24_0.05_165)] px-6 py-12 text-white ring-1 ring-white/10 sm:px-12 sm:py-16">
+                    <div
+                        aria-hidden="true"
+                        className="pointer-events-none absolute inset-0 [mask-image:linear-gradient(to_left,black,transparent_70%)] bg-[repeating-linear-gradient(to_bottom,transparent_0,transparent_31px,rgba(255,255,255,0.07)_31px,rgba(255,255,255,0.07)_32px)]"
+                    />
+
+                    <div className="relative grid gap-10 lg:grid-cols-12 lg:items-end">
+                        <div className="lg:col-span-7">
+                            <h2 className="font-display text-4xl leading-[1.05] font-semibold tracking-[-0.03em] text-balance sm:text-6xl">
+                                Free, with everything included.
+                            </h2>
+                            <p className="mt-5 max-w-lg text-lg leading-relaxed text-white/70">
+                                No trial clock and no card on file. Start with one account today and add the rest when you have a minute.
+                            </p>
+                            <div className="mt-8 flex flex-wrap gap-3">
+                                {user ? (
+                                    <Link
+                                        href="/dashboard"
+                                        className="inline-flex h-12 items-center rounded-xl bg-white px-6 text-base font-medium text-[oklch(0.24_0.05_165)] transition active:scale-[0.98] hover:bg-white/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                                    >
+                                        Open dashboard
+                                    </Link>
+                                ) : (
+                                    <>
+                                        {canRegister && (
+                                            <Link
+                                                href="/register"
+                                                className="inline-flex h-12 items-center rounded-xl bg-white px-6 text-base font-medium text-[oklch(0.24_0.05_165)] transition active:scale-[0.98] hover:bg-white/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                                            >
+                                                Create free account
+                                            </Link>
+                                        )}
+                                        <Link
+                                            href="/login"
+                                            className="inline-flex h-12 items-center rounded-xl border border-white/25 px-6 text-base font-medium text-white transition active:scale-[0.98] hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                                        >
+                                            Log in
+                                        </Link>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+
+                        <ul className="space-y-3 lg:col-span-5 lg:border-l lg:border-white/15 lg:pl-10">
+                            {included.map((item) => (
+                                <li key={item} className="flex items-start gap-3 text-[0.95rem] text-white/90">
+                                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" strokeWidth={2.5} aria-hidden="true" />
+                                    {item}
+                                </li>
+                            ))}
+                        </ul>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                        Start managing your money smarter today
-                    </p>
-                </motion.div>
+                </div>
             </div>
         </section>
     );
