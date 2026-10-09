@@ -28,8 +28,13 @@ class TopPages extends TableWidget
         // level `id`/`visits`/`visitors` are just plain columns of an
         // already-computed result, so any ORDER BY Filament adds is valid
         // regardless of what it orders by.
+        //
+        // The CAST gives `id` a numeric type at that outer level. Filament
+        // looks rows up by a string key (`where id = '1'`); MySQL coerces
+        // that either way, but SQLite only does so for columns with a
+        // declared numeric affinity, which a bare MIN() expression lacks.
         $aggregate = PageVisit::query()
-            ->selectRaw('MIN(id) as id, path, route_name, COUNT(*) as visits, COUNT(DISTINCT visitor_hash) as visitors')
+            ->selectRaw('CAST(MIN(id) AS SIGNED) as id, path, route_name, COUNT(*) as visits, COUNT(DISTINCT visitor_hash) as visitors')
             ->where('visited_at', '>=', now()->subDays(30))
             ->groupBy('path', 'route_name');
 

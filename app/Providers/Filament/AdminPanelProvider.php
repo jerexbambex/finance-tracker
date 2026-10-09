@@ -2,6 +2,15 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Resources\ActivityLogs\ActivityResource;
+use App\Filament\Resources\Testimonials\TestimonialResource;
+use App\Filament\Widgets\CurrencyOverview;
+use App\Filament\Widgets\IncomeExpenseTrend;
+use App\Filament\Widgets\RecentTransactions;
+use App\Filament\Widgets\StatsOverview;
+use App\Filament\Widgets\TopPages;
+use App\Filament\Widgets\VisitorStats;
+use App\Filament\Widgets\VisitsTrend;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -13,7 +22,7 @@ use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
@@ -33,8 +42,8 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->resources([
-                \Jacobtims\FilamentLogger\Resources\ActivityResource::class,
-                \App\Filament\Resources\Testimonials\TestimonialResource::class,
+                ActivityResource::class,
+                TestimonialResource::class,
             ])
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
@@ -42,13 +51,13 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
-                \App\Filament\Widgets\VisitorStats::class,
-                \App\Filament\Widgets\StatsOverview::class,
-                \App\Filament\Widgets\CurrencyOverview::class,
-                \App\Filament\Widgets\IncomeExpenseTrend::class,
-                \App\Filament\Widgets\RecentTransactions::class,
-                \App\Filament\Widgets\VisitsTrend::class,
-                \App\Filament\Widgets\TopPages::class,
+                VisitorStats::class,
+                StatsOverview::class,
+                CurrencyOverview::class,
+                IncomeExpenseTrend::class,
+                RecentTransactions::class,
+                VisitsTrend::class,
+                TopPages::class,
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -56,7 +65,7 @@ class AdminPanelProvider extends PanelProvider
                 StartSession::class,
                 AuthenticateSession::class,
                 ShareErrorsFromSession::class,
-                VerifyCsrfToken::class,
+                PreventRequestForgery::class,
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Auth\MustVerifyEmail;
@@ -9,16 +10,16 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Lab404\Impersonate\Models\Impersonate;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Permission\Traits\HasRoles;
+use STS\FilamentImpersonate\Facades\Impersonation;
 
 class User extends Authenticatable implements FilamentUser
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, HasRoles, HasUuids, Impersonate, LogsActivity, MustVerifyEmail, Notifiable, TwoFactorAuthenticatable;
+    /** @use HasFactory<UserFactory> */
+    use HasFactory, HasRoles, HasUuids, LogsActivity, MustVerifyEmail, Notifiable, TwoFactorAuthenticatable;
 
     /**
      * The attributes that are mass assignable.
@@ -112,7 +113,7 @@ class User extends Authenticatable implements FilamentUser
     public function canAccessPanel(Panel $panel): bool
     {
         // Allow if user has admin role OR if someone is impersonating (the impersonator has admin access)
-        if ($this->isImpersonated()) {
+        if (Impersonation::isImpersonating()) {
             return true;
         }
 

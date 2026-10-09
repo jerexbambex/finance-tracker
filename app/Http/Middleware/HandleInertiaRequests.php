@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use STS\FilamentImpersonate\Facades\Impersonation;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -55,7 +56,7 @@ class HandleInertiaRequests extends Middleware
                     $q->whereNull('user_id')->orWhere('user_id', $request->user()->id);
                 })->where('is_active', true)->get(['id', 'name', 'type']),
             ] : null,
-            'impersonating' => $request->user() && $request->user()->isImpersonated()
+            'impersonating' => $request->user() && Impersonation::isImpersonating()
                 ? ['name' => $request->user()->name, 'email' => $request->user()->email]
                 : null,
             'flash' => [
