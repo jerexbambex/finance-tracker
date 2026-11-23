@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Goal;
 use App\Models\GoalContribution;
+use App\Services\GoalMilestones;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -12,7 +13,7 @@ class GoalContributionController extends Controller
 {
     use AuthorizesRequests;
 
-    public function store(Request $request, Goal $goal)
+    public function store(Request $request, Goal $goal, GoalMilestones $milestones)
     {
         $this->authorize('update', $goal);
 
@@ -27,9 +28,11 @@ class GoalContributionController extends Controller
             'goal_id' => $goal->id,
             'user_id' => auth()->id(),
             'amount' => $validated['amount'],
-            'note' => $validated['note'],
+            'note' => $validated['note'] ?? null,
             'contribution_date' => $validated['contribution_date'],
         ]));
+
+        $milestones->check($request->user(), $goal);
 
         return redirect()->route('goals.index')->with('success', 'Contribution added successfully');
     }

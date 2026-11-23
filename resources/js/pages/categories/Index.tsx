@@ -4,6 +4,7 @@ import { Plus, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { KravioCard } from '@/components/dashboard/KravioCard';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useConfirm } from '@/hooks/use-confirm';
 import AppLayout from '@/layouts/app-layout';
 
 interface Category {
@@ -20,10 +21,13 @@ interface Props {
 }
 
 export default function Index({ incomeCategories, expenseCategories }: Props) {
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this category?')) {
-      router.delete(`/categories/${id}`);
-    }
+  const { confirm, dialog } = useConfirm();
+  const handleDelete = async (id: string) => {
+    const ok = await confirm({
+      title: 'Delete this category?',
+      description: 'It will no longer be offered for new transactions. Existing transactions keep their category.',
+    });
+    if (ok) router.delete(`/categories/${id}`);
   };
 
   return (
@@ -185,6 +189,7 @@ export default function Index({ incomeCategories, expenseCategories }: Props) {
           </KravioCard>
         </div>
       </div>
+      {dialog}
     </AppLayout>
   );
 }

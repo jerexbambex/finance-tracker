@@ -41,6 +41,14 @@ class ProfileController extends Controller
             $request->user()->email_verified_at = null;
         }
 
+        // Saving a currency here is a deliberate choice, so it completes that onboarding step.
+        if ($request->has('base_currency')) {
+            $request->user()->onboarding = array_merge(
+                $request->user()->onboarding ?? [],
+                ['currency_confirmed_at' => now()->toIso8601String()],
+            );
+        }
+
         $request->user()->save();
 
         return to_route('profile.edit');

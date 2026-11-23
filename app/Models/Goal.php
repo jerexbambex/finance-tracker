@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
@@ -61,5 +62,24 @@ class Goal extends Model
     public function getPercentageComplete()
     {
         return $this->target_amount > 0 ? ($this->current_amount / $this->target_amount) * 100 : 0;
+    }
+
+    /**
+     * What to save each month to hit the target by its date: what's left
+     * divided by the whole months remaining (at least one). Null when there's
+     * no future target date or nothing left to save.
+     */
+    public function suggestedMonthlyContribution(?CarbonInterface $now = null): ?float
+    {
+        $now ??= now();
+        $remaining = $this->target_amount - $this->current_amount;
+
+        if (! $this->target_date || $remaining <= 0 || $this->target_date->lte($now)) {
+            return null;
+        }
+
+        $months = max(1, (int) floor($now->diffInMonths($this->target_date)));
+
+        return round($remaining / $months, 2);
     }
 }

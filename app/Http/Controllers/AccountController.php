@@ -30,6 +30,7 @@ class AccountController extends Controller
     public function create()
     {
         return Inertia::render('accounts/Create', [
+            'defaultCurrency' => auth()->user()->base_currency ?: 'USD',
             'currencies' => collect(Currency::cases())->map(fn ($currency) => [
                 'value' => $currency->value,
                 'label' => $currency->label(),

@@ -114,3 +114,17 @@ test('correct password must be provided to delete account', function () {
 
     expect($user->fresh())->not->toBeNull();
 });
+
+test('names with apostrophes and combining accents are accepted', function (string $name) {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->patch(route('profile.update'), ['name' => $name, 'email' => $user->email])
+        ->assertSessionHasNoErrors();
+
+    expect($user->refresh()->name)->toBe($name);
+})->with([
+    "Conan O'Brien",
+    'D’Angelo Russell',
+    "To\u{0301}la\u{0301} Ade\u{0301}", // Yoruba tone marks typed as combining characters
+]);

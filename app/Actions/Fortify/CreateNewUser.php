@@ -20,7 +20,7 @@ class CreateNewUser implements CreatesNewUsers
     public function create(array $input): User
     {
         Validator::make($input, [
-            'name' => ['required', 'string', 'max:255', 'regex:/^[\pL\s\-\.]+$/u'],
+            'name' => ['required', 'string', 'max:255', 'regex:/^[\pL\pM\s\-\.\'\x{2019}]+$/u'],
             'email' => [
                 'required',
                 'string',
@@ -30,7 +30,7 @@ class CreateNewUser implements CreatesNewUsers
             ],
             'password' => $this->passwordRules(),
         ], [
-            'name.regex' => 'The name may only contain letters, spaces, hyphens, and periods.',
+            'name.regex' => 'The name may only contain letters, spaces, hyphens, apostrophes, and periods.',
         ])->validate();
 
         $user = User::create([

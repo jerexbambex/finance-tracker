@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency } from '@/lib/formatCurrency';
+import { todayLocal } from '@/lib/utils';
 import { type BreadcrumbItem } from '@/types';
 
 interface Account {
@@ -33,7 +34,7 @@ export default function Create({ accounts }: Props) {
     to_account_id: '',
     amount: '',
     description: '',
-    transfer_date: new Date().toISOString().split('T')[0],
+    transfer_date: todayLocal(),
   });
 
   const handleSubmit = (e: React.FormEvent) => {

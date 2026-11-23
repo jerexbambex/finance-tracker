@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\RecurringTransaction;
 use App\Models\Transaction;
+use App\Services\BudgetAlerts;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -14,11 +15,11 @@ class ProcessRecurringTransactions extends Command
 
     protected $description = 'Process due recurring transactions and create actual transactions';
 
-    public function handle()
+    public function handle(BudgetAlerts $alerts)
     {
         $dueTransactions = RecurringTransaction::where('is_active', true)
             ->whereDate('next_due_date', '<=', now())
-            ->with('account')
+            ->with(['account', 'user'])
             ->get();
 
         $processed = 0;
@@ -46,6 +47,11 @@ class ProcessRecurringTransactions extends Command
                 );
                 $recurring->save();
             });
+
+            if ($recurring->type === 'expense' && $recurring->user) {
+                // Outside the DB transaction: a mail failure mustn't undo the payment.
+                $alerts->checkCategory($recurring->user, $recurring->category_id, now());
+            }
 
             $processed++;
         }

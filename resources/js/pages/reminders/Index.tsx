@@ -3,6 +3,7 @@ import { Bell, Check, Pencil, Plus, Trash2, Calendar, Clock, AlertTriangle } fro
 
 import { KravioCard } from '@/components/dashboard/KravioCard';
 import { Button } from '@/components/ui/button';
+import { useConfirm } from '@/hooks/use-confirm';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency } from '@/lib/formatCurrency';
 
@@ -30,6 +31,7 @@ interface Props {
 }
 
 export default function Index({ reminders }: Props) {
+  const { confirm, dialog } = useConfirm();
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString('en-US', {
       month: 'short',
@@ -42,8 +44,8 @@ export default function Index({ reminders }: Props) {
     router.post(`/reminders/${id}/complete`);
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this reminder?')) {
+  const handleDelete = async (id: string) => {
+    if (await confirm({ title: 'Delete this reminder?' })) {
       router.delete(`/reminders/${id}`);
     }
   };
@@ -231,6 +233,7 @@ export default function Index({ reminders }: Props) {
           )}
         </div>
       </div>
+      {dialog}
     </AppLayout>
   );
 }

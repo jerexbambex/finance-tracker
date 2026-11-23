@@ -1,10 +1,13 @@
 import { useForm } from '@inertiajs/react';
 
+import { CategorySuggestionHint } from '@/components/category-suggestion-hint';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { useCategorySuggestion } from '@/hooks/use-category-suggestion';
+import { todayLocal } from '@/lib/utils';
 
 interface Account {
   id: string;
@@ -33,10 +36,17 @@ export default function QuickAddTransactionForm({ accounts, categories, onDone, 
     type: 'expense',
     amount: '',
     description: '',
-    transaction_date: new Date().toISOString().split('T')[0],
+    transaction_date: todayLocal(),
   });
 
   const filteredCategories = categories.filter((cat) => cat.type === data.type);
+  const suggestedFrom = useCategorySuggestion({
+    description: data.description,
+    type: data.type,
+    categoryId: data.category_id,
+    categories: filteredCategories,
+    setCategoryId: (id) => setData('category_id', id),
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,6 +135,7 @@ export default function QuickAddTransactionForm({ accounts, categories, onDone, 
               ))}
             </SelectContent>
           </Select>
+          <CategorySuggestionHint matched={suggestedFrom} />
         </div>
       </div>
 

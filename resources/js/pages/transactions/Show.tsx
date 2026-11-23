@@ -24,6 +24,7 @@ import { useState } from 'react';
 
 import { KravioCardPattern } from '@/components/dashboard/KravioCard';
 import { Button } from '@/components/ui/button';
+import { useConfirm } from '@/hooks/use-confirm';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { cn } from '@/lib/utils';
@@ -75,6 +76,7 @@ interface Props {
 }
 
 export default function Show({ transaction }: Props) {
+  const { confirm, dialog } = useConfirm();
   const [copied, setCopied] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
@@ -96,8 +98,12 @@ export default function Show({ transaction }: Props) {
     window.print();
   };
 
-  const handleDelete = () => {
-    if (confirm('Are you sure you want to permanently delete this transaction?')) {
+  const handleDelete = async () => {
+    const ok = await confirm({
+      title: 'Delete this transaction?',
+      description: 'It will be permanently removed and the account balance adjusted. This cannot be undone.',
+    });
+    if (ok) {
       router.delete(`/transactions/${transaction.id}`, {
         onSuccess: () => router.visit('/transactions'),
       });
@@ -629,6 +635,7 @@ export default function Show({ transaction }: Props) {
           )}
         </div>
       </div>
+      {dialog}
     </AppLayout>
   );
 }

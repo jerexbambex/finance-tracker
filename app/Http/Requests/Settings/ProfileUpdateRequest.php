@@ -18,7 +18,7 @@ class ProfileUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255', 'regex:/^[\pL\s\-\.]+$/u'],
+            'name' => ['required', 'string', 'max:255', 'regex:/^[\pL\pM\s\-\.\'\x{2019}]+$/u'],
             'email' => [
                 'required',
                 'string',
@@ -39,7 +39,7 @@ class ProfileUpdateRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.regex' => 'The name may only contain letters, spaces, hyphens, and periods.',
+            'name.regex' => 'The name may only contain letters, spaces, hyphens, apostrophes, and periods.',
         ];
     }
 

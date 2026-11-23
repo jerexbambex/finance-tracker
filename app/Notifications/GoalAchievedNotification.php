@@ -22,7 +22,7 @@ class GoalAchievedNotification extends Notification
         return [
             'goal_id' => $this->goal->id,
             'name' => $this->goal->name,
-            'target_amount' => $this->goal->target_amount / 100,
+            'target_amount' => $this->goal->target_amount, // accessor already converts from cents
             'message' => "Congratulations! You've achieved your goal: {$this->goal->name}",
         ];
     }

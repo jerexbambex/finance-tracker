@@ -38,7 +38,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { formatCurrency as baseFmt } from '@/lib/formatCurrency';
-import { cn } from '@/lib/utils';
+import { cn, todayLocal } from '@/lib/utils';
 
 import { KravioCardPattern } from './KravioCard';
 
@@ -202,7 +202,7 @@ export function KravioTransactionsTable({
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `transactions_export_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute('download', `transactions_export_${todayLocal()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

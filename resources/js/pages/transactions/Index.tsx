@@ -57,6 +57,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useConfirm } from '@/hooks/use-confirm';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency, formatCompactCurrency } from '@/lib/formatCurrency';
 import { cn } from '@/lib/utils';
@@ -107,6 +108,7 @@ interface Props {
 }
 
 export default function Index({ transactions, accounts = [], categories = [], currencies = [], chartData }: Props) {
+  const { confirm, dialog } = useConfirm();
   const page = usePage();
   const { flash } = page.props as { flash?: { success?: string } };
   const queryParams = new URLSearchParams(page.url.split('?')[1] ?? '');
@@ -225,8 +227,14 @@ export default function Index({ transactions, accounts = [], categories = [], cu
     }
   };
 
-  const handleBulkDelete = () => {
-    if (!confirm(`Delete ${selectedIds.length} transactions?`)) return;
+  const handleBulkDelete = async () => {
+    const count = selectedIds.length;
+    const ok = await confirm({
+      title: `Delete ${count} transaction${count === 1 ? '' : 's'}?`,
+      description: 'Account balances will be adjusted to reflect the removal. This cannot be undone.',
+      confirmLabel: `Delete ${count}`,
+    });
+    if (!ok) return;
 
     router.post(
       '/transactions/bulk-delete',
@@ -1192,10 +1200,12 @@ export default function Index({ transactions, accounts = [], categories = [], cu
                                   </DropdownMenuItem>
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem
-                                    onClick={() => {
-                                      if (confirm('Delete this transaction?')) {
-                                        router.delete(`/transactions/${tx.id}`);
-                                      }
+                                    onClick={async () => {
+                                      const ok = await confirm({
+                                        title: 'Delete this transaction?',
+                                        description: `“${tx.description}” will be removed and the account balance adjusted. This cannot be undone.`,
+                                      });
+                                      if (ok) router.delete(`/transactions/${tx.id}`);
                                     }}
                                     className="text-rose-600 dark:text-rose-400 focus:text-rose-600 cursor-pointer"
                                   >
@@ -1262,6 +1272,7 @@ export default function Index({ transactions, accounts = [], categories = [], cu
           </div>
         </div>
       </div>
+      {dialog}
     </AppLayout>
   );
 }

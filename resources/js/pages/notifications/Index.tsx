@@ -14,6 +14,8 @@ interface Notification {
     message: string;
     category?: string;
     percentage?: number;
+    level?: 'pace' | 'warning' | 'exceeded';
+    milestone?: number;
     name?: string;
     budget_id?: string;
     goal_id?: string;
@@ -45,12 +47,20 @@ export default function Index({ notifications, unreadCount }: Props) {
     router.post("/notifications/mark-all-read");
   };
 
-  const getNotificationBadge = (type: string, percentage?: number) => {
+  const getNotificationBadge = (type: string, data: Notification['data']) => {
     if (type.includes("Budget")) {
-      if (percentage && percentage >= 100) {
+      // Older notifications have no level; fall back to the percentage.
+      const level = data.level ?? ((data.percentage ?? 0) >= 100 ? 'exceeded' : 'warning');
+      if (level === 'exceeded') {
         return <Badge variant="destructive" className="text-[10px] px-2 py-0">Over Budget</Badge>;
       }
+      if (level === 'pace') {
+        return <Badge className="text-[10px] px-2 py-0 bg-sky-500/10 text-sky-600 border border-sky-500/20">On Pace to Overspend</Badge>;
+      }
       return <Badge className="text-[10px] px-2 py-0 bg-amber-500/10 text-amber-600 border border-amber-500/20">Warning</Badge>;
+    }
+    if (type.includes("GoalMilestone")) {
+      return <Badge className="text-[10px] px-2 py-0 bg-primary/10 text-primary border border-primary/20">{data.milestone}% Reached</Badge>;
     }
     if (type.includes("Goal")) {
       return <Badge className="text-[10px] px-2 py-0 bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">Achieved</Badge>;
@@ -132,7 +142,7 @@ export default function Index({ notifications, unreadCount }: Props) {
                         <p className={`text-xs ${isUnread ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
                           {notif.data.message}
                         </p>
-                        {getNotificationBadge(notif.type, notif.data.percentage)}
+                        {getNotificationBadge(notif.type, notif.data)}
                       </div>
                       <p className="text-[11px] text-muted-foreground mt-0.5">
                         {formatTime(notif.created_at)}

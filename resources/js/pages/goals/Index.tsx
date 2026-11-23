@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency } from '@/lib/formatCurrency';
+import { todayLocal } from '@/lib/utils';
 
 interface Goal {
   id: string;
@@ -25,6 +26,8 @@ interface Goal {
   category?: string;
   is_completed: boolean;
   percentage: number;
+  /** Monthly saving needed to hit the target by its date; null without a future date. */
+  suggested_monthly: number | null;
 }
 
 interface CurrencyOption {
@@ -68,7 +71,7 @@ export default function Index({ goals, currencies }: Props) {
   const contributeForm = useForm({
     amount: '',
     note: '',
-    contribution_date: new Date().toISOString().split('T')[0],
+    contribution_date: todayLocal(),
   });
 
   const handleCreate = (e: React.FormEvent) => {
@@ -400,6 +403,16 @@ export default function Index({ goals, currencies }: Props) {
                           <p className="text-[11px] text-muted-foreground flex items-center gap-1 pt-1">
                             <Calendar className="h-3 w-3" />
                             Target: {formatDate(goal.target_date)}
+                          </p>
+                        )}
+                        {!goal.is_completed && goal.suggested_monthly !== null && (
+                          <p className="text-[11px] font-medium text-primary">
+                            Save {formatCurrency(goal.suggested_monthly, goal.currency)} a month to get there on time
+                          </p>
+                        )}
+                        {!goal.is_completed && goal.suggested_monthly === null && goal.target_date && goal.percentage < 100 && new Date(goal.target_date) < new Date() && (
+                          <p className="text-[11px] font-medium text-amber-600 dark:text-amber-400">
+                            Target date has passed — {formatCurrency(goal.target_amount - goal.current_amount, goal.currency)} to go
                           </p>
                         )}
                       </div>

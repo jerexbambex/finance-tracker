@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
+import { todayLocal } from '@/lib/utils';
 import { type BreadcrumbItem } from '@/types';
 
 interface Category {
@@ -32,7 +33,7 @@ export default function Create({ categories }: Props) {
     description: '',
     category_id: '',
     amount: '',
-    due_date: new Date().toISOString().split('T')[0],
+    due_date: todayLocal(),
     is_recurring: false,
     frequency: '',
   });

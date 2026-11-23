@@ -16,12 +16,18 @@ const breadcrumbs: BreadcrumbItem[] = [
   { title: 'Create Account', href: '/accounts/create' },
 ];
 
-export default function Create({ currencies = [] }: { currencies?: Array<{ value: string; label: string; symbol: string }> }) {
+interface Props {
+  currencies?: Array<{ value: string; label: string; symbol: string }>;
+  defaultCurrency?: string;
+}
+
+export default function Create({ currencies = [], defaultCurrency }: Props) {
   const { data, setData, post, processing, errors } = useForm({
     name: '',
     type: 'checking',
     balance: '',
-    currency: currencies[0]?.value ?? 'USD',
+    // The user's main currency: most of their accounts will be in it.
+    currency: defaultCurrency ?? currencies[0]?.value ?? 'USD',
     description: '',
   });
 

@@ -4,13 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\ScopesOwnership;
 use App\Models\Account;
-use App\Models\Budget;
 use App\Models\Category;
 use App\Models\SavedFilter;
 use App\Models\Tag;
 use App\Models\Transaction;
-use App\Models\TransactionSplit;
-use App\Notifications\BudgetExceededNotification;
+use App\Services\BudgetAlerts;
+use App\Services\CategorySuggester;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -173,7 +172,7 @@ class TransactionController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, BudgetAlerts $alerts)
     {
         $validated = $request->validate([
             'account_id' => ['required', $this->ownedAccountExists()],
@@ -234,17 +233,7 @@ class TransactionController extends Controller
             $transaction->addMediaFromRequest('receipt')->toMediaCollection('receipts');
         }
 
-        // Check budget alerts for expenses
-        if ($transaction->type === 'expense') {
-            if ($transaction->isSplit()) {
-                // Check each split category
-                foreach ($transaction->splits as $split) {
-                    $this->checkBudgetAlertForSplit($split);
-                }
-            } elseif ($transaction->category_id) {
-                $this->checkBudgetAlert($transaction);
-            }
-        }
+        $alerts->checkMany($request->user(), $this->budgetPairs($transaction));
 
         return redirect()->route('transactions.index');
     }
@@ -276,8 +265,12 @@ class TransactionController extends Controller
         ]);
     }
 
-    public function update(Request $request, Transaction $transaction)
+    public function update(Request $request, Transaction $transaction, BudgetAlerts $alerts)
     {
+        // Where the money counted before the edit, so those budgets can be
+        // re-checked too (a recategorised expense lowers the old one's spend).
+        $before = $this->budgetPairs($transaction);
+
         $this->authorize('update', $transaction);
 
         // Transfers are managed only through TransferController (paired legs);
@@ -343,6 +336,8 @@ class TransactionController extends Controller
             $transaction->addMediaFromRequest('receipt')->toMediaCollection('receipts');
         }
 
+        $alerts->checkMany($request->user(), [...$before, ...$this->budgetPairs($transaction->fresh())]);
+
         return redirect()->route('transactions.index')->with('success', 'Transaction updated successfully.');
     }
 
@@ -368,45 +363,39 @@ class TransactionController extends Controller
         return redirect()->route('transactions.index');
     }
 
-    private function checkBudgetAlert(Transaction $transaction): void
+    /**
+     * The (category, date) pairs whose budgets this transaction counts
+     * towards: each split's category, or the transaction's own.
+     *
+     * @return list<array{0: ?string, 1: mixed}>
+     */
+    private function budgetPairs(Transaction $transaction): array
     {
-        $this->alertForCategory($transaction->category_id, $transaction->transaction_date);
-    }
+        if ($transaction->type !== 'expense') {
+            return [];
+        }
 
-    private function checkBudgetAlertForSplit(TransactionSplit $split): void
-    {
-        $this->alertForCategory($split->category_id, $split->transaction->transaction_date);
+        $transaction->loadMissing('splits');
+
+        return $transaction->splits->isNotEmpty()
+            ? $transaction->splits->map(fn ($split) => [$split->category_id, $transaction->transaction_date])->all()
+            : [[$transaction->category_id, $transaction->transaction_date]];
     }
 
     /**
-     * Notify when a category's budget crosses 80%. Spend is computed by the
-     * single split-aware source of truth, Budget::getSpentAmount().
+     * JSON: the category this user last used for a similar description, so
+     * the entry forms can pre-fill it.
      */
-    private function alertForCategory(?string $categoryId, $date): void
+    public function suggestCategory(Request $request, CategorySuggester $suggester)
     {
-        if (! $categoryId) {
-            return;
-        }
+        $validated = $request->validate([
+            'description' => 'required|string|max:255',
+            'type' => 'required|in:income,expense',
+        ]);
 
-        // Match a monthly budget for the transaction's month OR a yearly budget for its year.
-        $budgets = Budget::where('user_id', auth()->id())
-            ->where('category_id', $categoryId)
-            ->where('period_year', $date->year)
-            ->where(function ($q) use ($date) {
-                $q->where('period_type', 'yearly')
-                    ->orWhere(function ($q2) use ($date) {
-                        $q2->where('period_type', 'monthly')->where('period_month', $date->month);
-                    });
-            })
-            ->with('category')
-            ->get();
-
-        foreach ($budgets as $budget) {
-            $percentage = $budget->getPercentageUsed();
-            if ($percentage >= 80) {
-                auth()->user()->notify(new BudgetExceededNotification($budget, $budget->getSpentAmount(), $percentage));
-            }
-        }
+        return response()->json([
+            'suggestion' => $suggester->suggest($request->user(), $validated['description'], $validated['type']),
+        ]);
     }
 
     public function bulkDelete(Request $request)
@@ -424,7 +413,7 @@ class TransactionController extends Controller
         return redirect()->back()->with('success', "Deleted {$transactions->count()} transactions");
     }
 
-    public function bulkCategorize(Request $request)
+    public function bulkCategorize(Request $request, BudgetAlerts $alerts)
     {
         $validated = $request->validate([
             'ids' => 'required|array',
@@ -433,10 +422,22 @@ class TransactionController extends Controller
         ]);
 
         // Only update transactions that don't have splits
+        $affected = auth()->user()->transactions()
+            ->whereIn('id', $validated['ids'])
+            ->whereDoesntHave('splits')
+            ->where('type', 'expense')
+            ->get(['category_id', 'transaction_date']);
+
         $updated = auth()->user()->transactions()
             ->whereIn('id', $validated['ids'])
             ->whereDoesntHave('splits')
             ->update(['category_id' => $validated['category_id']]);
+
+        // Old categories lose spend, the new one gains it.
+        $alerts->checkMany($request->user(), $affected->flatMap(fn ($t) => [
+            [$t->category_id, $t->transaction_date],
+            [$validated['category_id'], $t->transaction_date],
+        ]));
 
         $skipped = count($validated['ids']) - $updated;
         $message = "Updated {$updated} transactions";

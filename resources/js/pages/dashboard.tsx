@@ -1,4 +1,4 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     Wallet,
     ArrowUpRight,
@@ -18,6 +18,8 @@ import { KravioHeroChart } from '@/components/dashboard/KravioHeroChart';
 import { KravioKPICard } from '@/components/dashboard/KravioKPICard';
 import { KravioSideRadar } from '@/components/dashboard/KravioSideRadar';
 import { KravioTransactionsTable } from '@/components/dashboard/KravioTransactionsTable';
+import { type Onboarding, OnboardingChecklist } from '@/components/dashboard/OnboardingChecklist';
+import { type SafeToSpend, SafeToSpendCard } from '@/components/dashboard/SafeToSpendCard';
 import QuickAddTransaction from '@/components/QuickAddTransaction';
 import { Button } from '@/components/ui/button';
 import {
@@ -120,13 +122,41 @@ interface NetWorth {
     showConverted: boolean;
 }
 
+type DashboardRange = 'this-month' | 'last-30' | '6-months';
+
+const RANGE_OPTIONS: { id: DashboardRange; label: string; period: string; comparison: string }[] = [
+    { id: 'this-month', label: 'This Month', period: 'this month', comparison: 'vs. same days last month' },
+    { id: 'last-30', label: 'Last 30D', period: 'in the last 30 days', comparison: 'vs. prior 30 days' },
+    { id: '6-months', label: '6 Months', period: 'in the last 6 months', comparison: 'vs. prior 6 months' },
+];
+
+/**
+ * Percentage change between two period totals. Returns null when there is no
+ * baseline to compare against, so the card falls back to its subtitle instead
+ * of showing a meaningless "+∞%".
+ */
+function percentChange(current: number, previous: number, higherIsGood: boolean) {
+    if (previous === 0) return null;
+    const change = ((current - previous) / Math.abs(previous)) * 100;
+    const rounded = Math.round(change * 10) / 10;
+    return {
+        value: `${rounded > 0 ? '+' : ''}${rounded.toFixed(1)}%`,
+        isPositive: higherIsGood ? rounded >= 0 : rounded <= 0,
+    };
+}
+
 interface Props {
     accounts: Account[];
     balancesByCurrency: Record<string, number>;
     netWorth: NetWorth;
     recentTransactions: Transaction[];
+    onboarding: Onboarding | null;
+    safeToSpend: SafeToSpend | null;
+    range: DashboardRange;
     incomeByCurrency: Record<string, number>;
     expensesByCurrency: Record<string, number>;
+    previousIncomeByCurrency: Record<string, number>;
+    previousExpensesByCurrency: Record<string, number>;
     categorySpending: CategorySpending[];
     monthlyTrend: MonthlyTrend[];
     budgets: Budget[];
@@ -142,8 +172,13 @@ export default function Dashboard({
     balancesByCurrency,
     netWorth,
     recentTransactions,
+    onboarding,
+    safeToSpend,
+    range,
     incomeByCurrency,
     expensesByCurrency,
+    previousIncomeByCurrency,
+    previousExpensesByCurrency,
     categorySpending,
     monthlyTrend,
     budgets,
@@ -170,7 +205,24 @@ export default function Dashboard({
 
     const hasMultipleCurrencies = Object.keys(balancesByCurrency).length > 1;
     const [activeKpiCurrency, setActiveKpiCurrency] = useState<string>('all');
-    const [timeRange, setTimeRange] = useState<'this-month' | 'last-30' | '6-months' | 'this-year'>('this-month');
+    const activeRange = RANGE_OPTIONS.find((r) => r.id === range) ?? RANGE_OPTIONS[0];
+    const [loadingRange, setLoadingRange] = useState<DashboardRange | null>(null);
+
+    const changeRange = (next: DashboardRange) => {
+        if (next === range) return;
+        router.get(
+            dashboard().url,
+            next === 'this-month' ? {} : { range: next },
+            {
+                only: ['range', 'incomeByCurrency', 'expensesByCurrency', 'previousIncomeByCurrency', 'previousExpensesByCurrency', 'categorySpending'],
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+                onStart: () => setLoadingRange(next),
+                onFinish: () => setLoadingRange(null),
+            },
+        );
+    };
 
     const formatCurrency = (amount: number, currency: string = baseCurrency) =>
         baseFmt(amount, currency);
@@ -191,6 +243,8 @@ export default function Dashboard({
     // Monthly Expenses
     const displayExpense = expensesByCurrency[activeCurrency] ?? 0;
     const displayExpenseFormatted = formatCurrency(displayExpense, activeCurrency);
+    const incomeDelta = percentChange(displayIncome, previousIncomeByCurrency?.[activeCurrency] ?? 0, true);
+    const expenseDelta = percentChange(displayExpense, previousExpensesByCurrency?.[activeCurrency] ?? 0, false);
 
     // Net Cash Flow
     const displayNet = displayIncome - displayExpense;
@@ -222,19 +276,17 @@ export default function Dashboard({
                     <div className="animate-rise [animation-delay:60ms] flex flex-wrap items-center gap-2">
                         {/* Time Range Selector */}
                         <div className="flex items-center rounded-lg border border-border/70 bg-muted/40 p-0.5 text-xs">
-                            {(
-                                [
-                                    { id: 'this-month', label: 'This Month' },
-                                    { id: 'last-30', label: 'Last 30D' },
-                                    { id: '6-months', label: '6 Months' },
-                                ] as const
-                            ).map((tab) => (
+                            {RANGE_OPTIONS.map((tab) => (
                                 <button
                                     key={tab.id}
                                     type="button"
-                                    onClick={() => setTimeRange(tab.id)}
-                                    className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all ${
-                                        timeRange === tab.id
+                                    onClick={() => changeRange(tab.id)}
+                                    aria-pressed={range === tab.id}
+                                    disabled={loadingRange !== null}
+                                    className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all disabled:cursor-wait ${
+                                        loadingRange === tab.id ? 'opacity-60 ' : ''
+                                    }${
+                                        range === tab.id
                                             ? 'bg-card text-foreground shadow-xs font-semibold'
                                             : 'text-muted-foreground hover:text-foreground'
                                     }`}
@@ -285,6 +337,12 @@ export default function Dashboard({
                         </DropdownMenu>
                     </div>
                 </div>
+
+                {onboarding && (
+                    <OnboardingChecklist onboarding={onboarding} baseCurrency={baseCurrency} currencies={currencies} />
+                )}
+
+                {safeToSpend && <SafeToSpendCard data={safeToSpend} />}
 
                 {/* ── Kravio KPI Metric Cards Grid ─────────────────────────────── */}
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -361,11 +419,8 @@ export default function Dashboard({
                         value={displayIncomeFormatted}
                         icon={ArrowUpRight}
                         iconColorClass="bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400"
-                        delta={{
-                            value: '+8.4%',
-                            isPositive: true,
-                            label: 'vs. prev month',
-                        }}
+                        delta={incomeDelta ? { ...incomeDelta, label: activeRange.comparison } : undefined}
+                        subtitle={`Earned ${activeRange.period}`}
                     />
 
                     {/* Monthly Expenses Card */}
@@ -375,11 +430,8 @@ export default function Dashboard({
                         value={displayExpenseFormatted}
                         icon={ArrowDownRight}
                         iconColorClass="bg-rose-500/10 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400"
-                        delta={{
-                            value: '-3.2%',
-                            isPositive: false,
-                            label: 'vs. prev month',
-                        }}
+                        delta={expenseDelta ? { ...expenseDelta, label: activeRange.comparison } : undefined}
+                        subtitle={`Spent ${activeRange.period}`}
                     />
 
                     {/* Net Savings / Flow Card */}
@@ -393,7 +445,13 @@ export default function Dashboard({
                                 ? 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400'
                                 : 'bg-rose-500/10 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400'
                         }
-                        subtitle={isNetPositive ? 'Positive surplus 🎉' : 'Spend exceeded income'}
+                        subtitle={
+                            displayIncome === 0 && displayExpense === 0
+                                ? `No activity ${activeRange.period}`
+                                : isNetPositive
+                                  ? 'Positive surplus 🎉'
+                                  : 'Spend exceeded income'
+                        }
                         metaRight={
                             activeBudgetsCount > 0 ? (
                                 <span className="text-[11px] font-medium text-muted-foreground">
@@ -438,6 +496,7 @@ export default function Dashboard({
                 {/* ── Category Spending Breakdown & Goals Progress ─────────────── */}
                 <KravioBudgetsGoals
                     categorySpending={categorySpending}
+                    periodLabel={activeRange.period}
                     goals={goals}
                     primaryCurrency={primaryCurrency}
                 />

@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Currency;
 use App\Models\Goal;
 use App\Models\GoalContribution;
-use App\Notifications\GoalAchievedNotification;
+use App\Services\GoalMilestones;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -32,6 +32,7 @@ class GoalController extends Controller
                     'category' => $goal->category,
                     'is_completed' => $goal->is_completed,
                     'percentage' => $goal->getPercentageComplete(),
+                    'suggested_monthly' => $goal->suggestedMonthlyContribution(),
                 ];
             });
 
@@ -101,7 +102,7 @@ class GoalController extends Controller
         ]);
     }
 
-    public function update(Request $request, Goal $goal)
+    public function update(Request $request, Goal $goal, GoalMilestones $milestones)
     {
         $this->authorize('update', $goal);
 
@@ -124,9 +125,8 @@ class GoalController extends Controller
         if ($nowCompleted !== $wasCompleted) {
             $goal->update(['is_completed' => $nowCompleted]);
         }
-        if (! $wasCompleted && $nowCompleted) {
-            auth()->user()->notify(new GoalAchievedNotification($goal));
-        }
+        // A lower target can cross milestones (or reach 100%) without a new contribution.
+        $milestones->check($request->user(), $goal);
 
         return redirect()->route('goals.index');
     }

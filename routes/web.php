@@ -12,6 +12,7 @@ use App\Http\Controllers\GoalController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\NetWorthController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\RecurringTransactionController;
 use App\Http\Controllers\ReminderController;
 use App\Http\Controllers\ReportsController;
@@ -55,8 +56,14 @@ Route::get('/status.json', [StatusController::class, 'check'])->name('status.che
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
+    Route::post('onboarding/currency', [OnboardingController::class, 'currency'])->name('onboarding.currency');
+    Route::post('onboarding/dismiss', [OnboardingController::class, 'dismiss'])->name('onboarding.dismiss');
 
     Route::resource('accounts', AccountController::class);
+    // Before the resource route so it isn't captured as transactions/{transaction}.
+    Route::get('transactions/suggest-category', [TransactionController::class, 'suggestCategory'])
+        ->middleware('throttle:120,1')
+        ->name('transactions.suggest-category');
     Route::resource('transactions', TransactionController::class);
     Route::post('transactions/bulk-delete', [TransactionController::class, 'bulkDelete'])->name('transactions.bulk-delete');
     Route::post('transactions/bulk-categorize', [TransactionController::class, 'bulkCategorize'])->name('transactions.bulk-categorize');
@@ -87,6 +94,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/import/transactions', [ImportController::class, 'index'])->name('import.index');
     Route::post('/import/transactions', [ImportController::class, 'import'])->name('import.transactions');
+    Route::post('/import/transactions/preview', [ImportController::class, 'preview'])
+        ->middleware('throttle:60,1')
+        ->name('import.preview');
 
     Route::get('/export/transactions', [ExportController::class, 'transactions'])->name('export.transactions');
     Route::get('/export/statement', [ExportController::class, 'statement'])->name('export.statement');

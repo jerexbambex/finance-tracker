@@ -26,6 +26,8 @@ interface KravioBudgetsGoalsProps {
     categorySpending: CategorySpending[];
     goals: Goal[];
     primaryCurrency: string;
+    /** Human phrase for the selected period, e.g. "this month". */
+    periodLabel?: string;
     className?: string;
 }
 
@@ -33,6 +35,7 @@ export function KravioBudgetsGoals({
     categorySpending,
     goals,
     primaryCurrency,
+    periodLabel = 'this month',
     className,
 }: KravioBudgetsGoalsProps) {
     const totalCategorySpend = categorySpending.reduce((sum, c) => sum + c.amount, 0);
@@ -55,7 +58,7 @@ export function KravioBudgetsGoals({
                             <h3 className="text-sm font-semibold text-foreground">
                                 Spending Breakdown
                             </h3>
-                            <p className="text-[11px] text-muted-foreground">Top categories this month</p>
+                            <p className="text-[11px] text-muted-foreground">Top categories {periodLabel}</p>
                         </div>
                     </div>
                     <Link
@@ -159,7 +162,7 @@ export function KravioBudgetsGoals({
                     </div>
                 ) : (
                     <div className="py-8 text-center text-xs text-muted-foreground">
-                        No category spend recorded this month yet.
+                        No category spend recorded {periodLabel} yet.
                     </div>
                 )}
             </KravioCard>

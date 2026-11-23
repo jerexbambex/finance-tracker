@@ -2,13 +2,16 @@ import { Head, useForm, Link } from '@inertiajs/react';
 import { ArrowLeft, Split as SplitIcon } from 'lucide-react';
 import React from 'react';
 
+import { CategorySuggestionHint } from '@/components/category-suggestion-hint';
 import { KravioCard } from '@/components/dashboard/KravioCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { useCategorySuggestion } from '@/hooks/use-category-suggestion';
 import AppLayout from '@/layouts/app-layout';
+import { todayLocal } from '@/lib/utils';
 import { type BreadcrumbItem } from '@/types';
 
 interface Account {
@@ -40,7 +43,7 @@ export default function Create({ accounts, categories }: Props) {
     type: 'expense',
     amount: '',
     description: '',
-    transaction_date: new Date().toISOString().split('T')[0],
+    transaction_date: todayLocal(),
     notes: '',
     receipt: null as File | null,
     tags: '',
@@ -56,6 +59,18 @@ export default function Create({ accounts, categories }: Props) {
     : '$';
 
   const filteredCategories = categories.filter((cat) => cat.type === data.type);
+  const suggestedFrom = useCategorySuggestion({
+    description: data.description,
+    type: data.type,
+    categoryId: data.category_id,
+    categories: filteredCategories,
+    setCategoryId: (id) => setData('category_id', id),
+  });
+
+  // Switching type invalidates the category (income and expense lists differ).
+  const setType = (type: 'expense' | 'income') => {
+    if (type !== data.type) setData((prev) => ({ ...prev, type, category_id: '' }));
+  };
 
   const addSplit = () => {
     setData('splits', [...data.splits, { category_id: '', amount: '', description: '' }]);
@@ -111,7 +126,7 @@ export default function Create({ accounts, categories }: Props) {
               <div className="grid grid-cols-2 gap-2 rounded-xl bg-muted/40 p-1 border border-border/60">
                 <button
                   type="button"
-                  onClick={() => setData('type', 'expense')}
+                  onClick={() => setType('expense')}
                   className={`rounded-lg py-2 text-xs font-semibold transition-all ${
                     data.type === 'expense'
                       ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 shadow-xs border border-rose-500/20'
@@ -122,7 +137,7 @@ export default function Create({ accounts, categories }: Props) {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setData('type', 'income')}
+                  onClick={() => setType('income')}
                   className={`rounded-lg py-2 text-xs font-semibold transition-all ${
                     data.type === 'income'
                       ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 shadow-xs border border-emerald-500/20'
@@ -173,6 +188,7 @@ export default function Create({ accounts, categories }: Props) {
                     </SelectContent>
                   </Select>
                   {errors.category_id && <p className="text-destructive text-xs mt-1">{errors.category_id}</p>}
+                  <CategorySuggestionHint matched={suggestedFrom} />
                 </div>
               )}
             </div>

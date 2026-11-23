@@ -6,12 +6,17 @@ use App\Currency;
 use App\Models\Category;
 use App\Models\Transaction;
 use App\Services\CurrencyConverter;
+use App\Services\OnboardingChecklist;
+use App\Services\SafeToSpend;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
-    public function __invoke(Request $request, CurrencyConverter $converter)
+    private const RANGES = ['this-month', 'last-30', '6-months'];
+
+    public function __invoke(Request $request, CurrencyConverter $converter, OnboardingChecklist $onboarding, SafeToSpend $safeToSpend)
     {
         $user = auth()->user();
 
@@ -27,28 +32,27 @@ class DashboardController extends Controller
             ->take(10)
             ->get();
 
-        $startOfMonth = now()->startOfMonth();
+        $range = in_array($request->query('range'), self::RANGES, true)
+            ? $request->query('range')
+            : 'this-month';
+        [$from, $to, $prevFrom, $prevTo] = $this->periodBounds($range);
 
-        $incomeByCurrency = $user->transactions()
-            ->where('transactions.type', 'income')
-            ->where('transaction_date', '>=', $startOfMonth)
+        $sumByCurrency = fn (string $type, Carbon $start, Carbon $end) => $user->transactions()
+            ->where('transactions.type', $type)
+            ->whereBetween('transaction_date', [$start, $end])
             ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
             ->selectRaw('accounts.currency, SUM(transactions.amount) as total')
             ->groupBy('accounts.currency')
             ->get()
             ->mapWithKeys(fn ($item) => [$item->currency => $item->total / 100]);
 
-        $expensesByCurrency = $user->transactions()
-            ->where('transactions.type', 'expense')
-            ->where('transaction_date', '>=', $startOfMonth)
-            ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
-            ->selectRaw('accounts.currency, SUM(transactions.amount) as total')
-            ->groupBy('accounts.currency')
-            ->get()
-            ->mapWithKeys(fn ($item) => [$item->currency => $item->total / 100]);
+        $incomeByCurrency = $sumByCurrency('income', $from, $to);
+        $expensesByCurrency = $sumByCurrency('expense', $from, $to);
+        $previousIncomeByCurrency = $sumByCurrency('income', $prevFrom, $prevTo);
+        $previousExpensesByCurrency = $sumByCurrency('expense', $prevFrom, $prevTo);
 
-        // Split-aware category spending for the current month (top 5, excludes uncategorized)
-        $categorySpending = Transaction::spendByCategory($user->id, $startOfMonth, now())
+        // Split-aware category spending for the selected period (top 5, excludes uncategorized)
+        $categorySpending = Transaction::spendByCategory($user->id, $from, $to)
             ->filter(fn ($row) => $row->category_id !== null)
             ->sortByDesc('amount')
             ->take(5)
@@ -158,8 +162,13 @@ class DashboardController extends Controller
                 'showConverted' => count($balancesByCurrency) > 1,
             ],
             'recentTransactions' => $recentTransactions,
+            'onboarding' => $onboarding->for($user),
+            'safeToSpend' => $safeToSpend->for($user),
+            'range' => $range,
             'incomeByCurrency' => $incomeByCurrency,
             'expensesByCurrency' => $expensesByCurrency,
+            'previousIncomeByCurrency' => $previousIncomeByCurrency,
+            'previousExpensesByCurrency' => $previousExpensesByCurrency,
             'categorySpending' => $categorySpending,
             'monthlyTrend' => $monthlyTrend,
             'budgets' => $budgets,
@@ -173,5 +182,37 @@ class DashboardController extends Controller
                 $currency->value => ['symbol' => $currency->symbol(), 'label' => $currency->label()],
             ]),
         ]);
+    }
+
+    /**
+     * Current period and the equal-length period before it, so the KPI
+     * deltas compare like with like (e.g. Nov 1–23 vs Oct 1–23).
+     *
+     * @return array{Carbon, Carbon, Carbon, Carbon}
+     */
+    private function periodBounds(string $range): array
+    {
+        $to = now()->endOfDay();
+
+        return match ($range) {
+            'last-30' => [
+                $from = now()->subDays(29)->startOfDay(),
+                $to,
+                $from->copy()->subDays(30),
+                $from->copy()->subSecond(),
+            ],
+            '6-months' => [
+                $from = now()->subMonths(5)->startOfMonth(),
+                $to,
+                $from->copy()->subMonths(6),
+                $from->copy()->subSecond(),
+            ],
+            default => [
+                now()->startOfMonth(),
+                $to,
+                now()->subMonthNoOverflow()->startOfMonth(),
+                now()->subMonthNoOverflow()->endOfDay(),
+            ],
+        };
     }
 }
