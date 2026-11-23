@@ -15,8 +15,18 @@ export function useActiveUrl() {
         return toUrl(urlToCheck) === urlToCompare;
     }
 
+    /**
+     * Like urlIsActive, but also true on pages under the URL, so
+     * "Transactions" stays highlighted on /transactions/123/edit.
+     */
+    function urlIsActiveOrChild(urlToCheck: NonNullable<InertiaLinkProps['href']>) {
+        const target = toUrl(urlToCheck).replace(/\/+$/, '');
+        return currentUrlPath === target || (target !== '' && target !== '/' && currentUrlPath.startsWith(`${target}/`));
+    }
+
     return {
         currentUrl: currentUrlPath,
         urlIsActive,
+        urlIsActiveOrChild,
     };
 }

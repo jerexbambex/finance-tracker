@@ -13,6 +13,7 @@ import {
     Repeat,
     LineChart,
     Landmark,
+    CalendarClock,
 } from 'lucide-react';
 
 import AppearanceToggleDropdown from '@/components/appearance-dropdown';
@@ -38,42 +39,13 @@ import AppLogo from './app-logo';
 export function AppSidebar() {
     const { unreadNotifications } = usePage().props as { unreadNotifications?: number };
 
+    // Grouped by what people come to do: day-to-day money, planning ahead,
+    // and looking back. Reports/Insights/Cash Flow/Net Worth used to sit in
+    // the main list between Transactions and Notifications.
     const overviewItems: NavItem[] = [
-        {
-            title: 'Dashboard',
-            href: dashboard(),
-            icon: LayoutGrid,
-        },
-        {
-            title: 'Accounts',
-            href: '/accounts',
-            icon: Wallet,
-        },
-        {
-            title: 'Net Worth',
-            href: '/net-worth',
-            icon: Landmark,
-        },
-        {
-            title: 'Transactions',
-            href: '/transactions',
-            icon: ArrowUpDown,
-        },
-        {
-            title: 'Reports',
-            href: '/reports',
-            icon: BarChart3,
-        },
-        {
-            title: 'Insights',
-            href: '/insights',
-            icon: TrendingUp,
-        },
-        {
-            title: 'Cash Flow',
-            href: '/cash-flow',
-            icon: LineChart,
-        },
+        { title: 'Dashboard', href: dashboard(), icon: LayoutGrid },
+        { title: 'Transactions', href: '/transactions', icon: ArrowUpDown },
+        { title: 'Accounts', href: '/accounts', icon: Wallet },
         {
             title: 'Notifications',
             href: '/notifications',
@@ -83,31 +55,18 @@ export function AppSidebar() {
     ];
 
     const planningItems: NavItem[] = [
-        {
-            title: 'Budgets',
-            href: '/budgets',
-            icon: PieChart,
-        },
-        {
-            title: 'Goals',
-            href: '/goals',
-            icon: Target,
-        },
-        {
-            title: 'Recurring',
-            href: '/recurring-transactions',
-            icon: Repeat,
-        },
-        {
-            title: 'Reminders',
-            href: '/reminders',
-            icon: Bell,
-        },
-        {
-            title: 'Categories',
-            href: '/categories',
-            icon: Folder,
-        },
+        { title: 'Budgets', href: '/budgets', icon: PieChart },
+        { title: 'Goals', href: '/goals', icon: Target },
+        { title: 'Recurring', href: '/recurring-transactions', icon: Repeat },
+        { title: 'Bill Reminders', href: '/reminders', icon: CalendarClock },
+        { title: 'Categories', href: '/categories', icon: Folder },
+    ];
+
+    const analysisItems: NavItem[] = [
+        { title: 'Reports', href: '/reports', icon: BarChart3 },
+        { title: 'Insights', href: '/insights', icon: TrendingUp },
+        { title: 'Cash Flow', href: '/cash-flow', icon: LineChart },
+        { title: 'Net Worth', href: '/net-worth', icon: Landmark },
     ];
 
     const footerNavItems: NavItem[] = [
@@ -135,15 +94,21 @@ export function AppSidebar() {
             <SidebarContent className="space-y-2">
                 <SidebarGroup>
                     <SidebarGroupLabel className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
-                        Main Navigation
+                        Overview
                     </SidebarGroupLabel>
                     <NavMain items={overviewItems} />
                 </SidebarGroup>
                 <SidebarGroup>
                     <SidebarGroupLabel className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
-                        Planning & Limits
+                        Plan
                     </SidebarGroupLabel>
                     <NavMain items={planningItems} />
+                </SidebarGroup>
+                <SidebarGroup>
+                    <SidebarGroupLabel className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+                        Analyze
+                    </SidebarGroupLabel>
+                    <NavMain items={analysisItems} />
                 </SidebarGroup>
             </SidebarContent>
 

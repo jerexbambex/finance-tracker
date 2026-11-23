@@ -7,7 +7,7 @@ import { AppShell } from '@/components/app-shell';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
 import GlobalSearch from '@/components/global-search/GlobalSearch';
-import QuickAddFab from '@/components/quick-add/QuickAddFab';
+import { MobileTabBar } from '@/components/mobile-tab-bar';
 import { type BreadcrumbItem } from '@/types';
 
 export default function AppSidebarLayout({
@@ -37,12 +37,12 @@ export default function AppSidebarLayout({
                 </div>
             )}
             <AppSidebar />
-            <AppContent variant="sidebar" className="overflow-x-hidden" style={impersonating ? { marginTop: '40px' } : {}}>
+            <AppContent variant="sidebar" className="overflow-x-hidden pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0" style={impersonating ? { marginTop: '40px' } : {}}>
                 <AppSidebarHeader breadcrumbs={breadcrumbs} />
                 {children}
             </AppContent>
             <GlobalSearch />
-            <QuickAddFab />
+            <MobileTabBar />
         </AppShell>
     );
 }

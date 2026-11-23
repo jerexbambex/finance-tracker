@@ -9,12 +9,12 @@ import { useActiveUrl } from '@/hooks/use-active-url';
 import { type NavItem } from '@/types';
 
 export function NavMain({ items = [] }: { items: NavItem[] }) {
-    const { urlIsActive } = useActiveUrl();
+    const { urlIsActiveOrChild } = useActiveUrl();
 
     return (
         <SidebarMenu>
             {items.map((item) => {
-                const active = urlIsActive(item.href);
+                const active = urlIsActiveOrChild(item.href);
                 return (
                     <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton
