@@ -49,7 +49,7 @@ export default function DataManagement() {
               <div>
                 <h4 className="text-sm font-semibold tracking-tight text-foreground">Complete Database Backup</h4>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Export all your accounts, transactions, budgets, goals, recurring schedules, and notes as a structured JSON bundle.
+                  Export all your accounts, categories, transactions, budgets, goals, recurring schedules, reminders and tags as a structured JSON bundle.
                 </p>
               </div>
             </div>
@@ -72,7 +72,7 @@ export default function DataManagement() {
               <div>
                 <h4 className="text-sm font-semibold tracking-tight text-foreground">Restore From Backup File</h4>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Import data from an existing JSON backup archive.
+                  Bring back everything from a Penniepal JSON backup.
                 </p>
               </div>
             </div>
@@ -91,7 +91,7 @@ export default function DataManagement() {
 
               <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-900 dark:text-amber-200 text-xs flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4 flex-shrink-0 text-amber-600 dark:text-amber-400" />
-                <span>Importing merges new records into your workspace. Existing IDs will be preserved.</span>
+                <span>Restoring adds what's in the backup to your workspace. Records already here are skipped, so restoring the same file twice won't duplicate anything. Receipt attachments aren't included in backups.</span>
               </div>
 
               <Button type="submit" disabled={!data.file || processing} size="sm" className="rounded-xl text-xs h-9 px-4 gap-1.5 shadow-xs font-semibold">

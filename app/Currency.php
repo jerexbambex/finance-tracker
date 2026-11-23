@@ -13,6 +13,7 @@ enum Currency: string
     case CNY = 'CNY';
     case INR = 'INR';
     case NGN = 'NGN';
+    case CHF = 'CHF';
 
     public function label(): string
     {
@@ -26,6 +27,7 @@ enum Currency: string
             self::CNY => 'Chinese Yuan (¥)',
             self::INR => 'Indian Rupee (₹)',
             self::NGN => 'Nigerian Naira (₦)',
+            self::CHF => 'Swiss Franc (CHF)',
         };
     }
 
@@ -41,6 +43,7 @@ enum Currency: string
             self::CNY => '¥',
             self::INR => '₹',
             self::NGN => '₦',
+            self::CHF => 'CHF',
         };
     }
 
@@ -61,6 +64,7 @@ enum Currency: string
             self::CNY => 'Chinese Yuan',
             self::INR => 'Indian Rupee',
             self::NGN => 'Nigerian Naira',
+            self::CHF => 'Swiss Franc',
         };
     }
 
@@ -76,6 +80,7 @@ enum Currency: string
             self::CNY => '🇨🇳',
             self::INR => '🇮🇳',
             self::NGN => '🇳🇬',
+            self::CHF => '🇨🇭',
         };
     }
 }

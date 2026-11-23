@@ -10,6 +10,7 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
     CNY: '¥',
     INR: '₹',
     NGN: '₦',
+    CHF: 'CHF',
 };
 
 export function currencySymbol(currency: string): string {

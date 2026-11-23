@@ -210,6 +210,7 @@ const pillars = [
 ];
 
 const more = [
+    ['Budget alerts', 'An email and an in-app notice once a category passes 80% of its limit, while there is still room to adjust.'],
     ['Savings goals', 'Name a target and a date, then add to it whenever you can and watch the gap close.'],
     ['Recurring transactions', 'Salary, rent and subscriptions are entered once and posted on schedule.'],
     ['Bill reminders', 'Get a heads-up before something is due, not after it is late.'],

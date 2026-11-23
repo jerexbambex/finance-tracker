@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Currency;
+use App\Models\GoalContribution;
+use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
@@ -161,14 +163,16 @@ class ExportController extends Controller
             fwrite($out, '"accounts":'.json_encode($user->accounts()->get()->toArray()).',');
             fwrite($out, '"categories":'.json_encode($user->categories()->get()->toArray()).',');
             fwrite($out, '"budgets":'.json_encode($user->budgets()->with('category')->get()->toArray()).',');
+            fwrite($out, '"tags":'.json_encode(Tag::where('user_id', $user->id)->get()->toArray()).',');
             fwrite($out, '"goals":'.json_encode($user->goals()->get()->toArray()).',');
+            fwrite($out, '"goal_contributions":'.json_encode(GoalContribution::where('user_id', $user->id)->get()->toArray()).',');
             fwrite($out, '"recurring_transactions":'.json_encode($user->recurringTransactions()->with(['account', 'category'])->get()->toArray()).',');
             fwrite($out, '"reminders":'.json_encode($user->reminders()->with('category')->get()->toArray()).',');
 
             // Transactions streamed in chunks of 1000 to avoid memory exhaustion
             fwrite($out, '"transactions":[');
             $first = true;
-            $user->transactions()->with(['account', 'category'])->lazy()->each(function ($t) use ($out, &$first) {
+            $user->transactions()->with(['account', 'category', 'splits', 'tags'])->lazy()->each(function ($t) use ($out, &$first) {
                 if (! $first) {
                     fwrite($out, ',');
                 }
